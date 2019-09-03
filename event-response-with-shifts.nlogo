@@ -637,7 +637,7 @@ GRAPHICS-WINDOW
 100
 10
 573
-251
+595
 -1
 -1
 9.31
@@ -653,7 +653,7 @@ GRAPHICS-WINDOW
 0
 49
 0
-24
+61
 0
 0
 1
@@ -686,7 +686,7 @@ number-resources
 number-resources
 0
 5000
-1250.0
+3100.0
 50
 1
 NIL
@@ -758,7 +758,7 @@ PLOT
 220
 1214
 370
-Total Resource Usage test
+% of active resources used
 time
 %
 0.0
