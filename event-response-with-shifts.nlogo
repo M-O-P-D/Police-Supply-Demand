@@ -132,13 +132,13 @@ to setup
 
   ;read in the event data
   ;set event-data csv:from-file "input-data/synthetic_day_reports_no_header.csv"
-  set event-data csv:from-file "input-data/synthetic_day_reports_fake_time_no_header_from7.csv"
+  set event-data csv:from-file "input-data/broad-categories/synthetic_day_reports_fake_time_no_header_from7.csv"
   print "Reading Event Data from file ......"
 
   ;read in the event reference table to assign resource charactersitics by offence
   print "Importing Event Resourcing Profiles from file ......"
   set event-reference table:make
-  let event-ref-file csv:from-file "input-data/crime-ref-with-mean-sd.csv"
+  let event-ref-file csv:from-file "input-data/broad-categories/crime-ref-with-mean-sd.csv"
   print event-ref-file
   ;Build the dictionary from event ref file - thsi allows us to update the resourcing weighst associate with offences by editing the CSV
   foreach event-ref-file [x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x)]
@@ -752,7 +752,7 @@ PLOT
 220
 1214
 370
-% of active resources used
+Total Resource Usage
 time
 %
 0.0
