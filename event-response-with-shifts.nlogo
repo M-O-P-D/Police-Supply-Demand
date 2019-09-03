@@ -2,45 +2,45 @@ extensions [csv table time]
 
 globals
 [
-  event-data
-  event-reference
+  event-data ;data structure storing all demand events output from generator
+  event-reference ;data structure storing characteristics of event types - i.e. resource requirements - to be derived in first instance from ONS crime severity scores
   count-completed-events
+
+  ;Globals to keep track of time
+  dt
   Day
   Hour
   Shift-1
   Shift-2
   Shift-3
-  dt
+
 ]
 
-
+;Events store demand - the things the police muct respond to
 breed [events event]
 
+;Resource store supply the thing police use to respond to demand - each unit nominally represents a single officer
 breed [resources resource]
 
 
-
-
-;patches represent
+;POLICE RESOURCE VARIABLES
 resources-own
 [
-  current-event
-  current-event-type
 
-  resource-ID
+  current-event ;the id of the event-agent the resource-agent is responding to
+  current-event-type ;the type of event the resource-agent is responding to
 
+  ;placeholders to allow units of resource to only be able to respond of events of a certain type - currently not used
   resource-type
   resource-roles
 
 
-  ;status of ev
-  resource-status ;represents current officer state - coded: 0 = off duty, 1
-  resource-start-dt
+  ;status of resource agent
+  resource-status ;represents the current state of the resource agent - coded: 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
+  resource-start-dt ; the date-time when the current job started
 
-  resource-timer
-
-  resource-hours-required
-  resource-end-dt
+  resource-hours-required ;count of hours required to respond to current event
+  resource-end-dt ;calculated end date/time of current event - equates to resource-start-dt + resource-hours-required
 
   ;records what shift - if any - a resource is working on
   working-shift
@@ -49,18 +49,19 @@ resources-own
 
 
 
+;DEMAND EVENT VARIABLES
 events-own
 [
-  current-resource
+  current-resource ; the resource agent(s) (can be multiple) - if any - currently repsonding to this event
   event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
-  event-type
-  event-start-dt
-  event-harm
-  event-timer
-  event-resource-type
-  ;number of resource units required to repsond to event
-  event-resource-amount
-  event-trigger
+
+  event-type ;event type in this model - crime type
+  event-start-dt ;event start date/time
+
+  event-resource-type ; placeholders to allow units of resource to only be able to respond of events of a certain type - currently not used
+
+  event-resource-amount ;number of resource units required to repsond to event - drawn from event-reference
+
 ]
 
 
@@ -68,22 +69,17 @@ events-own
 
 
 
-
+;Procedure to check datetime and adjust flags for shifts currently active/inactive
 to check-shift
-
-;  ifelse Hour = 7 and Hour < 17 [ set Shift-1 TRUE ] [ set Shift-1 FALSE ]
-;
-;  ifelse Hour >= 14 and Hour < 24 [ set Shift-2 TRUE ] [ set Shift-2 FALSE ]
-;
-;  ifelse Hour < 7 or Hour >= 22 [ set Shift-3 TRUE ] [ set Shift-3 FALSE ]
-;
-;
 
   ;Shifts:
   ;1. 0700 - 1700
   ;2. 1400 - 2400
   ;3. 2200 - 0700
 
+
+
+  ;Currently no working roster-off solution - what to do when a job is ongoing?
 
   ;Shift 1
   if Hour = 7 [ set Shift-1 TRUE roster-on 1  ]
@@ -97,15 +93,13 @@ to check-shift
   if Hour = 22 [ set Shift-3 TRUE roster-on 3 ]
   if Hour = 7 [ set Shift-3 FALSE ]
 
-
-
 end
 
 
 
 
 
-
+;main setup procedure
 to setup
 
   ca
@@ -637,7 +631,7 @@ GRAPHICS-WINDOW
 100
 10
 573
-595
+596
 -1
 -1
 9.31
