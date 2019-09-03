@@ -636,8 +636,8 @@ end
 GRAPHICS-WINDOW
 100
 10
-574
-253
+573
+251
 -1
 -1
 9.31
@@ -758,7 +758,7 @@ PLOT
 220
 1214
 370
-Total Resource Usage
+Total Resource Usage test
 time
 %
 0.0
