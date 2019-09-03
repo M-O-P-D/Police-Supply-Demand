@@ -119,7 +119,15 @@ to setup
   set Shift-3 false
 
   ; create police resoruce agents - one per patch
-  ask n-of number-resources patches [ sprout-resources 1 [set shape "square" set color grey set resource-status 0] ]
+  ask n-of number-resources patches
+  [
+    sprout-resources 1
+    [
+      set shape "square"
+      set color grey
+      ifelse Shifts [set resource-status 0] [set resource-status 1]
+    ]
+  ]
 
   ;set the global clock
   set dt time:create "2000/07/01 7:00"
@@ -192,7 +200,7 @@ to go-step
 
   ;update time and check shift bools
   update-time
-  check-shift
+  if Shifts [check-shift]
 
   ;read in current hour's events
   read-events
@@ -997,6 +1005,17 @@ count resources with [resource-status = 2]
 17
 1
 11
+
+SWITCH
+865
+70
+968
+103
+Shifts
+Shifts
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
