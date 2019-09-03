@@ -8,6 +8,7 @@ globals
 
   ;Globals to keep track of time
   dt
+  Month
   Day
   Hour
   Shift-1
@@ -102,9 +103,9 @@ end
 ;main setup procedure
 to setup
 
+  ;clear stuff
   ca
   reset-ticks
-
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
@@ -112,42 +113,29 @@ to setup
 
   resize-world 0 49 0 dim-resource-temp
 
-
+  ;initialize shift bools
   set Shift-1 false
   set Shift-2 false
   set Shift-3 false
-
-
 
   ; create police resoruce agents - one per patch
   ask n-of number-resources patches [ sprout-resources 1 [set shape "square" set color grey set resource-status 0] ]
 
   ;set the global clock
-  set dt time:create "2000/01/01 7:00"
-
-
-  ;hack roster-on shift 3 - as  file starts at midnight
-
-
+  set dt time:create "2000/07/01 7:00"
 
   ;read in the event data
-  ;set event-data csv:from-file "input-data/synthetic_day_reports_no_header.csv"
-  set event-data csv:from-file "input-data/broad-categories/synthetic_day_reports_fake_time_no_header_from7.csv"
   print "Reading Event Data from file ......"
+  set event-data csv:from-file "input-data/broad-categories/synthetic_day_reports_fake_time_no_header_from7.csv"
 
   ;read in the event reference table to assign resource charactersitics by offence
   print "Importing Event Resourcing Profiles from file ......"
   set event-reference table:make
   let event-ref-file csv:from-file "input-data/broad-categories/crime-ref-with-mean-sd.csv"
   print event-ref-file
+
   ;Build the dictionary from event ref file - thsi allows us to update the resourcing weighst associate with offences by editing the CSV
   foreach event-ref-file [x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x)]
-  ;print event-reference
-
-
-
-
-
 
 
 end
@@ -197,25 +185,33 @@ end
 
 
 
-
+;the main simulation loop
 to go-step
 
   if VERBOSE [print time:show dt "dd-MM-yyyy HH:mm"]
 
+  ;update time and check shift bools
   update-time
+  check-shift
 
+  ;read in current hour's events
   read-events
+  ;assign resources
   assign-resources
-
+  ;check ongoing events
   ask events [ check-events ]
+  ;update visualisations
   ask resources [  draw-resource-status ]
   update-all-plots
+  ;tick by one hour
   increment-time
+
+  ;repeat
 
 end
 
 
-
+;increment internal tick clock and date time object - 1 tick = 1 hour
 to increment-time
   tick
   set dt time:plus dt 1 "hours"
@@ -227,7 +223,7 @@ to update-time
 ; set globals for hour and day for easy access
   set Day time:get "day" dt
   set Hour time:get "hour" dt
-  check-shift
+  set Month time:get "month" dt
 end
 
 
@@ -241,25 +237,19 @@ to read-events
     ;pull the top row from the data
     let temp item 0 event-data
 
-    ;print temp
-    ;extract day
+    ;extract hour/day/month from next event
+    let tmp-event-month item 2 temp
     let tmp-event-day item 1 temp
     let tmp-event-hour item 6 temp
 
-    ;print tmp-event-day
-    ;print tmp-event-hour
-
     ;check if the event occurs at current tick
-    ifelse (tmp-event-day = Day and tmp-event-hour = Hour)
+    ifelse (tmp-event-month = Month and tmp-event-day = Day and tmp-event-hour = Hour)
     [
       ;creat an event agent
       create-events 1
       [
-
-
         ;make it invisible
-        set shape "dot"
-        set color white
+        set hidden? true
 
         ;fill in relevant details for event from data
         set event-type item 3 temp
@@ -271,9 +261,7 @@ to read-events
 
       ;once the event agent has been created delete it from the data file
       set event-data remove-item 0 event-data
-
     ]
-
     [
       set day-end TRUE
       ;print "Next Day......"
