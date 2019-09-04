@@ -401,7 +401,7 @@ to check-event-status
     [
       file-print (word
         eventID ","
- supply demand model temp
+
 
         count current-resource ","
         event-status ","
@@ -672,8 +672,8 @@ end
 GRAPHICS-WINDOW
 228
 14
-516
-303
+458
+245
 -1
 -1
 22.2
@@ -942,7 +942,7 @@ SWITCH
 12
 284
 180
-318
+317
 VERBOSE
 VERBOSE
 1
@@ -964,7 +964,7 @@ SWITCH
 12
 220
 181
-254
+253
 Shifts
 Shifts
 1
@@ -1022,7 +1022,7 @@ SWITCH
 10
 320
 178
-354
+353
 file-out
 file-out
 0
