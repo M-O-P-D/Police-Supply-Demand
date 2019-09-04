@@ -53,6 +53,8 @@ resources-own
 ;DEMAND EVENT VARIABLES
 events-own
 [
+  eventID ;link back to event data
+
   current-resource ; the resource agent(s) (can be multiple) - if any - currently repsonding to this event
   event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
 
@@ -120,9 +122,9 @@ to setup
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
-  let dim-resource-temp (number-resources / 20) - 1
+  let dim-resource-temp (number-resources / 10) - 1
 
-  resize-world 0 19 0 dim-resource-temp
+  resize-world 0 9 0 dim-resource-temp
 
   ;initialize shift bools
   set Shift-1 false
@@ -142,6 +144,9 @@ to setup
 
   ;set the global clock
   set dt time:create "2019/01/01 7:00"
+
+  if file-out [start-file-out]
+
 
   ;read in the event data
   print "Reading Event Data from file ......"
@@ -248,6 +253,18 @@ to update-time
 end
 
 
+to start-file-out
+
+  file-open "test.csv"
+  file-print "eventID, current-resource ,event-status, event-type, event-class, event-LSOA,event-start-dt,event-response-start-dt, event-response-end-dt, event-resource-counter, event-resource-type,event-resource-req-time, event-resource-req-amount ,event-resource-req-total"
+
+end
+
+
+
+
+
+
 to read-events
 
   ;event structure is
@@ -281,6 +298,8 @@ to read-events
         set hidden? true
 
         ;fill in relevant details for event from data
+        set eventID item 1 temp
+
         set event-type item 6 temp
         set event-class item 7 temp
         set event-LSOA item 8 temp
@@ -337,8 +356,9 @@ to-report get-event-resource-time [ eventType ]
 
 end
 
-to-report get-event-resource-amount [ eventType ]
 
+
+to-report get-event-resource-amount [ eventType ]
 
   ; pull the mean amount of resource required to adress an event from the event-reference dictionary -
   let event-info  table:get event-reference eventType
@@ -349,10 +369,9 @@ to-report get-event-resource-amount [ eventType ]
   ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
   let amount (round random-poisson mean-amount) + 1
 
-
   ;show (word eventType " - mean-amount=" mean-amount " ,sd-amount=" sd-amount " -- Actual=" amount)
 
- report amount
+  report amount
 
 end
 
@@ -369,7 +388,6 @@ to check-event-status
   ;check when event being responded to should be finshed
 
   ifelse time:is-equal event-response-end-dt dt
-
   [
     ; if it is this cycle - end the event, record that, relinquish resource(s), destroy the event agent
     ask current-resource [ relinquish ]
@@ -379,15 +397,33 @@ to check-event-status
 
     ;show (word "Job complete")
 
+    if file-out
+    [
+      file-print (word
+        eventID ","
+ supply demand model temp
+
+        count current-resource ","
+        event-status ","
+        event-type ","
+        event-class ","
+        event-LSOA ","
+        (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
+        (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
+        (time:show event-response-end-dt "dd-MM-yyyy HH:mm") ","
+        event-resource-counter ","
+        event-resource-type ","
+        event-resource-req-time ","
+        event-resource-req-amount ","
+        event-resource-req-total
+      )
+    ]
     die
   ]
   [
     ;otherwise count the time spent thus far
-
     set event-resource-counter event-resource-counter + count current-resource
     ;show (word "Job ongoing - requires = " event-resource-req-total " --- resourced " event-resource-counter " thus far")
-
-
   ]
 
 
@@ -634,13 +670,13 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-100
-10
-584
-92
+228
+14
+516
+303
 -1
 -1
-23.73
+22.2
 1
 10
 1
@@ -651,9 +687,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-19
+9
 0
-2
+9
 0
 0
 1
@@ -661,10 +697,10 @@ ticks
 30.0
 
 BUTTON
-12
-10
-92
-43
+13
+13
+93
+46
 NIL
 setup\n
 NIL
@@ -678,25 +714,25 @@ NIL
 1
 
 SLIDER
-35
-125
-68
-281
+10
+88
+179
+121
 number-resources
 number-resources
-0
+10
 1000
-60.0
-20
+100.0
+10
 1
 NIL
-VERTICAL
+HORIZONTAL
 
 BUTTON
-11
-45
-92
-78
+98
+13
+179
+46
 NIL
 go-step
 T
@@ -710,21 +746,21 @@ NIL
 1
 
 MONITOR
-620
-135
-807
-180
-Active Resources Remaining 
+863
+13
+973
+58
+Resources Free
 count resources with [resource-status = 1]
 17
 1
 11
 
 MONITOR
-618
-273
-752
-318
+1164
+13
+1298
+58
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -732,10 +768,10 @@ count events with [event-status = 1]
 11
 
 MONITOR
-616
-325
-753
-370
+1309
+13
+1446
+58
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -743,10 +779,10 @@ count events with [event-status = 2]
 11
 
 MONITOR
-613
-377
-752
-422
+1458
+13
+1597
+58
 Events - Completed
 count-completed-events
 17
@@ -754,10 +790,10 @@ count-completed-events
 11
 
 PLOT
-835
-220
-1214
-370
+558
+80
+938
+269
 Total Resource Usage
 time
 %
@@ -771,33 +807,11 @@ false
 PENS
 "Supply" 1.0 0 -16777216 true "" ""
 
-MONITOR
-772
-13
-829
-58
-NIL
-Day
-17
-1
-11
-
-MONITOR
-635
-65
-705
-110
-Shift-1
-Shift-1
-17
-1
-11
-
 PLOT
-610
-430
-1355
-689
+558
+274
+1303
+533
 events
 time
 count of events
@@ -825,10 +839,10 @@ PENS
 "Violence and sexual offences" 1.0 0 -5825686 true "" ""
 
 BUTTON
-11
-80
-92
-113
+98
+48
+179
+81
 NIL
 go-step
 NIL
@@ -842,59 +856,31 @@ NIL
 1
 
 TEXTBOX
-1104
-20
-1317
-97
+15
+140
+228
+217
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
 1
 
 MONITOR
-834
-15
-955
-60
-Hour
-Hour
-17
-1
-11
-
-MONITOR
-637
-12
-768
-57
+573
+13
+712
+58
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
 17
 1
 11
 
-BUTTON
-1045
-390
-1169
-423
-Report ASB
-Print (word \"There are currently \" count events with [event-type = \"Anti-social behaviour\"] \" Anti-social behaviour events in progress - being dealt with by \" count resources with [current-event-type = \"Anti-social behaviour\"])
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 PLOT
-1360
-430
-1935
-950
+1308
+274
+1643
+794
 scatter
 count events
 count resource
@@ -922,10 +908,10 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-611
-696
-1356
-953
+559
+540
+1304
+797
 resources
 time
 resources
@@ -953,64 +939,32 @@ PENS
 "Violence and sexual offences" 1.0 0 -5825686 true "" ""
 
 SWITCH
-1230
-10
-1341
-43
+12
+284
+180
+318
 VERBOSE
 VERBOSE
 1
 1
 -1000
 
-TEXTBOX
-1580
-20
-1730
-146
-If we weight events by a harm score - this is, in essence - describing what resourcing would look like if supply was directly proportionate to estimated harm...\nThis is an intersting question ..... 
-11
-0.0
-1
-
 MONITOR
-710
-65
-780
-110
-NIL
-Shift-2
-17
-1
-11
-
-MONITOR
-785
-65
-860
-110
-NIL
-Shift-3
-17
-1
-11
-
-MONITOR
-620
-185
-805
-230
-Active Resources Responding
+982
+13
+1131
+58
+Resources Responding
 count resources with [resource-status = 2]
 17
 1
 11
 
 SWITCH
-865
-70
-968
-103
+12
+220
+181
+254
 Shifts
 Shifts
 1
@@ -1018,10 +972,10 @@ Shifts
 -1000
 
 PLOT
-1220
-220
-1585
-370
+943
+80
+1303
+269
 Resource Usage Count
 NIL
 NIL
@@ -1036,10 +990,10 @@ PENS
 "Active Resources" 1.0 0 -7500403 true "" ""
 
 MONITOR
-960
-15
-1072
-60
+718
+13
+858
+58
 Events in Queue
 length event-data
 17
@@ -1047,10 +1001,10 @@ length event-data
 11
 
 PLOT
-1599
-220
-1932
-370
+1309
+79
+1642
+269
 Events Waiting
 NIL
 NIL
@@ -1063,6 +1017,17 @@ false
 "" ""
 PENS
 "waiting" 1.0 0 -16777216 true "" ""
+
+SWITCH
+10
+320
+178
+354
+file-out
+file-out
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
