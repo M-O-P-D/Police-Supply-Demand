@@ -221,7 +221,7 @@ to go-step
   ;assign resources
   ask events with [event-status = 1] [get-resources]
 
-  ;update visualisations - do this after resources have been allocated and not when jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
+  ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
   ask resources [  draw-resource-status ]
   update-all-plots
 
@@ -250,7 +250,7 @@ end
 to start-file-out
 
   file-open "test.csv"
-  file-print "eventID, current-resource ,event-status, event-type, event-class, event-LSOA,event-start-dt,event-response-start-dt, event-response-end-dt, event-resource-counter, event-resource-type,event-resource-req-time, event-resource-req-amount ,event-resource-req-total"
+  file-print "eventID, count-resources ,event-status, event-type, event-class, event-LSOA, event-start-dt, event-response-start-dt, event-response-end-dt, event-resource-counter, event-resource-type, event-resource-req-time, event-resource-req-amount,event-resource-req-total"
 
 end
 
@@ -403,9 +403,9 @@ to check-event-status
 
 
         count current-resource ","
-        event-status ","
-        event-type ","
-        event-class ","
+        event-status ",\""
+        event-type "\",\""
+        event-class "\","
         event-LSOA ","
         (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
         (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
@@ -672,7 +672,7 @@ GRAPHICS-WINDOW
 228
 14
 458
-111
+245
 -1
 -1
 22.2
@@ -688,7 +688,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-3
+9
 0
 0
 1
@@ -721,7 +721,7 @@ number-resources
 number-resources
 10
 1000
-40.0
+100.0
 10
 1
 NIL
@@ -745,10 +745,10 @@ NIL
 1
 
 MONITOR
-863
-13
-973
-58
+790
+15
+900
+60
 Resources Free
 count resources with [resource-status = 1]
 17
@@ -756,10 +756,10 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-1164
-13
-1298
-58
+1091
+15
+1225
+60
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -767,10 +767,10 @@ count events with [event-status = 1]
 11
 
 MONITOR
-1309
-13
-1446
-58
+1236
+15
+1373
+60
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -778,10 +778,10 @@ count events with [event-status = 2]
 11
 
 MONITOR
-1458
-13
-1597
-58
+1385
+15
+1524
+60
 Events - Completed
 count-completed-events
 17
@@ -789,10 +789,10 @@ count-completed-events
 11
 
 PLOT
-558
-80
-938
-269
+485
+82
+865
+271
 Total Resource Usage
 time
 %
@@ -807,10 +807,10 @@ PENS
 "Supply" 1.0 0 -16777216 true "" ""
 
 PLOT
-558
-274
-1303
-533
+485
+276
+1230
+535
 events
 time
 count of events
@@ -865,10 +865,10 @@ Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 1
 
 MONITOR
-573
-13
-712
-58
+500
+15
+639
+60
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
 17
@@ -876,10 +876,10 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1308
-274
-1643
-794
+1235
+276
+1570
+796
 scatter
 count events
 count resource
@@ -907,10 +907,10 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-559
-540
-1304
-797
+486
+542
+1231
+799
 resources
 time
 resources
@@ -949,10 +949,10 @@ VERBOSE
 -1000
 
 MONITOR
-982
-13
-1131
-58
+909
+15
+1058
+60
 Resources Responding
 count resources with [resource-status = 2]
 17
@@ -971,10 +971,10 @@ Shifts
 -1000
 
 PLOT
-943
-80
-1303
-269
+870
+82
+1230
+271
 Resource Usage Count
 NIL
 NIL
@@ -989,10 +989,10 @@ PENS
 "Active Resources" 1.0 0 -7500403 true "" ""
 
 MONITOR
-718
-13
-858
-58
+645
+15
+785
+60
 Events in Queue
 length event-data
 17
@@ -1000,10 +1000,10 @@ length event-data
 11
 
 PLOT
-1309
-79
-1642
-269
+1236
+81
+1569
+271
 Events Waiting
 NIL
 NIL
