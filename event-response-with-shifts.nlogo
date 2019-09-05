@@ -8,9 +8,6 @@ globals
 
   ;Globals to keep track of time
   dt
-  Month
-  Day
-  Hour
   Shift-1
   Shift-2
   Shift-3
@@ -91,21 +88,21 @@ to check-shift
   ;2. 1400 - 2400
   ;3. 2200 - 0700
 
-
+  let hour time:get "hour" dt
 
   ;Currently no working roster-off solution - what to do when a job is ongoing?
 
   ;Shift 1
-  if Hour = 7 [ set Shift-1 TRUE roster-on 1  ]
-  if Hour = 17 [ set Shift-1 FALSE roster-off 1 ]
+  if hour = 7 [ set Shift-1 TRUE roster-on 1  ]
+  if hour = 17 [ set Shift-1 FALSE roster-off 1 ]
 
   ;Shift 2
-  if Hour = 14 [ set Shift-2 TRUE roster-on 2 ]
-  if Hour = 0 [ set Shift-2 FALSE ]
+  if hour = 14 [ set Shift-2 TRUE roster-on 2 ]
+  if hour = 0 [ set Shift-2 FALSE ]
 
   ;Shift 3
-  if Hour = 22 [ set Shift-3 TRUE roster-on 3 ]
-  if Hour = 7 [ set Shift-3 FALSE ]
+  if hour = 22 [ set Shift-3 TRUE roster-on 3 ]
+  if hour = 7 [ set Shift-3 FALSE ]
 
 end
 
@@ -217,18 +214,20 @@ to go-step
   if VERBOSE [print time:show dt "dd-MM-yyyy HH:mm"]
 
   ;update time and check shift bools
-  update-time
   if Shifts [check-shift]
 
   ;read in current hour's events
   read-events
   ;assign resources
   ask events with [event-status = 1] [get-resources]
-  ;check status of ongoing events so those about to complete can be closed
-  ask events with [event-status = 2] [ check-event-status ]
-  ;update visualisations
+
+  ;update visualisations - do this after resources have been allocated and not when jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
   ask resources [  draw-resource-status ]
   update-all-plots
+
+  ;check status of ongoing events so those about to complete can be closed
+  ask events with [event-status = 2] [ check-event-status ]
+
   ;tick by one hour
   increment-time
 
@@ -245,12 +244,7 @@ end
 
 
 
-to update-time
-; set globals for hour and day for easy access
-  set Day time:get "day" dt
-  set Hour time:get "hour" dt
-  set Month time:get "month" dt
-end
+
 
 
 to start-file-out
@@ -282,14 +276,19 @@ to read-events
     let temp item 0 event-data
 
     ;extract hour/day/month from next event
-    let tmp-event-year 2
+    let tmp-event-year item 2 temp
     let tmp-event-month item 3 temp
     let tmp-event-day item 4 temp
     let tmp-event-hour item 5 temp
 
+    ;construct a date
+    let temp-dt time:create (word tmp-event-year  "-" tmp-event-month "-"  tmp-event-day " " tmp-event-hour ":00:00")
+
+
+
 
     ;check if the event occurs at current tick
-    ifelse (tmp-event-month = Month and tmp-event-day = Day and tmp-event-hour = Hour)
+    ifelse (time:is-equal temp-dt dt)
     [
       ;creat an event agent
       create-events 1
@@ -673,7 +672,7 @@ GRAPHICS-WINDOW
 228
 14
 458
-245
+111
 -1
 -1
 22.2
@@ -689,7 +688,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-9
+3
 0
 0
 1
@@ -722,7 +721,7 @@ number-resources
 number-resources
 10
 1000
-100.0
+40.0
 10
 1
 NIL
