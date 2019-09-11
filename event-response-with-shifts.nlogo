@@ -43,6 +43,8 @@ resources-own
   ;records what shift - if any - a resource is working on
   working-shift
 
+  events-completed ;measure of total number of incidents completed
+
 ]
 
 
@@ -119,9 +121,9 @@ to setup
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
-  let dim-resource-temp (number-resources / 10) - 1
+  let dim-resource-temp (number-resources / 25) - 1
 
-  resize-world 0 9 0 dim-resource-temp
+  resize-world 0 24 0 dim-resource-temp
 
   ;initialize shift bools
   set Shift-1 false
@@ -136,31 +138,44 @@ to setup
       set shape "square"
       set color grey
       ifelse Shifts [set resource-status 0] [set resource-status 1]
+      set events-completed 0
     ]
   ]
 
   ;set the global clock
-  set dt time:create "2019/01/01 7:00"
+
 
   if file-out [start-file-out]
 
 
   ;read in the event data
   print "Reading Event Data from file ......"
-  set event-data csv:from-file "input-data/fine-categories/synthetic_day_reports_new_format.csv"
+
+  if demand-events = "Synthetic" [ set event-data csv:from-file "input-data/fine-categories/synthetic_day_reports_new_format.csv" set dt time:create "2019/01/01 7:00" ]
+  if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/full_data_WY.csv" set dt time:create "2016/03/01 7:00" ]
   set event-data remove-item 0 event-data ;remove top row
 
   ;read in the event reference table to assign resource charactersitics by offence
   print "Importing Event Resourcing Profiles from file ......"
   set event-reference table:make
-  let event-ref-file csv:from-file "input-data/fine-categories/crime-ref-with-mean-sd.csv"
-  print event-ref-file
 
   ;Build the dictionary from event ref file - thsi allows us to update the resourcing weighst associate with offences by editing the CSV
-  foreach event-ref-file
+  if event-characteristics = "Uniform"
   [
-    x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x)
+    let event-ref-file csv:from-file "input-data/fine-categories/crime-ref-with-mean-sd.csv"
+    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x) ]
+    print event-ref-file
   ]
+  if event-characteristics = "Experimental"
+  [
+    let event-ref-file csv:from-file "input-data/fine-categories/crime-ref-with-mean-sd-CSS-v1.csv"
+    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x) ]
+    print event-ref-file
+  ]
+
+  ;print event-ref-file
+
+
 
 
 end
@@ -432,6 +447,7 @@ end
 
 to relinquish
 
+  set events-completed events-completed + 1
   set resource-status 1
   set current-event-type ""
   set current-event-class ""
@@ -669,13 +685,13 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-228
-14
-458
-245
+185
+15
+391
+135
 -1
 -1
-22.2
+7.93
 1
 10
 1
@@ -686,9 +702,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-9
+24
 0
-9
+13
 0
 0
 1
@@ -696,10 +712,10 @@ ticks
 30.0
 
 BUTTON
-13
-13
-93
-46
+10
+15
+80
+48
 NIL
 setup\n
 NIL
@@ -714,24 +730,24 @@ NIL
 
 SLIDER
 10
-88
-179
-121
+85
+175
+118
 number-resources
 number-resources
-10
-1000
-100.0
-10
+25
+5000
+350.0
+25
 1
 NIL
 HORIZONTAL
 
 BUTTON
-98
-13
-179
-46
+85
+15
+175
+48
 NIL
 go-step
 T
@@ -745,9 +761,9 @@ NIL
 1
 
 MONITOR
-790
+695
 15
-900
+805
 60
 Resources Free
 count resources with [resource-status = 1]
@@ -756,9 +772,9 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-1091
+996
 15
-1225
+1130
 60
 Events - Awaiting
 count events with [event-status = 1]
@@ -767,9 +783,9 @@ count events with [event-status = 1]
 11
 
 MONITOR
-1236
+1141
 15
-1373
+1278
 60
 Events - Ongoing
 count events with [event-status = 2]
@@ -778,9 +794,9 @@ count events with [event-status = 2]
 11
 
 MONITOR
-1385
+1290
 15
-1524
+1429
 60
 Events - Completed
 count-completed-events
@@ -789,10 +805,10 @@ count-completed-events
 11
 
 PLOT
-485
-82
-865
-271
+405
+65
+785
+254
 Total Resource Usage
 time
 %
@@ -807,10 +823,10 @@ PENS
 "Supply" 1.0 0 -16777216 true "" ""
 
 PLOT
-485
-276
-1230
-535
+405
+259
+1150
+518
 events
 time
 count of events
@@ -838,10 +854,10 @@ PENS
 "Violence and sexual offences" 1.0 0 -5825686 true "" ""
 
 BUTTON
-98
-48
-179
-81
+85
+50
+175
+83
 NIL
 go-step
 NIL
@@ -857,7 +873,7 @@ NIL
 TEXTBOX
 15
 140
-228
+140
 217
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
@@ -865,9 +881,9 @@ Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 1
 
 MONITOR
-500
+405
 15
-639
+544
 60
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
@@ -876,10 +892,10 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1235
-276
-1570
-796
+1155
+259
+1670
+779
 scatter
 count events
 count resource
@@ -907,10 +923,10 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-486
-542
-1231
-799
+406
+525
+1151
+782
 resources
 time
 resources
@@ -938,10 +954,10 @@ PENS
 "Violence and sexual offences" 1.0 0 -5825686 true "" ""
 
 SWITCH
-12
-284
-180
-317
+10
+280
+175
+313
 VERBOSE
 VERBOSE
 1
@@ -949,9 +965,9 @@ VERBOSE
 -1000
 
 MONITOR
-909
+814
 15
-1058
+963
 60
 Resources Responding
 count resources with [resource-status = 2]
@@ -960,9 +976,9 @@ count resources with [resource-status = 2]
 11
 
 SWITCH
-12
+10
 220
-181
+175
 253
 Shifts
 Shifts
@@ -971,10 +987,10 @@ Shifts
 -1000
 
 PLOT
-870
-82
-1230
-271
+790
+65
+1150
+254
 Resource Usage Count
 NIL
 NIL
@@ -989,9 +1005,9 @@ PENS
 "Active Resources" 1.0 0 -7500403 true "" ""
 
 MONITOR
-645
+550
 15
-785
+690
 60
 Events in Queue
 length event-data
@@ -1000,10 +1016,10 @@ length event-data
 11
 
 PLOT
-1236
-81
-1569
-271
+1156
+64
+1489
+254
 Events Waiting
 NIL
 NIL
@@ -1019,14 +1035,62 @@ PENS
 
 SWITCH
 10
-320
-178
-353
+315
+175
+348
 file-out
 file-out
-0
+1
 1
 -1000
+
+CHOOSER
+10
+355
+175
+400
+demand-events
+demand-events
+"Synthetic" "Actual"
+1
+
+CHOOSER
+10
+400
+175
+445
+event-characteristics
+event-characteristics
+"Uniform" "Experimental"
+1
+
+BUTTON
+10
+460
+175
+493
+NIL
+ask resources \n[\nshow events-completed\n]
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+1435
+15
+1595
+60
+NIL
+mean [events-completed] of resources
+1
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
