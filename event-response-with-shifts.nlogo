@@ -151,8 +151,8 @@ to setup
   ;read in the event data
   print "Reading Event Data from file ......"
 
-  if demand-events = "Synthetic" [ set event-data csv:from-file "input-data/fine-categories/synthetic_day_reports_new_format.csv" set dt time:create "2019/01/01 7:00" ]
-  if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/full_data_WY.csv" set dt time:create "2016/03/01 7:00" ]
+  if demand-events = "Synthetic" [ set event-data csv:from-file "input-data/fine-categories/WYP_synthetic_day_reports.csv" set dt time:create "2019/01/01 7:00" ]
+  if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/WYP_historic_day_reports.csv" set dt time:create "2016/03/01 7:00" ]
   set event-data remove-item 0 event-data ;remove top row
 
   ;read in the event reference table to assign resource charactersitics by offence
@@ -162,13 +162,13 @@ to setup
   ;Build the dictionary from event ref file - thsi allows us to update the resourcing weighst associate with offences by editing the CSV
   if event-characteristics = "Uniform"
   [
-    let event-ref-file csv:from-file "input-data/fine-categories/crime-ref-with-mean-sd.csv"
+    let event-ref-file csv:from-file "input-data/fine-categories/Activity_Times_Uniform.csv"
     foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x) ]
     print event-ref-file
   ]
   if event-characteristics = "Experimental"
   [
-    let event-ref-file csv:from-file "input-data/fine-categories/crime-ref-with-mean-sd-CSS-v1.csv"
+    let event-ref-file csv:from-file "input-data/fine-categories/Activity_Times_Crime_Severity_Score_v1.csv"
     foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x) ]
     print event-ref-file
   ]
@@ -1039,9 +1039,9 @@ PENS
 
 SWITCH
 10
-315
+585
 175
-348
+618
 event-file-out
 event-file-out
 1
