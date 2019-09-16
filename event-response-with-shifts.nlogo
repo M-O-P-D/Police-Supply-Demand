@@ -75,6 +75,8 @@ events-own
   event-resource-req-amount ;number of resource units required to repsond to event - drawn from event-reference
   event-resource-req-total
 
+  event-priority ; placeholder for variable that allows events to be triaged in terms of importance of response
+
 ]
 
 
@@ -169,7 +171,7 @@ to setup
   if event-characteristics = "Experimental"
   [
     let event-ref-file csv:from-file "input-data/fine-categories/Activity_Times_Crime_Severity_Score_v1.csv"
-    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x) ]
+    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x item 5 x) ]
     print event-ref-file
   ]
 
@@ -234,8 +236,38 @@ to go-step
   ;read in current hour's events
   read-events
 
+
+
+
+  ;here we could ask resources to find events - but we do need to deal with the fact that some resources require more than one unit of resource
+;  ask resources with [resource-status = 1]
+;  [
+;    print (word " resource: " who " looking for a job - following available:")
+;      ask events [print (word "event:" who " - " event-type " - priority: " event-priority )]
+;  ]
+
+
+
+
+
+
   ;assign resources - right now this is written events look for resources where in reality resources should look for events
-  ask events with [event-status = 1] [get-resources]
+  ifelse not triage-events
+  [
+    print "poo"
+    ask events with [event-status = 1] [get-resources]
+  ]
+  [
+    ;rudimentary triage
+    let events-awating events with [event-status = 1]
+    ask events-awating with [event-priority = 1] [get-resources]
+    ask events-awating with [event-priority = 2] [get-resources]
+    ask events-awating with [event-priority = 3] [get-resources]
+  ]
+
+
+
+
 
   ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
   ask resources [  draw-resource-status ]
@@ -258,6 +290,14 @@ to increment-time
   set dt time:plus dt 1 "hours"
 end
 
+
+
+to prioritise-events
+
+
+
+
+end
 
 
 
@@ -323,6 +363,8 @@ to read-events
         set event-resource-req-time get-event-resource-time event-type
         set event-resource-req-total event-resource-req-amount * event-resource-req-time
         set event-resource-counter 0
+
+        set event-priority get-event-priority event-type
       ]
 
       ;once the event agent has been created delete it from the data file
@@ -389,7 +431,13 @@ to-report get-event-resource-amount [ eventType ]
 end
 
 
+to-report get-event-priority [ eventType ]
 
+  let event-info  table:get event-reference eventType
+  let priority item 4 event-info
+  report priority
+
+end
 
 
 
@@ -449,6 +497,7 @@ to check-event-status
 end
 
 
+;
 to relinquish
 
   set events-completed events-completed + 1
@@ -692,7 +741,7 @@ GRAPHICS-WINDOW
 185
 15
 391
-31
+87
 -1
 -1
 7.93
@@ -708,7 +757,7 @@ GRAPHICS-WINDOW
 0
 24
 0
-0
+7
 0
 0
 1
@@ -741,7 +790,7 @@ number-resources
 number-resources
 25
 5000
-25.0
+200.0
 25
 1
 NIL
@@ -1056,7 +1105,7 @@ CHOOSER
 demand-events
 demand-events
 "Synthetic" "Actual"
-0
+1
 
 CHOOSER
 10
@@ -1093,6 +1142,50 @@ MONITOR
 NIL
 mean [events-completed] of resources
 1
+1
+11
+
+SWITCH
+180
+220
+317
+253
+triage-events
+triage-events
+0
+1
+-1000
+
+MONITOR
+1495
+65
+1612
+110
+priority 1 waiting
+count events with [event-status = 1 and event-priority = 1]
+17
+1
+11
+
+MONITOR
+1495
+115
+1612
+160
+priority 2 waiting
+count events with [event-status = 1 and event-priority = 2]
+17
+1
+11
+
+MONITOR
+1495
+165
+1612
+210
+priority 3 waiting
+count events with [event-status = 1 and event-priority = 3]
+17
 1
 11
 

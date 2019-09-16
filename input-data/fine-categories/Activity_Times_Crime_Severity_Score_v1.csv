@@ -1,109 +1,109 @@
-Offence,Mean-hours,SD-hours,Mean-units,SD-units
-Homicide,159.468,15.947,8,3
-Attempted murder,93.086,9.309,4,4
-Rape of a male child under 16,77.896,7.79,4,4
-Rape of a female child under 16,77.663,7.766,4,4
-Interfering with a motor vehicle,1,1,4,4
-Rape of a female aged 16 and over,65.586,6.559,4,4
-Rape of a female child under 13,64.502,6.45,3,3
-Rape of a male aged 16 and over,59.508,5.951,3,3
-Rape of a male child under 13,47.945,4.795,2,2
-Aggravated Burglary Business and Community,45.773,4.577,2,2
-Aggravated Burglary Residential,45.773,4.577,2,2
-Assault with intent to cause serious harm,40.695,4.069,2,2
-Conspiracy to murder,40.484,4.048,2,2
-Endangering life,28.94,2.894,2,2
-Kidnapping,24.336,2.434,2,2
-Sexual assault on a female child under 13,24.239,2.424,2,2
-Incest or familial sexual offences,22.447,2.245,2,2
-Modern slavery,21.381,2.138,2,2
-Profiting from or concealing knowledge of the proceeds of crime,21.128,2.113,2,2
-Causing sexual activity without consent,21.095,2.109,2,2
-Other miscellaneous sexual offences,20.538,2.054,2,2
-Other notifiable offences,20.538,2.054,2,2
-Causing death or serious injury by dangerous driving,20.456,2.046,2,2
-Causing or allowing death of child or vulnerable person,20.456,2.046,2,2
-Abuse of children through sexual exploitation,18.785,1.879,2,2
-Sexual assault on a male child under 13,17.245,1.725,2,2
-Arson endangering life,16.524,1.652,2,2
-Sexual activity involving a child under 13,16.474,1.647,2,2
-Anti-social behaviour,1,1.635,2,2
-Robbery of business property,15.993,1.599,2,2
-Robbery of personal property,15.993,1.599,2,2
-Sexual activity etc with a person with a mental disorder,15.993,1.599,2,2
-Sexual activity involving child under 16,15.993,1.599,2,2
-Blackmail,15.716,1.572,2,2
-Sexual assault on a male aged 13 and over,15.349,1.535,2,2
-Causing death by driving: unlicensed or disqualified or uninsured drivers,13.814,1.381,2,2
-Possession of firearms with intent,12.331,1.233,2,2
-Trafficking in controlled drugs,10.259,1.026,2,2
-Attempted Burglary Business and Community,9.308,0.931,1,1
-Attempted Burglary Residential,9.308,0.931,1,1
-Attempted Distraction Burglary Residential,9.308,0.931,1,1
-Burglary Business and Community,9.308,0.931,1,1
-Burglary Residential,9.308,0.931,1,1
-Distraction Burglary Residential,9.308,0.931,1,1
-Sexual grooming,9.259,0.926,1,1
-Sexual assault on a female aged 13 and over,9.181,0.918,1,1
-Possession of firearms offences,8.244,0.824,1,1
-Assault with injury on a constable,8.028,0.803,1,1
-Threat or possession with intent to commit criminal damage,7.367,0.737,1,1
-Violent disorder,6.97,0.697,1,1
-Racially or religiously aggravated assault with injury,6.258,0.626,1,1
-Child abduction,5.796,0.58,1,1
-Threats to kill,5.506,0.551,1,1
-Abuse of position of trust of a sexual nature,4.813,0.481,1,1
-Offender Management Act offences,4.141,0.414,1,1
-Bigamy,4.028,0.403,1,1
-Possession of false documents,3.874,0.387,1,1
-Absconding from lawful custody,3.848,0.385,1,1
-Assault with injury,3.783,0.378,1,1
-Arson not endangering life,3.733,0.373,1,1
-Perverting the course of justice,3.375,0.337,1,1
-Other forgery,2.916,0.292,1,1
-Cruelty to children/young persons,2.774,0.277,1,1
-"Making, supplying or possessing articles for use in fraud",2.705,0.271,1,1
-Dangerous driving,2.398,0.24,1,1
-Causing death by careless or inconsiderate driving,2.227,0.223,1,1
-Theft from automatic machine or meter,2.212,0.221,1,1
-Perjury,1.957,0.196,1,1
-"Going equipped for stealing, etc",1.876,0.188,1,1
-Obscene publications etc,1.876,0.188,1,1
-Theft of mail,1.697,0.17,1,1
-Theft from the person,1.608,0.161,1,1
-Theft from vehicle,1.608,0.161,1,1
-Other offences against the State or public order,1.45,0.145,1,1
-Stalking,1.127,0.113,1,1
-Handling stolen goods,1.103,0.11,1,1
-Aggravated vehicle taking,1.069,0.107,1,1
-Possession of article with blade or point,1.061,0.106,1,1
-Possession of other weapons,1.043,0.104,1,1
-Theft in a dwelling other than from an automatic machine or meter,1.028,0.103,1,1
-Theft by an employee,0.986,0.099,1,1
-Exposure and voyeurism,0.798,0.08,1,1
-Racially or religiously aggravated harassment,0.75,0.075,1,1
-Other theft,0.736,0.074,1,1
-Harassment,0.722,0.072,1,1
-Racially or religiously aggravated assault without injury,0.615,0.062,1,1
-Theft or unauthorised taking of a pedal cycle,0.304,0.03,1,1
-Theft or unauthorised taking of motor vehicle,0.304,0.03,1,1
-Malicious Communications,0.303,0.03,1,1
-Racially or religiously aggravated criminal damage,0.28,0.028,1,1
-Assault without injury,0.27,0.027,1,1
-"Disclosure, obstruction, false or misleading statements etc",0.258,0.026,1,1
-"Racially or religiously aggravated public fear, alarm or distress",0.255,0.026,1,1
-Shoplifting,0.237,0.024,1,1
-Other drug offences,0.181,0.018,1,1
-Assault without injury on a constable,0.151,0.015,1,1
-"Fraud, forgery etc associated with vehicle or driver records",0.145,0.015,1,1
-Making off without payment,0.14,0.014,1,1
-"Public fear, alarm or distress",0.136,0.014,1,1
-Criminal damage to a building other than a dwelling,0.108,0.011,1,1
-Criminal damage to a dwelling,0.108,0.011,1,1
-Criminal damage to a vehicle,0.108,0.011,1,1
-Other criminal damage,0.108,0.011,1,1
-Dishonest use of electricity,0.106,0.011,1,1
-Possession of controlled drugs (Cannabis),0.085,0.008,1,1
-Possession of controlled drugs (excl. Cannabis),0.085,0.008,1,1
-Soliciting for the purposes of prostitution,0.076,0.008,1,1
-Bail offences,0.066,0.007,1,1
+Offence,Mean-hours,SD-hours,Mean-units,SD-units,Event-Priority
+Homicide,159.468,15.947,8,3,1
+Attempted murder,93.086,9.309,4,4,1
+Rape of a male child under 16,77.896,7.79,4,4,1
+Rape of a female child under 16,77.663,7.766,4,4,1
+Interfering with a motor vehicle,1,1,4,4,1
+Rape of a female aged 16 and over,65.586,6.559,4,4,1
+Rape of a female child under 13,64.502,6.45,3,3,1
+Rape of a male aged 16 and over,59.508,5.951,3,3,1
+Rape of a male child under 13,47.945,4.795,2,2,1
+Aggravated Burglary Business and Community,45.773,4.577,2,2,1
+Aggravated Burglary Residential,45.773,4.577,2,2,1
+Assault with intent to cause serious harm,40.695,4.069,2,2,1
+Conspiracy to murder,40.484,4.048,2,2,1
+Endangering life,28.94,2.894,2,2,1
+Kidnapping,24.336,2.434,2,2,1
+Sexual assault on a female child under 13,24.239,2.424,2,2,1
+Incest or familial sexual offences,22.447,2.245,2,2,1
+Modern slavery,21.381,2.138,2,2,1
+Profiting from or concealing knowledge of the proceeds of crime,21.128,2.113,2,2,1
+Causing sexual activity without consent,21.095,2.109,2,2,1
+Other miscellaneous sexual offences,20.538,2.054,2,2,2
+Other notifiable offences,20.538,2.054,2,2,2
+Causing death or serious injury by dangerous driving,20.456,2.046,2,2,2
+Causing or allowing death of child or vulnerable person,20.456,2.046,2,2,2
+Abuse of children through sexual exploitation,18.785,1.879,2,2,2
+Sexual assault on a male child under 13,17.245,1.725,2,2,2
+Arson endangering life,16.524,1.652,2,2,2
+Sexual activity involving a child under 13,16.474,1.647,2,2,2
+Anti-social behaviour,1,1.635,2,2,2
+Robbery of business property,15.993,1.599,2,2,2
+Robbery of personal property,15.993,1.599,2,2,2
+Sexual activity etc with a person with a mental disorder,15.993,1.599,2,2,2
+Sexual activity involving child under 16,15.993,1.599,2,2,2
+Blackmail,15.716,1.572,2,2,2
+Sexual assault on a male aged 13 and over,15.349,1.535,2,2,2
+Causing death by driving: unlicensed or disqualified or uninsured drivers,13.814,1.381,2,2,2
+Possession of firearms with intent,12.331,1.233,2,2,2
+Trafficking in controlled drugs,10.259,1.026,2,2,2
+Attempted Burglary Business and Community,9.308,0.931,1,1,3
+Attempted Burglary Residential,9.308,0.931,1,1,3
+Attempted Distraction Burglary Residential,9.308,0.931,1,1,3
+Burglary Business and Community,9.308,0.931,1,1,3
+Burglary Residential,9.308,0.931,1,1,3
+Distraction Burglary Residential,9.308,0.931,1,1,3
+Sexual grooming,9.259,0.926,1,1,3
+Sexual assault on a female aged 13 and over,9.181,0.918,1,1,3
+Possession of firearms offences,8.244,0.824,1,1,3
+Assault with injury on a constable,8.028,0.803,1,1,3
+Threat or possession with intent to commit criminal damage,7.367,0.737,1,1,3
+Violent disorder,6.97,0.697,1,1,3
+Racially or religiously aggravated assault with injury,6.258,0.626,1,1,3
+Child abduction,5.796,0.58,1,1,3
+Threats to kill,5.506,0.551,1,1,3
+Abuse of position of trust of a sexual nature,4.813,0.481,1,1,3
+Offender Management Act offences,4.141,0.414,1,1,3
+Bigamy,4.028,0.403,1,1,3
+Possession of false documents,3.874,0.387,1,1,3
+Absconding from lawful custody,3.848,0.385,1,1,3
+Assault with injury,3.783,0.378,1,1,3
+Arson not endangering life,3.733,0.373,1,1,3
+Perverting the course of justice,3.375,0.337,1,1,3
+Other forgery,2.916,0.292,1,1,3
+Cruelty to children/young persons,2.774,0.277,1,1,3
+"Making, supplying or possessing articles for use in fraud",2.705,0.271,1,1,3
+Dangerous driving,2.398,0.24,1,1,3
+Causing death by careless or inconsiderate driving,2.227,0.223,1,1,3
+Theft from automatic machine or meter,2.212,0.221,1,1,3
+Perjury,1.957,0.196,1,1,3
+"Going equipped for stealing, etc",1.876,0.188,1,1,3
+Obscene publications etc,1.876,0.188,1,1,3
+Theft of mail,1.697,0.17,1,1,3
+Theft from the person,1.608,0.161,1,1,3
+Theft from vehicle,1.608,0.161,1,1,3
+Other offences against the State or public order,1.45,0.145,1,1,3
+Stalking,1.127,0.113,1,1,3
+Handling stolen goods,1.103,0.11,1,1,3
+Aggravated vehicle taking,1.069,0.107,1,1,3
+Possession of article with blade or point,1.061,0.106,1,1,3
+Possession of other weapons,1.043,0.104,1,1,3
+Theft in a dwelling other than from an automatic machine or meter,1.028,0.103,1,1,3
+Theft by an employee,0.986,0.099,1,1,3
+Exposure and voyeurism,0.798,0.08,1,1,3
+Racially or religiously aggravated harassment,0.75,0.075,1,1,3
+Other theft,0.736,0.074,1,1,3
+Harassment,0.722,0.072,1,1,3
+Racially or religiously aggravated assault without injury,0.615,0.062,1,1,3
+Theft or unauthorised taking of a pedal cycle,0.304,0.03,1,1,3
+Theft or unauthorised taking of motor vehicle,0.304,0.03,1,1,3
+Malicious Communications,0.303,0.03,1,1,3
+Racially or religiously aggravated criminal damage,0.28,0.028,1,1,3
+Assault without injury,0.27,0.027,1,1,3
+"Disclosure, obstruction, false or misleading statements etc",0.258,0.026,1,1,3
+"Racially or religiously aggravated public fear, alarm or distress",0.255,0.026,1,1,3
+Shoplifting,0.237,0.024,1,1,3
+Other drug offences,0.181,0.018,1,1,3
+Assault without injury on a constable,0.151,0.015,1,1,3
+"Fraud, forgery etc associated with vehicle or driver records",0.145,0.015,1,1,3
+Making off without payment,0.14,0.014,1,1,3
+"Public fear, alarm or distress",0.136,0.014,1,1,3
+Criminal damage to a building other than a dwelling,0.108,0.011,1,1,3
+Criminal damage to a dwelling,0.108,0.011,1,1,3
+Criminal damage to a vehicle,0.108,0.011,1,1,3
+Other criminal damage,0.108,0.011,1,1,3
+Dishonest use of electricity,0.106,0.011,1,1,3
+Possession of controlled drugs (Cannabis),0.085,0.008,1,1,3
+Possession of controlled drugs (excl. Cannabis),0.085,0.008,1,1,3
+Soliciting for the purposes of prostitution,0.076,0.008,1,1,3
+Bail offences,0.066,0.007,1,1,3
