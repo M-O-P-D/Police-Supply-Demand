@@ -145,7 +145,7 @@ to setup
   ;set the global clock
 
 
-  if file-out [start-file-out]
+  if event-file-out [start-file-out]
 
 
   ;read in the event data
@@ -233,7 +233,8 @@ to go-step
 
   ;read in current hour's events
   read-events
-  ;assign resources
+
+  ;assign resources - right now this is written events look for resources where in reality resources should look for events
   ask events with [event-status = 1] [get-resources]
 
   ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
@@ -273,7 +274,7 @@ end
 
 
 
-
+; procedure to read in the events for the given time window / tick
 to read-events
 
   ;event structure is
@@ -298,9 +299,6 @@ to read-events
 
     ;construct a date
     let temp-dt time:create (word tmp-event-year  "-" tmp-event-month "-"  tmp-event-day " " tmp-event-hour ":00:00")
-
-
-
 
     ;check if the event occurs at current tick
     ifelse (time:is-equal temp-dt dt)
@@ -351,6 +349,7 @@ end
 
 
 
+; procedure that takes an event type and probabilistically returns how many hours it will require
 to-report get-event-resource-time [ eventType ]
 
 
@@ -371,7 +370,7 @@ to-report get-event-resource-time [ eventType ]
 end
 
 
-
+; procedure that takes an event type and probabilistically returns how many resource agents it will require
 to-report get-event-resource-amount [ eventType ]
 
   ; pull the mean amount of resource required to adress an event from the event-reference dictionary -
@@ -397,10 +396,11 @@ end
 
 
 
-
+; event procedure that checks whether a currently running event can be closed off
 to check-event-status
   ;check when event being responded to should be finshed
 
+  ;check if the secdeuled event end date/time is now
   ifelse time:is-equal event-response-end-dt dt
   [
     ; if it is this cycle - end the event, record that, relinquish resource(s), destroy the event agent
@@ -411,7 +411,9 @@ to check-event-status
 
     ;show (word "Job complete")
 
-    if file-out
+
+    ;if the job is complete write its details to the event output file
+    if event-file-out
     [
       file-print (word
         eventID ","
@@ -432,6 +434,8 @@ to check-event-status
         event-resource-req-total
       )
     ]
+
+    ;then destroy the object
     die
   ]
   [
@@ -458,7 +462,7 @@ end
 
 
 
-
+; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
 to get-resources
 
   ;check if the required number of resources are available
@@ -503,7 +507,7 @@ end
 
 
 
-
+;plot update commands
 to update-all-plots
 
   set-current-plot "Total Resource Usage"
@@ -688,7 +692,7 @@ GRAPHICS-WINDOW
 185
 15
 391
-135
+31
 -1
 -1
 7.93
@@ -704,7 +708,7 @@ GRAPHICS-WINDOW
 0
 24
 0
-13
+0
 0
 0
 1
@@ -737,7 +741,7 @@ number-resources
 number-resources
 25
 5000
-350.0
+25.0
 25
 1
 NIL
@@ -1038,8 +1042,8 @@ SWITCH
 315
 175
 348
-file-out
-file-out
+event-file-out
+event-file-out
 1
 1
 -1000
@@ -1052,7 +1056,7 @@ CHOOSER
 demand-events
 demand-events
 "Synthetic" "Actual"
-1
+0
 
 CHOOSER
 10
