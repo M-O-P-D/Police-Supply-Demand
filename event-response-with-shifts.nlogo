@@ -12,6 +12,14 @@ globals
   Shift-2
   Shift-3
 
+  count-crime-hour
+
+  ;file globals
+  event-summary-file
+  active-event-trends-file
+  active-resource-trends-file
+  resource-summary-file
+
 ]
 
 ;Events store demand - the things the police muct respond to
@@ -121,6 +129,14 @@ to setup
   ca
   reset-ticks
 
+
+  set event-summary-file "model-output/event-summary-file.csv"
+  set active-event-trends-file "model-output/active-event-trends-file.csv"
+  set active-resource-trends-file "model-output/active-resource-trends-file.csv"
+  set resource-summary-file "model-output/resource-summary-file.csv"
+
+
+
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
   let dim-resource-temp (number-resources / 25) - 1
@@ -177,9 +193,6 @@ to setup
 
   ;print event-ref-file
 
-
-
-
 end
 
 
@@ -230,8 +243,9 @@ to go-step
 
   if VERBOSE [print time:show dt "dd-MM-yyyy HH:mm"]
 
-  ;update time and check shift bools
+  ;update time and check shift bool
   if Shifts [check-shift]
+  set count-crime-hour 0
 
   ;read in current hour's events
   read-events
@@ -305,8 +319,15 @@ end
 
 to start-file-out
 
-  file-open "test.csv"
+  file-open event-summary-file
   file-print "eventID, count-resources ,event-status, event-type, event-class, event-LSOA, event-start-dt, event-response-start-dt, event-response-end-dt, event-resource-counter, event-resource-type, event-resource-req-time, event-resource-req-amount,event-resource-req-total"
+
+  file-open active-event-trends-file
+  file-print "date-time, Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+
+  file-open active-resource-trends-file
+  file-print "date-time, Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+
 
 end
 
@@ -346,6 +367,8 @@ to read-events
       ;creat an event agent
       create-events 1
       [
+        set count-crime-hour count-crime-hour + 1
+
         ;make it invisible
         set hidden? true
 
@@ -463,10 +486,9 @@ to check-event-status
     ;if the job is complete write its details to the event output file
     if event-file-out
     [
+      file-open event-summary-file
       file-print (word
         eventID ","
-
-
         count current-resource ","
         event-status ",\""
         event-type "\",\""
@@ -559,80 +581,187 @@ end
 ;plot update commands
 to update-all-plots
 
+  set-current-plot "Crime"
+  set-current-plot-pen "total"
+  plot count-crime-hour
+
   set-current-plot "Total Resource Usage"
   set-current-plot-pen "Supply"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
 
-  set-current-plot "Resource Usage Count"
-  set-current-plot-pen "Active Resources"
-  plot (count resources with [resource-status = 2])
-
   set-current-plot "Events Waiting"
-  set-current-plot-pen "waiting"
+  set-current-plot-pen "waiting-total"
   plot count events with [event-status = 1]
+  set-current-plot-pen "waiting-1"
+  plot count events with [event-status = 1 and event-priority = 1]
+  set-current-plot-pen "waiting-2"
+  plot count events with [event-status = 1 and event-priority = 2]
+  set-current-plot-pen "waiting-3"
+  plot count events with [event-status = 1 and event-priority = 3]
 
-  set-current-plot "events"
+
+  ;------------------------------------------------------------------------------------------------------------------------------
+
+  ;plotting and recording the amount of events currently being responded to by crime-classes this hour
+  set-current-plot "active-events"
+  file-open active-event-trends-file
+  ;only look at active events
+  let current-events events with [event-status = 2]
+  let out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
+
   set-current-plot-pen "Anti-social behaviour"
-  plot count events with [event-class = "Anti-social behaviour"]
+  let x count current-events with [event-class = "Anti-social behaviour"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Bicycle theft"
-  plot count events with [event-class = "Bicycle theft"]
+  set x count current-events with [event-class = "Bicycle theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Burglary"
-  plot count events with [event-class = "Burglary"]
+  set x count current-events with [event-class = "Burglary"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Criminal damage and arson"
-  plot count events with [event-class = "Criminal damage and arson"]
+  set x count current-events with [event-class = "Criminal damage and arson"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Drugs"
-  plot count events with [event-class = "Drugs"]
+  set x count current-events with [event-class = "Drugs"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other crime"
-  plot count events with [event-class = "Other crime"]
+  set x count current-events with [event-class = "Other crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other theft"
-  plot count events with [event-class = "Other theft"]
+  set x count current-events with [event-class = "Other theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Possession of weapons"
-  plot count events with [event-class = "Possession of weapons"]
+  set x count current-events with [event-class = "Possession of weapons"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Public order"
-  plot count events with [event-class = "Public order"]
+  set x count current-events with [event-class = "Public order"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Robbery"
-  plot count events with [event-class = "Robbery"]
+  set x count current-events with [event-class = "Robbery"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Shoplifting"
-  plot count events with [event-class = "Shoplifting"]
+  set x count current-events with [event-class = "Shoplifting"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Theft from the person"
-  plot count events with [event-class = "Theft from the person"]
+  set x count current-events with [event-class = "Theft from the person"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Vehicle crime"
-  plot count events with [event-class = "Vehicle crime"]
+  set x count current-events with [event-class = "Vehicle crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Violence and sexual offences"
-  plot count events with [event-class = "Violence and sexual offences"]
+  set x count current-events with [event-class = "Violence and sexual offences"]
+  plot x
+  set out-string (word out-string x)
+
+  file-print out-string
 
 
+  ;------------------------------------------------------------------------------------------------------------------------------
+
+  ;plotting and recording the amount of resources devoted to crime-classes this hour
   set-current-plot "resources"
+  file-open active-resource-trends-file
+  set out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
+
   set-current-plot-pen "Anti-social behaviour"
-  plot count resources with [current-event-class = "Anti-social behaviour"]
+  set x count resources with [current-event-class = "Anti-social behaviour"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Bicycle theft"
-  plot count resources with [current-event-class = "Bicycle theft"]
+  set x count resources with [current-event-class = "Bicycle theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Burglary"
-  plot count resources with [current-event-class = "Burglary"]
+  set x count resources with [current-event-class = "Burglary"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Criminal damage and arson"
-  plot count resources with [current-event-class = "Criminal damage and arson"]
+  set x count resources with [current-event-class = "Criminal damage and arson"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Drugs"
-  plot count resources with [current-event-class = "Drugs"]
+  set x count resources with [current-event-class = "Drugs"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other crime"
-  plot count resources with [current-event-class = "Other crime"]
+  set x count resources with [current-event-class = "Other crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other theft"
-  plot count resources with [current-event-class = "Other theft"]
+  set x count resources with [current-event-class = "Other theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Possession of weapons"
-  plot count resources with [current-event-class = "Possession of weapons"]
+  set x count resources with [current-event-class = "Possession of weapons"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Public order"
-  plot count resources with [current-event-class = "Public order"]
+  set x count resources with [current-event-class = "Public order"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Robbery"
-  plot count resources with [current-event-class = "Robbery"]
+  set x count resources with [current-event-class = "Robbery"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Shoplifting"
-  plot count resources with [current-event-class = "Shoplifting"]
+  set x count resources with [current-event-class = "Shoplifting"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Theft from the person"
-  plot count resources with [current-event-class = "Theft from the person"]
+  set x count resources with [current-event-class = "Theft from the person"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Vehicle crime"
-  plot count resources with [current-event-class = "Vehicle crime"]
+  set x count resources with [current-event-class = "Vehicle crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Violence and sexual offences"
-  plot count resources with [current-event-class = "Violence and sexual offences"]
+  set x count resources with [current-event-class = "Violence and sexual offences"]
+  plot x
+  set out-string (word out-string x)
 
+  file-print out-string
 
+  ;--------------------------------------------------------------------------------------------------------------------------------------------
 
   set-current-plot "scatter"
   ;clear-plot
@@ -741,7 +870,7 @@ GRAPHICS-WINDOW
 185
 15
 391
-87
+158
 -1
 -1
 7.93
@@ -757,7 +886,7 @@ GRAPHICS-WINDOW
 0
 24
 0
-7
+16
 0
 0
 1
@@ -783,14 +912,14 @@ NIL
 
 SLIDER
 10
-85
+195
 175
-118
+228
 number-resources
 number-resources
 25
 5000
-200.0
+425.0
 25
 1
 NIL
@@ -858,9 +987,9 @@ count-completed-events
 11
 
 PLOT
-405
+770
 65
-785
+1150
 254
 Total Resource Usage
 time
@@ -880,7 +1009,7 @@ PLOT
 259
 1150
 518
-events
+active-events
 time
 count of events
 0.0
@@ -925,9 +1054,9 @@ NIL
 
 TEXTBOX
 15
+625
 140
-140
-217
+702
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1008,9 +1137,9 @@ PENS
 
 SWITCH
 10
-280
+550
 175
-313
+583
 VERBOSE
 VERBOSE
 1
@@ -1030,32 +1159,14 @@ count resources with [resource-status = 2]
 
 SWITCH
 10
-220
+330
 175
-253
+363
 Shifts
 Shifts
 1
 1
 -1000
-
-PLOT
-790
-65
-1150
-254
-Resource Usage Count
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"Active Resources" 1.0 0 -7500403 true "" ""
 
 MONITOR
 550
@@ -1081,10 +1192,13 @@ NIL
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"waiting" 1.0 0 -16777216 true "" ""
+"waiting-total" 1.0 0 -16777216 true "" ""
+"waiting-1" 1.0 0 -2674135 true "" ""
+"waiting-2" 1.0 0 -955883 true "" ""
+"waiting-3" 1.0 0 -1184463 true "" ""
 
 SWITCH
 10
@@ -1099,9 +1213,9 @@ event-file-out
 
 CHOOSER
 10
-355
+85
 175
-400
+130
 demand-events
 demand-events
 "Synthetic" "Actual"
@@ -1109,9 +1223,9 @@ demand-events
 
 CHOOSER
 10
-400
+130
 175
-445
+175
 event-characteristics
 event-characteristics
 "Uniform" "Experimental"
@@ -1134,22 +1248,11 @@ NIL
 NIL
 1
 
-MONITOR
-1435
-15
-1595
-60
-NIL
-mean [events-completed] of resources
-1
-1
-11
-
 SWITCH
-180
-220
-317
-253
+10
+365
+175
+398
 triage-events
 triage-events
 0
@@ -1186,6 +1289,52 @@ MONITOR
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
 17
+1
+11
+
+PLOT
+405
+65
+765
+255
+Crime
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"total" 1.0 0 -16777216 true "" ""
+
+BUTTON
+235
+240
+330
+273
+close files
+file-open resource-summary-file\nfile-print \"resourceID, events-completed\"\nask resources \n[\nfile-print (word who \",\" events-completed)\n]\n\nfile-close-all
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+1435
+15
+1595
+60
+NIL
+mean [events-completed] of resources
+1
 1
 11
 
