@@ -19,6 +19,7 @@ globals
   active-event-trends-file
   active-resource-trends-file
   resource-summary-file
+  resource-usage-trends-file
 
 ]
 
@@ -130,10 +131,11 @@ to setup
   reset-ticks
 
 
-  set event-summary-file "model-output/event-summary-file.csv"
-  set active-event-trends-file "model-output/active-event-trends-file.csv"
-  set active-resource-trends-file "model-output/active-resource-trends-file.csv"
-  set resource-summary-file "model-output/resource-summary-file.csv"
+  set event-summary-file (word "model-output/event-summary-file-" replication ".csv")
+  set active-event-trends-file (word "model-output/active-event-trends-file-" replication ".csv")
+  set active-resource-trends-file (word "model-output/active-resource-trends-file-" replication ".csv")
+  set resource-summary-file (word "model-output/officer-summary-file-" replication ".csv")
+  set resource-usage-trends-file (word "model-output/resource-usage-trends-file-" replication ".csv")
 
 
 
@@ -306,12 +308,7 @@ end
 
 
 
-to prioritise-events
 
-
-
-
-end
 
 
 
@@ -319,15 +316,23 @@ end
 
 to start-file-out
 
+  file-close-all
+
+  if file-exists? event-summary-file [file-delete event-summary-file]
   file-open event-summary-file
-  file-print "eventID, count-resources ,event-status, event-type, event-class, event-LSOA, event-start-dt, event-response-start-dt, event-response-end-dt, event-resource-counter, event-resource-type, event-resource-req-time, event-resource-req-amount,event-resource-req-total"
+  file-print "eventID,count-resources,event-status,event-type,event-class,event-LSOA,event-start-dt,event-response-start-dt,event-response-end-dt,event-resource-counter,event-resource-type,event-resource-req-time,event-resource-req-amount,event-resource-req-total"
 
+  if file-exists? active-event-trends-file [file-delete active-event-trends-file]
   file-open active-event-trends-file
-  file-print "date-time, Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
 
+  if file-exists? active-resource-trends-file [file-delete active-resource-trends-file]
   file-open active-resource-trends-file
-  file-print "date-time, Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
 
+  if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
+  file-open resource-usage-trends-file
+  file-print "date-time,usage%,events-ongoing,events-waiting,piority1-waiting,piority2-waiting,piority3-waiting"
 
 end
 
@@ -581,6 +586,15 @@ end
 ;plot update commands
 to update-all-plots
 
+
+
+  file-open resource-usage-trends-file
+  file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
+
+
+
+
+
   set-current-plot "Crime"
   set-current-plot-pen "total"
   plot count-crime-hour
@@ -766,35 +780,36 @@ to update-all-plots
   set-current-plot "scatter"
   ;clear-plot
   set-current-plot-pen "Anti-social behaviour"
-  plotxy (count events with [event-class = "Anti-social behaviour"]) (count resources with [current-event-class = "Anti-social behaviour"])
+  plotxy (count events with [event-class = "Anti-social behaviour" and event-status = 2]) (count resources with [current-event-class = "Anti-social behaviour"])
   set-current-plot-pen "Bicycle theft"
-  plotxy (count events with [event-class = "Bicycle theft"]) (count resources with [current-event-class = "Bicycle theft"])
+  plotxy (count events with [event-class = "Bicycle theft" and event-status = 2]) (count resources with [current-event-class = "Bicycle theft"])
   set-current-plot-pen "Burglary"
-  plotxy (count events with [event-class = "Burglary"]) (count resources with [current-event-class = "Burglary"])
+  plotxy (count events with [event-class = "Burglary" and event-status = 2]) (count resources with [current-event-class = "Burglary"])
   set-current-plot-pen "Criminal damage and arson"
-  plotxy (count events with [event-class = "Criminal damage and arson"]) (count resources with [current-event-class = "Criminal damage and arson"])
+  plotxy (count events with [event-class = "Criminal damage and arson" and event-status = 2]) (count resources with [current-event-class = "Criminal damage and arson"])
   set-current-plot-pen "Drugs"
-  plotxy (count events with [event-class = "Drugs"]) (count resources with [current-event-class = "Drugs"])
+  plotxy (count events with [event-class = "Drugs" and event-status = 2]) (count resources with [current-event-class = "Drugs"])
   set-current-plot-pen "Other crime"
-  plotxy (count events with [event-class = "Other crime"]) (count resources with [current-event-class = "Other crime"])
+  plotxy (count events with [event-class = "Other crime" and event-status = 2]) (count resources with [current-event-class = "Other crime"])
   set-current-plot-pen "Other theft"
-  plotxy (count events with [event-class = "Other theft"]) (count resources with [current-event-class = "Other theft"])
+  plotxy (count events with [event-class = "Other theft" and event-status = 2]) (count resources with [current-event-class = "Other theft"])
   set-current-plot-pen "Possession of weapons"
-  plotxy (count events with [event-class = "Possession of weapons"]) (count resources with [current-event-class = "Possession of weapons"])
+  plotxy (count events with [event-class = "Possession of weapons" and event-status = 2]) (count resources with [current-event-class = "Possession of weapons"])
   set-current-plot-pen "Public order"
-  plotxy (count events with [event-class = "Public order"]) (count resources with [current-event-class = "Public order"])
+  plotxy (count events with [event-class = "Public order" and event-status = 2]) (count resources with [current-event-class = "Public order"])
   set-current-plot-pen "Robbery"
-  plotxy (count events with [event-class = "Robbery"]) (count resources with [current-event-class = "Robbery"])
+  plotxy (count events with [event-class = "Robbery" and event-status = 2]) (count resources with [current-event-class = "Robbery"])
   set-current-plot-pen "Shoplifting"
-  plotxy (count events with [event-class = "Shoplifting"]) (count resources with [current-event-class = "Shoplifting"])
+  plotxy (count events with [event-class = "Shoplifting" and event-status = 2]) (count resources with [current-event-class = "Shoplifting"])
   set-current-plot-pen "Theft from the person"
-  plotxy (count events with [event-class = "Theft from the person"]) (count resources with [current-event-class = "Theft from the person"])
+  plotxy (count events with [event-class = "Theft from the person" and event-status = 2]) (count resources with [current-event-class = "Theft from the person"])
   set-current-plot-pen "Vehicle crime"
-  plotxy (count events with [event-class = "Vehicle crime"]) (count resources with [current-event-class = "Vehicle crime"])
+  plotxy (count events with [event-class = "Vehicle crime" and event-status = 2]) (count resources with [current-event-class = "Vehicle crime"])
   set-current-plot-pen "Violence and sexual offences"
-  plotxy (count events with [event-class = "Violence and sexual offences"]) (count resources with [current-event-class = "Violence and sexual offences"])
+  plotxy (count events with [event-class = "Violence and sexual offences" and event-status = 2]) (count resources with [current-event-class = "Violence and sexual offences"])
 
 end
+
 
 
 
@@ -870,7 +885,7 @@ GRAPHICS-WINDOW
 185
 15
 391
-158
+126
 -1
 -1
 7.93
@@ -886,7 +901,7 @@ GRAPHICS-WINDOW
 0
 24
 0
-16
+12
 0
 0
 1
@@ -919,7 +934,7 @@ number-resources
 number-resources
 25
 5000
-425.0
+325.0
 25
 1
 NIL
@@ -1207,7 +1222,7 @@ SWITCH
 618
 event-file-out
 event-file-out
-1
+0
 1
 -1000
 
@@ -1234,10 +1249,10 @@ event-characteristics
 BUTTON
 10
 460
-175
+302
 493
 NIL
-ask resources \n[\nshow events-completed\n]
+ask resources \n[\nshow current-event-type\n]
 NIL
 1
 T
@@ -1311,12 +1326,12 @@ PENS
 "total" 1.0 0 -16777216 true "" ""
 
 BUTTON
-235
-240
-330
-273
+15
+715
+390
+748
 close files
-file-open resource-summary-file\nfile-print \"resourceID, events-completed\"\nask resources \n[\nfile-print (word who \",\" events-completed)\n]\n\nfile-close-all
+if file-exists? resource-summary-file [file-delete resource-summary-file]\nfile-open resource-summary-file\nfile-print \"resourceID, events-completed\"\nask resources \n[\nfile-print (word who \",\" events-completed)\n]\n\nfile-close-all
 NIL
 1
 T
@@ -1337,6 +1352,21 @@ mean [events-completed] of resources
 1
 1
 11
+
+SLIDER
+360
+260
+397
+406
+replication
+replication
+1
+100
+1.0
+1
+1
+NIL
+VERTICAL
 
 @#$#@#$#@
 ## WHAT IS IT?
