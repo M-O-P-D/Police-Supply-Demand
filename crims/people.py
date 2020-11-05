@@ -4,8 +4,6 @@ import ukpopulation.snppdata as SNPPData
 #import ukpopulation.myedata as MYEData
 import ukcensusapi.Nomisweb as CensusApi
 
-import humanleague as hl
-
 
 def lad_lookup(lads, subgeog_name):
   lookup = pd.read_csv("./data/gb_geog_lookup.csv.gz", dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
@@ -107,8 +105,8 @@ def get_census_data(geogs):
 
 def get_population_data(geogs):
   # mye = MYEData.MYEData()
-  # wy_mye2108 = mye.filter(wy, 2018)
-  # print(wy_mye2108.head())
+  # mye2108 = mye.filter(geogs, 2018)
+  # print(mye2108.head())
   snpp = SNPPData.SNPPData()
   snpp_syoa = snpp.filter(geogs, 2020).drop("PROJECTED_YEAR_NAME", axis=1)
 
@@ -118,18 +116,18 @@ def get_population_data(geogs):
 def get_scaled_population(geogs):
 
   # SNPP is per LAD so need different scalings for MSOAs in different LADs
-  msoa_lad_lookup = lad_lookup(wy, "MSOA")
+  msoa_lad_lookup = lad_lookup(geogs, "MSOA")
   print("MSOAs: %d" % len(msoa_lad_lookup))
 
   # get SNPPs
-  snpp = get_population_data(wy)
+  snpp = get_population_data(geogs)
   snpp.rename({"GEOGRAPHY_CODE": "LAD", "GENDER": "C_SEX"}, axis=1, inplace=True)
   snpp.set_index(["LAD", "C_SEX", "C_AGE"], inplace=True, drop=True)
   # print("2020 populations")
   # print(snpp.groupby(level=[0]).sum())
 
   # get census data at MSOA and LAD scales (latter for computing scaling factors)
-  census_msoa, census_lad = get_census_data(wy)
+  census_msoa, census_lad = get_census_data(geogs)
   census_msoa.rename({"GEOGRAPHY_CODE": "MSOA"}, axis=1, inplace=True)
   census_lad.rename({"GEOGRAPHY_CODE": "LAD"}, axis=1, inplace=True)
   census_msoa = pd.merge(census_msoa, msoa_lad_lookup, left_on="MSOA", right_index=True).set_index(["LAD", "MSOA", "C_SEX", "C_AGE", "C_ETHPUK11"])
@@ -148,13 +146,4 @@ def get_scaled_population(geogs):
   census_msoa.rename({"SCALING": "PROJ_VALUE"}, axis=1, inplace=True)
 
   return census_msoa
-
-if __name__ == "__main__":
-  #      Bradford     Calderdale   Kirklees     Leeds        Wakefield
-  wy = ["E08000032", "E08000033", "E08000034", "E08000035", "E08000036"]
-
-  pop_msoa = get_scaled_population(wy)
-  print(pop_msoa.head())
-
-  print(pop_msoa.groupby(level=[0]).sum())
 
