@@ -6,6 +6,13 @@ import ukcensusapi.Nomisweb as CensusApi
 
 import humanleague as hl
 
+
+def lad_lookup(lads, subgeog_name):
+  lookup = pd.read_csv("gb_geog_lookup.csv.gz", dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
+     "LAD_NOMIS": int, "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
+  lad_lookup = lookup[lookup.LAD.isin(lads)][[subgeog_name, "LAD"]].drop_duplicates().set_index(subgeog_name, drop=True)
+  return lad_lookup
+
 def map_ages(df_syoa):
   # age mapping
   age_mapping = {
@@ -44,22 +51,21 @@ def map_ages(df_syoa):
 
   return df.reset_index(drop=True)
 
-def unlistify(table, columns, values):
-  """
-  Converts an n-column table of counts into an n-dimensional array of counts
-  """
+# from nismod/microsimulation
+# def unlistify(table, columns, values):
+#   """
+#   Converts an n-column table of counts into an n-dimensional array of counts
+#   """
 
-  sizes = [len(table[c].unique()) for c in columns]
+#   sizes = [len(table[c].unique()) for c in columns]
 
-  print(sizes)
+#   pivot = table.pivot_table(index=columns, values=values)
+#   # order must be same as column order above
+#   array = np.zeros(sizes, dtype=int)
+#   array[tuple(pivot.index.codes)] = pivot.values.flat
 
-  pivot = table.pivot_table(index=columns, values=values)
-  # order must be same as column order above
-  array = np.zeros(sizes, dtype=int)
-  array[tuple(pivot.index.codes)] = pivot.values.flat
-
-  assert np.sum(array) == table[values].sum()
-  return array
+#   assert np.sum(array) == table[values].sum()
+#   return array
 
 def get_census_data(geogs):
   api = CensusApi.Nomisweb("~/.ukcensusapi")
@@ -109,47 +115,46 @@ def get_population_data(geogs):
   # got from single year of age to groups
   return map_ages(snpp_syoa)
 
+def get_scaled_population(geogs):
 
-  # # now aggregrate ages into same groups as census data (see above)
-  # data1 = raw[raw.C_AGE < 25].groupby(["GEOGRAPHY_CODE", "GENDER"]).sum().reset_index()
-  # data1.C_AGE = 1
-  # data2 = raw[(raw.C_AGE >= 25) & (raw.C_AGE < 50)].groupby(["GEOGRAPHY_CODE", "GENDER"]).sum().reset_index()
-  # data2.C_AGE = 2
-  # data3 = raw[(raw.C_AGE >= 50) & (raw.C_AGE < 65)].groupby(["GEOGRAPHY_CODE", "GENDER"]).sum().reset_index()
-  # data3.C_AGE = 3
-  # data4 = raw[raw.C_AGE >= 65].groupby(["GEOGRAPHY_CODE", "GENDER"]).sum().reset_index()
-  # data4.C_AGE = 4
-  
-  # #"GEOGRAPHY_CODE", "GENDER", "C_AGE", "OBS_VALUE"
-  # return pd.concat([data1, data2, data3, data4])
+  # SNPP is per LAD so need different scalings for MSOAs in different LADs
+  msoa_lad_lookup = lad_lookup(wy, "MSOA")
+  print("MSOAs: %d" % len(msoa_lad_lookup))
 
-#      Bradford     Calderdale   Kirklees     Leeds        Wakefield
-wy = ["E08000032", "E08000033", "E08000034", "E08000035", "E08000036"]
+  # get SNPPs
+  snpp = get_population_data(wy)
+  snpp.rename({"GEOGRAPHY_CODE": "LAD", "GENDER": "C_SEX"}, axis=1, inplace=True)
+  snpp.set_index(["LAD", "C_SEX", "C_AGE"], inplace=True, drop=True)
+  # print("2020 populations")
+  # print(snpp.groupby(level=[0]).sum())
 
-wy_snpp2020 = get_population_data(wy)
-print("2020 populations")
-print(wy_snpp2020.groupby(["GEOGRAPHY_CODE"]).sum().OBS_VALUE)
+  # get census data at MSOA and LAD scales (latter for computing scaling factors)
+  census_msoa, census_lad = get_census_data(wy)
+  census_msoa.rename({"GEOGRAPHY_CODE": "MSOA"}, axis=1, inplace=True)
+  census_lad.rename({"GEOGRAPHY_CODE": "LAD"}, axis=1, inplace=True)
+  census_msoa = pd.merge(census_msoa, msoa_lad_lookup, left_on="MSOA", right_index=True).set_index(["LAD", "MSOA", "C_SEX", "C_AGE", "C_ETHPUK11"])
 
-wy_msoa, wy_lad = get_census_data(wy)
-print(wy_msoa.head())
-print(wy_lad.head())
-print(wy_snpp2020.head())
+  # drop ethnicity from LAD level data (we have no ethnicity data in SNPP)
+  census_lad = census_lad.groupby(["LAD", "C_SEX", "C_AGE"]).sum().drop("C_ETHPUK11", axis=1)
+  snpp.rename({"OBS_VALUE": "PROJ_VALUE"}, axis=1, inplace=True)
 
-lad_age_sex_eth_census = unlistify(wy_lad, ["GEOGRAPHY_CODE", "C_SEX", "C_AGE", "C_ETHPUK11"], "OBS_VALUE")
-lad_age_sex_census = np.sum(lad_age_sex_eth_census, axis=3)
-lad_age_sex_snpp = unlistify(wy_snpp2020, ["GEOGRAPHY_CODE", "GENDER", "C_AGE"], "OBS_VALUE")
+  # compute a scaling factor for population by LAD, gender and age
+  lad_sex_age_factors = pd.merge(census_lad, snpp, left_index=True, right_index=True)
+  lad_sex_age_factors["SCALING"] = lad_sex_age_factors.PROJ_VALUE / lad_sex_age_factors.OBS_VALUE
 
-# compute a scaling factor for population by LAD, gender and age
-lad_age_sex_scaling = np.divide(lad_age_sex_snpp, lad_age_sex_census)
+  # merge the scaling factor into the population data and compute projected counts
+  census_msoa = pd.merge(census_msoa, lad_sex_age_factors[["SCALING"]], left_index=True, right_index=True)
+  census_msoa["SCALING"] *= census_msoa["OBS_VALUE"]
+  census_msoa.rename({"SCALING": "PROJ_VALUE"}, axis=1, inplace=True)
 
-# now scale up the census populations
-lad_age_sex_eth_snpp2020 = lad_age_sex_eth_census.astype(float)
-for i in range(5): # no. of eth cats
-  lad_age_sex_eth_snpp2020[:,:,:,i] = np.multiply(lad_age_sex_eth_snpp2020[:,:,:,i], lad_age_sex_scaling)
+  return census_msoa
 
+if __name__ == "__main__":
+  #      Bradford     Calderdale   Kirklees     Leeds        Wakefield
+  wy = ["E08000032", "E08000033", "E08000034", "E08000035", "E08000036"]
 
-print(lad_age_sex_eth_snpp2020)
-print(np.sum(lad_age_sex_eth_census), np.sum(lad_age_sex_eth_snpp2020))
+  pop_msoa = get_scaled_population(wy)
+  print(pop_msoa.head())
 
+  print(pop_msoa.groupby(level=[0]).sum())
 
-print(len(wy_msoa.GEOGRAPHY_CODE.unique()))
