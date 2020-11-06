@@ -7,7 +7,7 @@ import ukcensusapi.Nomisweb as CensusApi
 from .utils import lad_lookup
 
 def map_ages(df_syoa):
-  # age mapping
+  # age mapping for DC2101EW
   age_mapping = {
     1: (0, 4),
     2: (5, 7),
