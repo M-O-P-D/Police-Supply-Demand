@@ -18,7 +18,7 @@ model = model.CrimeMicrosim(timeline, "west-yorkshire")
 
 no.run(model)
 
-
+print(model.crimes.Time.dtype)
 
 # %%
 # import importlib
