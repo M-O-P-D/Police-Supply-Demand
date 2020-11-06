@@ -54,9 +54,15 @@ def get_crime_counts(force_name):
 
   # TODO sample annual variability? 3 counts will give *some* indication
 
-  # count monthly incidence by time, space and type. note this is a *monthly* rate
-  counts = crimes[["Month", "MSOA", "Crime type", "Crime ID"]].rename({"Crime ID": "count"}, axis=1).groupby(["Month", "MSOA", "Crime type"]).agg("count").reset_index()
-  counts["count"] = counts["count"].astype(float) / 3
+  # count monthly incidence by time, space and type. note this is an *annual* incidence rate
+  counts = crimes[["MSOA", "Crime type", "Month", "Crime ID"]] \
+    .rename({"Crime ID": "count"}, axis=1) \
+    .groupby(["MSOA", "Month", "Crime type"]) \
+    .count() \
+    .unstack(level=1, fill_value=0) #.reset_index()
+  
+  # counts["count"] = counts["count"].astype(float) * 12 / 3
+  counts = counts.astype(float) * 12 / 3
 
   # the incidences are the lambdas for sampling arrival times
   return counts
