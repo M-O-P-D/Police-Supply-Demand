@@ -26,35 +26,18 @@ cgdf.head()
 # %%
 
 import pandas as pd
-from zipfile import ZipFile
-
-from crims import crime
-
-
-z = ZipFile("./cache/2020-05.zip")
-
-#print(z.namelist())
 
 force_name = "west-yorkshire"
 year = 2020
 month = 5
 
-# date = "%4d-%02d" % (year, month)
-# file = "%s/%s-%s-street.csv" % (date, date, force)
-
-# df = pd.read_csv(z.open(file)) # 2020-05-west-yorkshire-street
-
-# print(df.head())
-
-# print(month_range(2019,11,2020,5))
-# print(month_range(2020,11,2020,11))
-# print(month_range(2020,11,2020,12))
-
 crimes = crime.get_crimes(force_name, year-1, month, year, month)
 
 print(crimes.Month.unique())
 print(crimes.columns.values)
-
+print(crimes.head())
 
 # %%
 
+import importlib
+importlib.reload(crims)

@@ -4,12 +4,7 @@ import ukpopulation.snppdata as SNPPData
 #import ukpopulation.myedata as MYEData
 import ukcensusapi.Nomisweb as CensusApi
 
-
-def lad_lookup(lads, subgeog_name):
-  lookup = pd.read_csv("./data/gb_geog_lookup.csv.gz", dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
-     "LAD_NOMIS": int, "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
-  lad_lookup = lookup[lookup.LAD.isin(lads)][[subgeog_name, "LAD"]].drop_duplicates().set_index(subgeog_name, drop=True)
-  return lad_lookup
+from .utils import lad_lookup
 
 def map_ages(df_syoa):
   # age mapping

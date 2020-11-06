@@ -6,7 +6,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon, Point
 from police_api import PoliceAPI
 
-from .utils import month_range
+from .utils import month_range, msoa_from_lsoa
 
 api = PoliceAPI()
 
@@ -30,9 +30,15 @@ def get_crimes(force_name, start_year, start_month, end_year, end_month):
 
   files = ["%s/%s-%s-street.csv" % (d, d, force_name) for d in month_range(start_year, start_month, end_year, end_month)]
 
-  data = [pd.read_csv(z.open(f)) for f in files]
+  data = pd.concat([pd.read_csv(z.open(f)) for f in files])
 
-  return pd.concat(data)
+  lsoas = data["LSOA code"].unique()
+
+  msoas = msoa_from_lsoa(lsoas)
+
+  data = pd.merge(data, msoas, left_on="LSOA code", right_index=True)
+
+  return data
 
 
 
