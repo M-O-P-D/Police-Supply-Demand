@@ -3,6 +3,7 @@ import pandas as pd
 import neworder as no
 from datetime import datetime
 from .crime import get_crime_counts
+from .utils import smooth
 
 class CrimeMicrosim(no.Model):
   def __init__(self, timeline, force_area):
@@ -35,7 +36,9 @@ class CrimeMicrosim(no.Model):
     for g in self.geogs:
       for ct in self.crime_types:
         if self.crime_rates.index.isin([(g, ct)]).any():
-          lambdas = np.append(self.crime_rates.loc[(g, ct)].values, 0).astype(float)
+          # smooth the data
+          smoothed_rates = smooth(self.crime_rates.loc[(g, ct)].values, 7)
+          lambdas = np.append(smoothed_rates, 0).astype(float)
           times = self.mc().arrivals(lambdas, 1/12, 1, 0.0)[0]
           if len(times) > 0:
             d = [datetime.fromtimestamp(t * secs_year + offset) for t in times]

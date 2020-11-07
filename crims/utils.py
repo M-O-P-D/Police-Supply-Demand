@@ -1,4 +1,4 @@
-
+import numpy as np
 import pandas as pd
 
 # inclusive range of months
@@ -32,3 +32,21 @@ def msoa_from_lsoa(lsoas):
      "LAD_NOMIS": int, "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
   msoa_lookup = lookup[lookup.LSOA.isin(lsoas)][["LSOA", "MSOA"]].drop_duplicates().set_index("LSOA", drop=True)
   return msoa_lookup
+
+def _pascal_weights(n):
+  if n == 1:
+    return np.array([1.0])
+  wm = _pascal_weights(n-1)
+  w = np.append([0], wm) + np.append(wm, [0])
+  return w / sum(w)
+
+
+def smooth(a, n):
+  # odd n only to avoid lagging
+  assert n % 2 == 1
+  w = _pascal_weights(n)
+  m = n//2
+  s = a * w[m]
+  for i in range(1,m+1):
+    s += w[m-i] * np.roll(a, -i) + w[m+i] * np.roll(a,i) 
+  return s
