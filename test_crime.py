@@ -1,18 +1,23 @@
 
 # %%
+import warnings
+warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
 
-from crims import crime
+
+from crims.crime import Crime
 import contextily as ctx
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-# %%
 
-gdf = crime.get_neighbourhoods('west-yorkshire')
+crime = Crime('West Yorkshire', 2017, 6, 2020, 5)
+
+gdf = crime.get_neighbourhoods()
 
 ax = gdf.plot(figsize=(10, 10), alpha=0.3, edgecolor='k')
 ctx.add_basemap(ax)
 
 # %%
+
 import geopandas as gpd
 from shapely.geometry import Point
 
@@ -34,14 +39,14 @@ import pandas as pd
 
 force_name = "west-yorkshire"
 
-counts = crime.get_crime_counts(force_name)
+counts = crime.get_crime_counts()
 print(counts)
-outcomes = crime.get_crime_outcomes(force_name)
+outcomes = crime.get_crime_outcomes()
 print(outcomes)
 
 # %%
 import importlib
-importlib.reload(crime)
+importlib.reload(Crime)
 
 # %%
 
