@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import neworder as no
 from datetime import datetime
-from .crime import get_crime_counts
+from .crime import get_crime_counts, get_crime_outcomes
 from .utils import smooth
 
 class CrimeMicrosim(no.Model):
@@ -10,7 +10,8 @@ class CrimeMicrosim(no.Model):
     super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
 
     self.crime_rates = get_crime_counts(force_area)
-    #no.log(self.crime_rates)
+    self.crime_outcomes = get_crime_outcomes(force_area)
+    print(self.crime_outcomes.index.levels[1].unique())
 
     self.crime_types = self.crime_rates.index.unique(level=1)
     self.geogs = self.crime_rates.index.unique(level=0)
@@ -29,7 +30,7 @@ class CrimeMicrosim(no.Model):
     offset = datetime(int(self.timeline().time()), 1, 1).timestamp()
     secs_year = datetime(int(self.timeline().time() + 1), 1, 1).timestamp() - offset
 
-    # TODO how to account for zero incidences in historical data?
+    # TODO add (broad) outcomes...
 
     crimes = pd.DataFrame()
 

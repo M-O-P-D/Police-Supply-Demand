@@ -36,6 +36,8 @@ force_name = "west-yorkshire"
 
 counts = crime.get_crime_counts(force_name)
 print(counts)
+outcomes = crime.get_crime_outcomes(force_name)
+print(outcomes)
 
 # %%
 import importlib
