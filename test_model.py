@@ -3,7 +3,7 @@ import neworder as no
 from crims import model
 from crims import geography
 
-#import contextily as ctx
+import contextily as ctx
 import matplotlib.pyplot as plt
 
 #no.verbose()
@@ -24,16 +24,14 @@ no.run(model)
 
 force_boundaries = geography.create_forces_gdf()
 
-ax = force_boundaries[force_boundaries.force == "west-yorkshire"].plot(figsize=(10, 10), alpha=0.3, edgecolor='k')
-
-
 msoas = geography.get_msoa11_gdf()
 
 msoas = msoas[msoas.MSOA11CD.isin(model.crimes.index.levels[0].unique())][["MSOA11CD", "geometry"]]
 
-print(msoas.head())
-
+ax = force_boundaries[force_boundaries.force == "west-yorkshire"].plot(figsize=(10, 10), facecolor="none", edgecolor='b', linewidth=2)
 msoas.plot(ax=ax, alpha=0.3, color='r', edgecolor='k')
+ax.set_axis_off()
+ctx.add_basemap(ax)
 
 
 plt.show()
