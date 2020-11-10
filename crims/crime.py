@@ -79,13 +79,16 @@ class Crime:
 
     file = "%d-%02d.zip" % (end_year, end_month)
 
-    local_file = Path("./cache/%s" % file)
+    cache = Path("./cache")
+    cache.mkdir(parents=True, exist_ok=True) # create if it doesnt already exist
+
+    local_file = cache / file
 
     if not local_file.is_file():
       print("Data not found locally, downloading...")
       r = requests.get("https://data.police.uk/data/archive/%s" % file)
       open(local_file , 'wb').write(r.content)
-      print("...saved to %s", local_file)
+      print("...saved to %s" % local_file)
     
     z = ZipFile(local_file)
 

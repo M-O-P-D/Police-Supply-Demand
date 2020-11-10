@@ -9,7 +9,7 @@ import contextily as ctx
 import matplotlib.pyplot as plt
 
 
-crime = Crime('West Yorkshire', 2017, 6, 2020, 5)
+crime = Crime('West Yorkshire', 2017, 10, 2020, 9)
 
 gdf = crime.get_neighbourhoods()
 
