@@ -18,9 +18,11 @@ Uses the **humanleague** [[4]](#references) package to synthesise crime microdat
 
 ## Data sources
 
-- Bulk crime and outcome data: [data.police.uk](https://data.police.uk)
+- Bulk crime and outcome data, force boundaries: [data.police.uk](https://data.police.uk)
 
 - Sample (interim) victim data from **crime-sim-toolkit** [[6]]
+
+- MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
 
 ## References
 

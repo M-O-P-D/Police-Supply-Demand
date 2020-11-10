@@ -43,8 +43,9 @@ outcomes = crime.get_crime_outcomes()
 print(outcomes)
 
 # %%
-import importlib
-importlib.reload(crime.Crime)
+# import importlib
+# importlib.reload(crime.Crime)
 
 # %%
+
 
