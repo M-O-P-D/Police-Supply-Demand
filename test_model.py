@@ -2,7 +2,7 @@
 import neworder as no
 from crims import model
 
-no.verbose()
+#no.verbose()
 
 timeline = no.Timeline(2020,2020,[1])
 model = model.CrimeMicrosim(timeline, "west-yorkshire")
@@ -18,7 +18,7 @@ model = model.CrimeMicrosim(timeline, "west-yorkshire")
 
 no.run(model)
 
-print(model.crimes.Time.dtype)
+#print(model.crimes.Time.dtype)
 
 # %%
 # import importlib

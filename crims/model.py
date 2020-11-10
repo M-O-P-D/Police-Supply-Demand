@@ -9,11 +9,9 @@ class CrimeMicrosim(no.Model):
   def __init__(self, timeline, force_area):
     super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
 
-    crime = Crime(force_area, 2019, 10, 2020, 9)
+    crime = Crime(force_area, 2017, 10, 2020, 9)
     self.crime_rates = crime.get_crime_counts()
     self.crime_outcomes = crime.get_crime_outcomes()
-    print(self.crime_outcomes.index.levels[1].unique())
-    print(self.crime_outcomes)
 
     self.crime_types = self.crime_rates.index.unique(level=1)
     self.geogs = self.crime_rates.index.unique(level=0)
@@ -32,8 +30,6 @@ class CrimeMicrosim(no.Model):
     offset = datetime(int(self.timeline().time()), 1, 1).timestamp()
     secs_year = datetime(int(self.timeline().time() + 1), 1, 1).timestamp() - offset
 
-    # TODO add (broad) outcome/demand...
-
     crimes = pd.DataFrame()
 
     for g in self.geogs:
@@ -43,13 +39,12 @@ class CrimeMicrosim(no.Model):
           smoothed_rates = smooth(self.crime_rates.loc[(g, ct)].values, 7)
           lambdas = np.append(smoothed_rates, 0).astype(float)
           times = self.mc().arrivals(lambdas, 1/12, 1, 0.0)[0]
-          # TODO when have geog in outcome data
-          #p_suspect = self.crime_outcomes.loc[(g,ct), "weight"]
+          p_suspect = self.crime_outcomes.loc[(g,ct), "pSuspect"]
           #print(p_suspect)
           if len(times) > 0:
             d = [datetime.fromtimestamp(t * secs_year + offset) for t in times]
-            #s = 
-            df = pd.DataFrame(index=range(len(d)), data={"MSOA": g, "Crime type": ct, "Time": d, "SuspectDemand": None })
+            s = self.mc().hazard(p_suspect, len(times)).astype(bool) 
+            df = pd.DataFrame(index=range(len(d)), data={"MSOA": g, "Crime type": ct, "Time": d, "Suspect": s })
             crimes = crimes.append(df, ignore_index=True)
 
     return crimes.set_index(["MSOA", "Crime type"], drop=True)

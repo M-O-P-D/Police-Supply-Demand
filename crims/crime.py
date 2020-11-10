@@ -117,21 +117,23 @@ class Crime:
     # the incidences are the lambdas for sampling arrival times
     return counts
 
-  # aggregated outcomes per category TODO add geography?
+  # likelihood of identifying a suspect per category and geography?
   def get_crime_outcomes(self):
 
     # get reported crimes
 
-    outcomes = self.data[["Crime type", "SuspectDemand", "Crime ID"]] \
+    outcomes = self.data[["MSOA", "Crime type", "SuspectDemand", "Crime ID"]] \
       .rename({"Crime ID": "count"}, axis=1) \
-      .groupby(["Crime type", "SuspectDemand"]) \
-      .count()
+      .groupby(["MSOA", "Crime type", "SuspectDemand"]) \
+      .count() \
+      .unstack(level=2, fill_value=0) #.reset_index()
 
-    # ensure all data accounted for
-    assert outcomes["count"].sum() == len(self.data)
+    # # ensure all data accounted for
+    assert outcomes.sum().sum() == len(self.data)
 
-    # normalise
-    outcomes = pd.merge(outcomes, outcomes.groupby(level=0).sum(), left_index=True, right_index=True, suffixes=("", "_total"))
-    outcomes["weight"] = outcomes["count"] / outcomes["count_total"]
+    outcomes.columns = outcomes.columns.droplevel(0)
+    outcomes.rename({False: "NoSuspect", True: "Suspect"}, axis=1, inplace=True)
+    # 
+    outcomes["pSuspect"] = outcomes.Suspect / outcomes.sum(axis=1)
 
     return outcomes

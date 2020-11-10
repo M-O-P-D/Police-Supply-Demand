@@ -37,8 +37,6 @@ plt.show()
 
 import pandas as pd
 
-force_name = "west-yorkshire"
-
 counts = crime.get_crime_counts()
 print(counts)
 outcomes = crime.get_crime_outcomes()
@@ -46,7 +44,7 @@ print(outcomes)
 
 # %%
 import importlib
-importlib.reload(Crime)
+importlib.reload(crime.Crime)
 
 # %%
 

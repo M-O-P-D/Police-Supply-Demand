@@ -1,6 +1,6 @@
 # CriMS
 
-Policing and Crime supply-demand modelling. *CriMS* is the microsynthesis and microsimulation components of this workflow:
+Policing and Crime supply-demand modelling. *CriMS* is an evolution of **crime-sim-toolkit** [[6]] and forms the microsynthesis and microsimulation components of this workflow:
 
 ![workflow](./doc/workflow.svg)
 
@@ -16,6 +16,12 @@ Uses the **police-api-client** [[3]](#references) to get open data on crime occu
 
 Uses the **humanleague** [[4]](#references) package to synthesise crime microdata, and the **neworder** [[5]](#references) microsimulation framework to run the model.
 
+## Data sources
+
+- Bulk crime and outcome data: [data.police.uk](https://data.police.uk)
+
+- Sample (interim) victim data from **crime-sim-toolkit** [[6]]
+
 ## References
 
 [1] [ukcensusapi: UK census data query automation](<https://pypi.org/project/ukcensusapi/>)
@@ -27,3 +33,5 @@ Uses the **humanleague** [[4]](#references) package to synthesise crime microdat
 [4] [humanleague: Microsynthesis using quasirandom sampling and/or IPF](<https://pypi.org/project/humanleague/>)
 
 [5] [neworder: A dynamic microsimulation framework](<https://neworder.readthedocs.io>)
+
+[6] [crime-sim-toolkit](https://github.com/M-O-P-D/crime_sim_toolkit)
