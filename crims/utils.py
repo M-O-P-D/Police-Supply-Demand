@@ -48,5 +48,5 @@ def smooth(a, n):
   m = n//2
   s = a * w[m]
   for i in range(1,m+1):
-    s += w[m-i] * np.roll(a, -i) + w[m+i] * np.roll(a,i) 
+    s += w[m-i] * np.roll(a, -i) + w[m+i] * np.roll(a,i)
   return s

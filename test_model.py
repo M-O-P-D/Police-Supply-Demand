@@ -1,5 +1,4 @@
 # %%
-import numpy as np
 import pandas as pd
 import neworder as no
 from crims import model
