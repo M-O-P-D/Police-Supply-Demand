@@ -7,7 +7,7 @@ from .utils import smooth
 
 class CrimeMicrosim(no.Model):
   def __init__(self, timeline, force_area):
-    super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
+    super().__init__(timeline, lambda _: 13)
 
     crime = Crime(force_area, 2017, 10, 2020, 9)
     self.crime_rates = crime.get_crime_counts()
