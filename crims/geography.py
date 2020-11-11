@@ -34,7 +34,7 @@ def filter_by_lads(df, column, lad_names):
   return ret
 
 def filter_by_list(df, column, msoa_list):
-  return df[df[column].isin(lsoa_list)]
+  return df[df[column].isin(msoa_list)]
 
 def get_msoa11_gdf():
   """ converts northings and eastings to lat/lon """

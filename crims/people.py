@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 import ukpopulation.snppdata as SNPPData
 #import ukpopulation.myedata as MYEData
@@ -73,10 +72,9 @@ def get_census_data(geogs):
   #   "11": "Asian/Asian British: Total",
   #   "17": "Black/African/Caribbean/Black British: Total",
   #   "21": "Other ethnic group: Total",
-  # },  
+  # },
 
   table = "DC2101EW"
-  table_internal = "NM_651_1"
   query_params = {
     "date": "latest",
     "select": "GEOGRAPHY_CODE,C_SEX,C_AGE,C_ETHPUK11,OBS_VALUE",
@@ -85,7 +83,7 @@ def get_census_data(geogs):
     "C_ETHPUK11": "1,6,11,17,21",
     "MEASURES": "20100",
   }
-  
+
   query_params["geography"] = nomis_msoa_codes
   dc2101ew_msoa = api.get_data(table, query_params)
 

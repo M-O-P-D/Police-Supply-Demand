@@ -5,42 +5,42 @@ from pathlib import Path
 import requests
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Polygon
 from police_api import PoliceAPI
 
 from .utils import month_range, msoa_from_lsoa
 
 class Crime:
 
-  __outcomes_mapping = { 
-    'Action to be taken by another organisation': False, 
+  __outcomes_mapping = {
+    'Action to be taken by another organisation': False,
     'Awaiting court outcome': True,
-    'Court case unable to proceed': True, 
+    'Court case unable to proceed': True,
     'Court result unavailable': True,
     'Defendant found not guilty': True,
     'Defendant sent to Crown Court': True,
     'Formal action is not in the public interest': False,
     'Further action is not in the public interest': False,
     'Further investigation is not in the public interest': False,
-    'Investigation complete; no suspect identified': False, 
+    'Investigation complete; no suspect identified': False,
     'Local resolution': False,
-    'Offender deprived of property': True, 
+    'Offender deprived of property': True,
     'Offender fined': True,
-    'Offender given a caution': True, 
+    'Offender given a caution': True,
     'Offender given a drugs possession warning': True,
     'Offender given absolute discharge': True,
     'Offender given community sentence': True,
-    'Offender given conditional discharge': True, 
+    'Offender given conditional discharge': True,
     'Offender given penalty notice': True,
     'Offender given suspended prison sentence': True,
-    'Offender ordered to pay compensation': True, 
+    'Offender ordered to pay compensation': True,
     'Offender otherwise dealt with': True,
-    'Offender sent to prison': True, 
+    'Offender sent to prison': True,
     'Status update unavailable': False,
     'Suspect charged as part of another case': True,
-    'Unable to prosecute suspect': True, 
-    'Under investigation': False, 
-    'n/a': False  
+    'Unable to prosecute suspect': True,
+    'Under investigation': False,
+    'n/a': False
   }
 
 
@@ -62,7 +62,7 @@ class Crime:
     # allow getting neighbourhoods from another force (without having to load all the crime data)
     if force_name is None:
       force_name = self.force_name
-    forcepd = self.api.get_force(force_name) 
+    forcepd = self.api.get_force(force_name)
 
     ns = forcepd.neighbourhoods
     #print(n.locations)# %%
@@ -89,7 +89,7 @@ class Crime:
       r = requests.get("https://data.police.uk/data/archive/%s" % file)
       open(local_file , 'wb').write(r.content)
       print("...saved to %s" % local_file)
-    
+
     z = ZipFile(local_file)
 
     files = ["%s/%s-%s-street.csv" % (d, d, force_name) for d in month_range(start_year, start_month, end_year, end_month)]
@@ -110,7 +110,7 @@ class Crime:
       .groupby(["MSOA", "MonthOnly", "Crime type"]) \
       .count() \
       .unstack(level=1, fill_value=0) #.reset_index()
-    
+
     # ensure all data accounted for
     assert counts.sum().sum() == len(self.data)
 
@@ -136,7 +136,7 @@ class Crime:
 
     outcomes.columns = outcomes.columns.droplevel(0)
     outcomes.rename({False: "NoSuspect", True: "Suspect"}, axis=1, inplace=True)
-    # 
+    #
     outcomes["pSuspect"] = outcomes.Suspect / outcomes.sum(axis=1)
 
     return outcomes

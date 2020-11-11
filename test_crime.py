@@ -35,8 +35,6 @@ plt.show()
 
 # %%
 
-import pandas as pd
-
 counts = crime.get_crime_counts()
 print(counts)
 outcomes = crime.get_crime_outcomes()
