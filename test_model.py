@@ -14,11 +14,12 @@ from matplotlib.colors import to_rgba
 
 #no.verbose()
 
+start_year = 2020
+end_year = 2022
 force = "west-yorkshire"
-#force = "devon-and-cornwall"
+#force = "city-of-london"
 
-timeline = no.Timeline(2020,2020,[1])
-model = model.CrimeMicrosim(timeline, force)
+model = model.CrimeMicrosim(start_year, end_year, force)
 
 # df = model.crime_rates.set_index(["MSOA", "Crime type", "Month"], drop=True)
 # print(df)
@@ -35,16 +36,15 @@ force_boundaries = geography.create_forces_gdf()
 
 msoas = geography.get_msoa11_gdf()
 
-crime_counts = model.crimes[["Time"]].groupby(level=0).count().rename({"Time": "colour"}, axis=1)
+crime_counts = model.crimes[["time"]].groupby(level=0).count().rename({"time": "colour"}, axis=1)
 
 # log scale
 # amax = np.log(crime_counts["colour"].max())
 # crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alpha=0.1+0.9*np.log(r)/amax))
 # linear scale
 amax = crime_counts["colour"].max()
-print(0.1+0.9*crime_counts["colour"]/amax)
-crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alpha=0.1+0.9*r/amax))
-
+# need to deal with rounding errors
+crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alpha=min(1.0, 0.1+0.9*r/amax)))
 
 msoas = pd.merge(msoas[msoas.MSOA11CD.isin(crime_counts.index.values)][["MSOA11CD", "geometry"]], crime_counts, left_on="MSOA11CD", right_index=True)
 
@@ -56,10 +56,11 @@ ax.set_axis_off()
 # ctx.providers.CartoDB.keys()...
 ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
 
-ax.set_title("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.")
+plt.suptitle("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.")
 
 plt.show()
 
+model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
 
 
 
