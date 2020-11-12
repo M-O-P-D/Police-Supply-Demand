@@ -6,6 +6,7 @@ import pandas as pd
 app = Flask(__name__)
 
 
+# dummy some response data
 def get_response(data_in):
   output = pd.DataFrame(index=data_in.groupby(["MSOA", "crime_type"]).indices, columns={"delta": 0.0})
   output.delta = 0.0

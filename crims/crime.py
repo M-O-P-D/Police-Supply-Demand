@@ -8,7 +8,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 from police_api import PoliceAPI
 
-from .utils import month_range, msoa_from_lsoa
+from .utils import month_range, msoa_from_lsoa, format_force_name
 
 class Crime:
 
@@ -50,12 +50,14 @@ class Crime:
 
     # self.year = year
     # self.month = month
-    self.force_name = force_name
+    self.original_force_name = force_name
+    self.force_name = format_force_name(force_name)
     self.api = PoliceAPI()
     self.data = Crime.__get_raw_data(self.force_name, start_year, start_month, end_year, end_month)
     self.data["SuspectDemand"] = self.data["Last outcome category"].apply(lambda c: Crime.__outcomes_mapping[c])
     # assume annual cycle and aggregate years
     self.data["MonthOnly"] = self.data.Month.apply(lambda ym: ym.split("-")[1])
+
 
   # returns a GeoDataFrame
   def get_neighbourhoods(self, force_name=None):
@@ -140,3 +142,21 @@ class Crime:
     outcomes["pSuspect"] = outcomes.Suspect / outcomes.sum(axis=1)
 
     return outcomes
+
+  def get_category_breakdown(self): # note this is e.g. West Yorkshire not west-yorkshire
+    # TODO confirm data source, nothing newer available, move to here
+    file = "../crime_sim_toolkit/crime_sim_toolkit/src/prc-pfa-201718_new.csv"
+
+    raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
+
+    cats = raw.groupby(["force", "category", "description"]).sum() \
+      .drop(["Unnamed: 0", "Financial_Quarter"], axis=1) \
+      .rename({"Number_of_Offences": "offences"}, axis=1)
+
+    cat_totals = cats.groupby(level=[0,1]).sum()
+
+    cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_cat"])
+    cats["proportion"] = cats.offences / cats.offences_cat
+
+    return cats.loc[self.original_force_name]
+

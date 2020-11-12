@@ -39,6 +39,8 @@ counts = crime.get_crime_counts()
 print(counts)
 outcomes = crime.get_crime_outcomes()
 print(outcomes)
+cats = crime.get_category_breakdown()
+print(cats)
 
 # %%
 # import importlib
