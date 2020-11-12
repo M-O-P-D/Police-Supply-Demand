@@ -4,9 +4,10 @@ import warnings
 warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
 
 
-from crims.crime import Crime
 import contextily as ctx
 import matplotlib.pyplot as plt
+import neworder as no
+from crims.crime import Crime
 
 
 crime = Crime('West Yorkshire', 2017, 10, 2020, 9)
@@ -41,6 +42,18 @@ outcomes = crime.get_crime_outcomes()
 print(outcomes)
 cats = crime.get_category_breakdown()
 print(cats)
+
+subcats = cats.loc["Violence and Sexual Offences"]
+print(subcats)
+print(subcats.proportion.sum())
+
+d = subcats.index.values
+p = subcats.proportion.values
+
+m = no.Model(no.Timeline.null(), no.MonteCarlo.deterministic_identical_stream)
+s = m.mc().sample(100, p) 
+print([d[i] for i in s])
+
 
 # %%
 # import importlib
