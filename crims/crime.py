@@ -50,7 +50,7 @@ class Crime:
 
     # self.year = year
     # self.month = month
-    self.force_name = force_name.lower().replace(" ", "-") # "West Yorkshire" -> "west-yorkshire"
+    self.force_name = force_name
     self.api = PoliceAPI()
     self.data = Crime.__get_raw_data(self.force_name, start_year, start_month, end_year, end_month)
     self.data["SuspectDemand"] = self.data["Last outcome category"].apply(lambda c: Crime.__outcomes_mapping[c])

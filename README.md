@@ -10,11 +10,17 @@ Uses the **ukcensusapi** [[1]](#references) and **ukpopulation** [[2]](#referenc
 
 ## Crime Data
 
-Uses the **police-api-client** [[3]](#references) to get open data on crime occurrences and some closed data to sample victim characteristics.
+Uses the **police-api-client** [[3]](#references) and the **police open data portal** directly [[4]](#references)  to get open data on crime occurrences and some closed data to sample victim characteristics.
 
 ## Model
 
-Uses the **humanleague** [[4]](#references) package to synthesise crime microdata, and the **neworder** [[5]](#references) microsimulation framework to run the model.
+Uses the **neworder** [[5]](#references) microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and type, so can capture seasonal fluctuations in crime frequency, and uses this data to simulate crime patterns as non-homogeneous Poisson processes. This crime data is to be fed into an agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
+
+### Planned Model Enhancements
+
+- Capture temporal trends in crime rates (as well as seasonality)
+- Capture daily and weekly periodicity of crimes by crime type
+- Alter crime incidence rates according to feedback from upstream model
 
 ## Data sources
 
@@ -24,6 +30,33 @@ Uses the **humanleague** [[4]](#references) package to synthesise crime microdat
 
 - MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
 
+## Usage
+
+First install dependencies
+
+```
+pip install -r requirements.txt
+```
+
+The script `test_model.py` can be used to run the model on a single force area and plot some output. Change the force area by editing the script. Run it like so:
+
+```
+python run_model.py "West Yorkshire" 2020 2022
+```
+
+which will simulate crime occurrences for West Yorkshire Police for 3 years, from 1/1/2020 to 31/12/2022. Note that some the crime locations may not be within the force area.
+
+## Output
+
+The model produces simulated crime data in four variables:
+
+- spatial: MSOA in which the crime occurred
+- temporal: the time at which the crime occurred/was reported/was responded to. (TODO which?)
+- categorical:
+    - the type of the crime
+    - whether a suspect has been identified
+
+
 ## References
 
 [1] [ukcensusapi: UK census data query automation](<https://pypi.org/project/ukcensusapi/>)
@@ -32,7 +65,9 @@ Uses the **humanleague** [[4]](#references) package to synthesise crime microdat
 
 [3] [police-api-client: Python client library for the Police API](<https://pypi.org/project/police-api-client/>)
 
-[4] [humanleague: Microsynthesis using quasirandom sampling and/or IPF](<https://pypi.org/project/humanleague/>)
+[4] [Police Open Data Portal](<https://data.police.uk/>)
+
+~~[4] [humanleague: Microsynthesis using quasirandom sampling and/or IPF](<https://pypi.org/project/humanleague/>)~~
 
 [5] [neworder: A dynamic microsimulation framework](<https://neworder.readthedocs.io>)
 

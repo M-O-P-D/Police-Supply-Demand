@@ -50,3 +50,6 @@ def smooth(a, n):
   for i in range(1,m+1):
     s += w[m-i] * np.roll(a, -i) + w[m+i] * np.roll(a,i)
   return s
+
+def format_force_name(name):
+  return name.lower().replace(" ", "-") # e.g. "West Yorkshire" -> "west-yorkshire"
