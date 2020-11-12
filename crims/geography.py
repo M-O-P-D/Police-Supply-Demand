@@ -37,7 +37,7 @@ def filter_by_list(df, column, msoa_list):
   return df[df[column].isin(msoa_list)]
 
 def get_msoa11_gdf():
-  """ converts northings and eastings to lat/lon """
+  # converts northing/eastings to webmercator
   msoa_file = "Middle_Layer_Super_Output_Areas__December_2011__EW_BSC_V2"
   msoa_data = gpd.read_file("zip://data/%s-shp.zip!%s.shp" % (msoa_file, msoa_file), crs={ "init": "epsg:27700"}).to_crs(epsg=3785)
   return msoa_data

@@ -15,8 +15,8 @@ from matplotlib.colors import to_rgba
 
 start_year = 2020
 end_year = 2022
-force = "west-yorkshire"
-#force = "city-of-london"
+#force = "west-yorkshire"
+force = "city-of-london"
 
 model = model.CrimeMicrosim(start_year, end_year, force)
 

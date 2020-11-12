@@ -34,13 +34,13 @@ Uses the **neworder** [[5]](#references) microsimulation framework to run the mo
 
 First install dependencies
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
 The script `test_model.py` can be used to run the model on a single force area and plot some output. Change the force area by editing the script. Run it like so:
 
-```
+```bash
 python run_model.py "West Yorkshire" 2020 2022
 ```
 
@@ -53,9 +53,8 @@ The model produces simulated crime data in four variables:
 - spatial: MSOA in which the crime occurred
 - temporal: the time at which the crime occurred/was reported/was responded to. (TODO which?)
 - categorical:
-    - the type of the crime
-    - whether a suspect has been identified
-
+  - the type of the crime
+  - whether a suspect has been identified
 
 ## References
 
@@ -67,8 +66,8 @@ The model produces simulated crime data in four variables:
 
 [4] [Police Open Data Portal](<https://data.police.uk/>)
 
-~~[4] [humanleague: Microsynthesis using quasirandom sampling and/or IPF](<https://pypi.org/project/humanleague/>)~~
+<!--[4] [humanleague: Microsynthesis using quasirandom sampling and/or IPF](<https://pypi.org/project/humanleague/>)-->
 
 [5] [neworder: A dynamic microsimulation framework](<https://neworder.readthedocs.io>)
 
-[6] [crime-sim-toolkit](https://github.com/M-O-P-D/crime_sim_toolkit)
+[6] [crime-sim-toolkit](<https://github.com/M-O-P-D/crime_sim_toolkit>)

@@ -35,13 +35,12 @@ class CrimeMicrosim(no.Model):
     end_date = start_date + relativedelta(months=1)
 
     # send monthly data to upstream model - if its listening
-    ok = self.datastream.send(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)])
+    adjustments = self.datastream.send_recv(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)])
 
-    no.log("%d-%d: %d crimes. posted: %s" % (start_y, start_m, len(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)]), ok))
+    no.log("%d-%d: %d crimes. posted: %s" % (start_y, start_m, len(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)]), adjustments is not None))
 
-    # could potentially discard successfully sent data now:
-    # if ok:
-    #   self.crimes = self.crimes[(self.crimes.time < start_date) | (self.crimes.time >= end_date)]
+    if adjustments is not None:
+      no.log("received %d adjustments" % len(adjustments))
 
   def __sample_crimes(self):
     # simulate 1 year of crimes from a non-homogeneous Poisson process using a lambda derived
