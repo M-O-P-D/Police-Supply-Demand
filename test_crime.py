@@ -51,10 +51,11 @@ d = subcats.index.values
 p = subcats.proportion.values
 
 m = no.Model(no.Timeline.null(), no.MonteCarlo.deterministic_identical_stream)
-s = m.mc().sample(100, p) 
-print([d[i] for i in s])
+s = m.mc().sample(100, subcats.proportion.values) 
+print(subcats.iloc[s].index)
 
-
+print(counts.index.levels[1].unique())
+print(cats.index.levels[0].unique())
 # %%
 # import importlib
 # importlib.reload(crime.Crime)

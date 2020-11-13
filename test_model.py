@@ -3,6 +3,7 @@ import pandas as pd
 import neworder as no
 from crims import model
 from crims import geography
+from crims.utils import format_force_name
 
 import warnings
 warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
@@ -15,8 +16,8 @@ from matplotlib.colors import to_rgba
 
 start_year = 2020
 end_year = 2022
-#force = "west-yorkshire"
-force = "city-of-london"
+force = "West Yorkshire"
+#force = "City of London"
 
 model = model.CrimeMicrosim(start_year, end_year, force)
 
@@ -48,7 +49,7 @@ crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alp
 msoas = pd.merge(msoas[msoas.MSOA11CD.isin(crime_counts.index.values)][["MSOA11CD", "geometry"]], crime_counts, left_on="MSOA11CD", right_index=True)
 
 ax = msoas.plot(figsize=(10, 10), color=msoas.colour, edgecolor='k')
-force_boundaries[force_boundaries.force == force].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
+force_boundaries[force_boundaries.force == format_force_name(force)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
 ax.set_axis_off()
 # ctx.providers.keys()
 # dict_keys(['OpenStreetMap', 'OpenSeaMap', 'OpenPtMap', 'OpenTopoMap', 'OpenRailwayMap', 'OpenFireMap', 'SafeCast', 'Thunderforest', 'OpenMapSurfer', 'Hydda', 'MapBox', 'Stamen', 'Esri', 'OpenWeatherMap', 'HERE', 'FreeMapSK', 'MtbMap', 'CartoDB', 'HikeBike', 'BasemapAT', 'nlmaps', 'NASAGIBS', 'NLS', 'JusticeMap', 'Wikimedia', 'GeoportailFrance', 'OneMapSG'])
@@ -59,8 +60,8 @@ plt.suptitle("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under 
 
 plt.show()
 
-model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
-
+#model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
+print(model.crimes.head())
 
 
 # %%

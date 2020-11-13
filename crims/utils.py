@@ -53,3 +53,16 @@ def smooth(a, n):
 
 def format_force_name(name):
   return name.lower().replace(" ", "-") # e.g. "West Yorkshire" -> "west-yorkshire"
+
+def standardise_crime_type(typestr):
+  return typestr.lower()
+#   'Anti-social behaviour', 'Bicycle theft', 'Burglary',
+#   'Criminal damage and arson', 'Drugs', 'Other crime', 'Other theft',
+#        'Possession of weapons', 'Public order', 'Robbery', 'Shoplifting',
+#        'Theft from the person', 'Vehicle crime',
+#        'Violence and sexual offences'],
+# Index(['Bicycle Theft', 'Burglary', 'Criminal Damage and Arson', 'Drugs',
+#        'Other Theft', 'Other crime', 'Possession of Weapons', 'Public Order',
+#        'Robbery', 'Shoplifting', 'Theft from the Person', 'Vehicle Crime',
+#        'Violence and Sexual Offences'],
+#       dtype='object', name='category')

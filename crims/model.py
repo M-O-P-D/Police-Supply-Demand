@@ -19,6 +19,7 @@ class CrimeMicrosim(no.Model):
 
     self.crime_types = self.crime_rates.index.unique(level=1)
     self.geogs = self.crime_rates.index.unique(level=0)
+    self.crime_categories = crime.get_category_breakdown()
 
     self.crimes = self.__sample_crimes()
 
@@ -52,8 +53,14 @@ class CrimeMicrosim(no.Model):
 
     crimes = pd.DataFrame()
 
-    for g in self.geogs:
-      for ct in self.crime_types:
+    for ct in self.crime_types:
+      subcats = self.crime_categories.loc[ct]
+      # cd = subcats.index.values
+      # p = subcats.proportion.values
+      # s = self.mc().sample(100, p) 
+      # print([d[i] for i in s])
+
+      for g in self.geogs:
         if self.crime_rates.index.isin([(g, ct)]).any():
           # smooth the data
           smoothed_rates = smooth(self.crime_rates.loc[(g, ct)].values, 7)
@@ -64,7 +71,8 @@ class CrimeMicrosim(no.Model):
           if len(times) > 0:
             d = [datetime.fromtimestamp(t * secs_year + offset) for t in times]
             s = self.mc().hazard(p_suspect, len(times)).astype(bool)
-            df = pd.DataFrame(index=range(len(d)), data={"MSOA": g, "crime_type": ct, "time": d, "suspect": s })
+            c = self.mc().sample(len(times), subcats.proportion.values)
+            df = pd.DataFrame(index=range(len(d)), data={"MSOA": g, "crime_type": ct, "description": subcats.iloc[c].index.values, "time": d, "suspect": s })
             crimes = crimes.append(df, ignore_index=True)
 
     return crimes.set_index(["MSOA", "crime_type"], drop=True)
