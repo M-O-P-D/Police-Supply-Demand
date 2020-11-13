@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import neworder as no
 from crims.crime import Crime
 
-
 crime = Crime('West Yorkshire', 2017, 10, 2020, 9)
 
 gdf = crime.get_neighbourhoods()
@@ -43,7 +42,7 @@ print(outcomes)
 cats = crime.get_category_breakdown()
 print(cats)
 
-subcats = cats.loc["Violence and Sexual Offences"]
+subcats = cats.loc["violence and sexual offences"]
 print(subcats)
 print(subcats.proportion.sum())
 
@@ -51,7 +50,8 @@ d = subcats.index.values
 p = subcats.proportion.values
 
 m = no.Model(no.Timeline.null(), no.MonteCarlo.deterministic_identical_stream)
-s = m.mc().sample(100, subcats.proportion.values) 
+print("%g" % (subcats.proportion.sum()-1.0))
+s = m.mc().sample(100, subcats.proportion.values/subcats.proportion.sum())
 print(subcats.iloc[s].index)
 
 print(counts.index.levels[1].unique())

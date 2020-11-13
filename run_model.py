@@ -14,9 +14,6 @@ from matplotlib.colors import to_rgba
 
 def main(force_name, start_year, end_year):
 
-  original_force_name = force_name # for output
-  force_name = utils.format_force_name(force_name)
-
   # construct and run the model
   microsim = model.CrimeMicrosim(start_year, end_year+1, force_name)
   no.run(microsim)
@@ -35,10 +32,10 @@ def main(force_name, start_year, end_year):
   ax = msoas.plot(figsize=(10, 10), color=msoas.colour, edgecolor='k')
 
   # add force area boundary to map, and background tiles
-  force_boundaries[force_boundaries.force == force_name].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
+  force_boundaries[force_boundaries.force == utils.format_force_name(force_name)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
   ax.set_axis_off()
   ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
-  plt.suptitle("Simulated crime density for %s Police, %d-%d" % (original_force_name, start_year, end_year), fontsize=16)
+  plt.suptitle("Simulated crime density for %s Police, %d-%d" % (force_name, start_year, end_year), fontsize=16)
   plt.title("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.", fontsize=12)
 
   plt.show()

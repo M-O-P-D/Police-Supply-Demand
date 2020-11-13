@@ -21,9 +21,6 @@ force = "West Yorkshire"
 
 model = model.CrimeMicrosim(start_year, end_year, force)
 
-# df = model.crime_rates.set_index(["MSOA", "Crime type", "Month"], drop=True)
-# print(df)
-
 #no.log(model.crime_rates.loc[("E02001109", "Anti-social behaviour")])
 
 # %%
@@ -60,8 +57,8 @@ plt.suptitle("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under 
 
 plt.show()
 
-#model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
-print(model.crimes.head())
+model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
+#print(model.crimes.head())
 
 
 # %%

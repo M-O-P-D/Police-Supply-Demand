@@ -8,7 +8,8 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 from police_api import PoliceAPI
 
-from .utils import month_range, msoa_from_lsoa, format_force_name
+from .utils import month_range, msoa_from_lsoa, format_force_name, standardise_category_name
+
 
 class Crime:
 
@@ -97,7 +98,9 @@ class Crime:
     files = ["%s/%s-%s-street.csv" % (d, d, force_name) for d in month_range(start_year, start_month, end_year, end_month)]
 
     # replace NaNs otherwise data goes missing in groupby operations
-    data = pd.concat([pd.read_csv(z.open(f)) for f in files]).fillna("n/a")
+    data = pd.concat([pd.read_csv(z.open(f)) for f in files]).fillna("n/a").rename({"Crime type": "crime_type"}, axis=1)
+    data.crime_type = data.crime_type.apply(standardise_category_name)
+
     msoas = msoa_from_lsoa(data["LSOA code"].unique())
 
     return pd.merge(data, msoas, left_on="LSOA code", right_index=True)
@@ -107,17 +110,20 @@ class Crime:
     # TODO sample annual variability? 3 counts will give *some* indication?
 
     # count monthly incidence by time, space and type. note this is an *annual* incidence rate
-    counts = self.data[["MSOA", "Crime type", "MonthOnly", "Crime ID"]] \
-      .rename({"Crime ID": "count"}, axis=1) \
-      .groupby(["MSOA", "MonthOnly", "Crime type"]) \
+    counts = self.data[["MSOA", "crime_type", "MonthOnly", "Crime ID"]]
+
+    counts = counts.rename({"Crime ID": "count"}, axis=1) \
+      .groupby(["MSOA", "MonthOnly", "crime_type"]) \
       .count() \
-      .unstack(level=1, fill_value=0) #.reset_index()
+      .unstack(level=1, fill_value=0)
 
     # ensure all data accounted for
     assert counts.sum().sum() == len(self.data)
 
     # counts["count"] = counts["count"].astype(float) * 12 / 3
     counts = counts.astype(float) * 12 / 3
+
+    print(counts)
 
     # the incidences are the lambdas for sampling arrival times
     return counts
@@ -126,10 +132,9 @@ class Crime:
   def get_crime_outcomes(self):
 
     # get reported crimes
-
-    outcomes = self.data[["MSOA", "Crime type", "SuspectDemand", "Crime ID"]] \
+    outcomes = self.data[["MSOA", "crime_type", "SuspectDemand", "Crime ID"]] \
       .rename({"Crime ID": "count"}, axis=1) \
-      .groupby(["MSOA", "Crime type", "SuspectDemand"]) \
+      .groupby(["MSOA", "crime_type", "SuspectDemand"]) \
       .count() \
       .unstack(level=2, fill_value=0) #.reset_index()
 
@@ -144,10 +149,17 @@ class Crime:
     return outcomes
 
   def get_category_breakdown(self): # note this is e.g. West Yorkshire not west-yorkshire
-    # TODO confirm data source, nothing newer available, move to here
+    # TODO get original data and process it, see https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods
+    # and https://github.com/M-O_P-D/crime_sim_toolkit/blob/master/data_manipulation/MappingCrimeCat2CrimeDes.ipynb
     file = "../crime_sim_toolkit/crime_sim_toolkit/src/prc-pfa-201718_new.csv"
 
     raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
+
+    # add antisocial behaviour
+    asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "Anti-social behaviour", "description": "Anti-social behaviour", "Number_of_Offences": 1})
+    raw = raw.append(asb)
+
+    raw.category = raw.category.apply(standardise_category_name)
 
     cats = raw.groupby(["force", "category", "description"]).sum() \
       .drop(["Unnamed: 0", "Financial_Quarter"], axis=1) \

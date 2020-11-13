@@ -23,6 +23,8 @@ class CrimeMicrosim(no.Model):
 
     self.crimes = self.__sample_crimes()
 
+    print(self.crimes)
+
     # upstream model
     self.datastream = DataStream("http://localhost:5000")
 
@@ -57,7 +59,7 @@ class CrimeMicrosim(no.Model):
       subcats = self.crime_categories.loc[ct]
       # cd = subcats.index.values
       # p = subcats.proportion.values
-      # s = self.mc().sample(100, p) 
+      # s = self.mc().sample(100, p)
       # print([d[i] for i in s])
 
       for g in self.geogs:
@@ -71,7 +73,7 @@ class CrimeMicrosim(no.Model):
           if len(times) > 0:
             d = [datetime.fromtimestamp(t * secs_year + offset) for t in times]
             s = self.mc().hazard(p_suspect, len(times)).astype(bool)
-            c = self.mc().sample(len(times), subcats.proportion.values)
+            c = self.mc().sample(len(times), subcats.proportion.values) #/sum(subcats.proportion.values))
             df = pd.DataFrame(index=range(len(d)), data={"MSOA": g, "crime_type": ct, "description": subcats.iloc[c].index.values, "time": d, "suspect": s })
             crimes = crimes.append(df, ignore_index=True)
 
