@@ -14,6 +14,8 @@ Uses the **police-api-client** [[3]](#references) and the **police open data por
 
 ## Model
 
+![sample visualisation](./doc/wy2020.png)
+
 Uses the **neworder** [[5]](#references) microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and type, so can capture seasonal fluctuations in crime frequency, and uses this data to simulate crime patterns as non-homogeneous Poisson processes. This crime data is to be fed into an agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
 
 ### Planned Model Enhancements
@@ -26,7 +28,7 @@ Uses the **neworder** [[5]](#references) microsimulation framework to run the mo
 
 - Bulk crime and outcome data, force boundaries: [data.police.uk](https://data.police.uk)
 
-- Sample (interim) victim data from **crime-sim-toolkit** [[6]]
+- Sample (interim) victim data from **crime-sim-toolkit** [[6]](#references)
 
 - MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
 
