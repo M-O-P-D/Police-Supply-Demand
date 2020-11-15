@@ -4,7 +4,6 @@ import neworder as no
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from .crime import Crime
-from .utils import smooth
 from .streamer import DataStream
 
 class CrimeMicrosim(no.Model):
@@ -21,14 +20,13 @@ class CrimeMicrosim(no.Model):
     self.geogs = self.crime_rates.index.unique(level=0)
     self.crime_categories = crime.get_category_breakdown()
 
-    self.crimes = self.__sample_crimes()
-
-    print(self.crimes)
-
     # upstream model
     self.datastream = DataStream("http://localhost:5000")
 
   def step(self):
+
+    # ensure we have crimes to sample to start with (this could be done in ctor but that would understimate reported exec time)
+    if self.timeline().index() == 1: self.crimes = self.__sample_crimes()
 
     # get year and month
     start_y = int(self.timeline().start() + (self.timeline().index()-1) // 12)
@@ -64,9 +62,7 @@ class CrimeMicrosim(no.Model):
 
       for g in self.geogs:
         if self.crime_rates.index.isin([(g, ct)]).any():
-          # smooth the data
-          smoothed_rates = smooth(self.crime_rates.loc[(g, ct)].values, 7)
-          lambdas = np.append(smoothed_rates, 0).astype(float)
+          lambdas = np.append(self.crime_rates.loc[(g, ct)].values, 0).astype(float)
           times = self.mc().arrivals(lambdas, 1/12, 1, 0.0)[0]
           p_suspect = self.crime_outcomes.loc[(g,ct), "pSuspect"]
           #print(p_suspect)

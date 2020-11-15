@@ -8,14 +8,14 @@ from crims.utils import format_force_name
 import warnings
 warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
 
-import contextily as ctx
-import matplotlib.pyplot as plt
-from matplotlib.colors import to_rgba
+# import contextily as ctx
+# import matplotlib.pyplot as plt
+# from matplotlib.colors import to_rgba
 
 #no.verbose()
 
 start_year = 2020
-end_year = 2022
+end_year = 2021
 force = "West Yorkshire"
 #force = "City of London"
 
@@ -29,36 +29,36 @@ model = model.CrimeMicrosim(start_year, end_year, force)
 
 no.run(model)
 
-force_boundaries = geography.create_forces_gdf()
+#force_boundaries = geography.create_forces_gdf()
 
-msoas = geography.get_msoa11_gdf()
+# msoas = geography.get_msoa11_gdf()
 
-crime_counts = model.crimes[["time"]].groupby(level=0).count().rename({"time": "colour"}, axis=1)
+# crime_counts = model.crimes[["time"]].groupby(level=0).count().rename({"time": "colour"}, axis=1)
 
-# log scale
-# amax = np.log(crime_counts["colour"].max())
-# crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alpha=0.1+0.9*np.log(r)/amax))
-# linear scale
-amax = crime_counts["colour"].max()
-# need to deal with rounding errors
-crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alpha=min(1.0, 0.1+0.9*r/amax)))
+# # log scale
+# # amax = np.log(crime_counts["colour"].max())
+# # crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alpha=0.1+0.9*np.log(r)/amax))
+# # linear scale
+# amax = crime_counts["colour"].max()
+# # need to deal with rounding errors
+# crime_counts["colour"] = crime_counts["colour"].apply(lambda r: to_rgba("r", alpha=min(1.0, 0.1+0.9*r/amax)))
 
-msoas = pd.merge(msoas[msoas.MSOA11CD.isin(crime_counts.index.values)][["MSOA11CD", "geometry"]], crime_counts, left_on="MSOA11CD", right_index=True)
+# msoas = pd.merge(msoas[msoas.MSOA11CD.isin(crime_counts.index.values)][["MSOA11CD", "geometry"]], crime_counts, left_on="MSOA11CD", right_index=True)
 
-ax = msoas.plot(figsize=(10, 10), color=msoas.colour, edgecolor='k')
-force_boundaries[force_boundaries.force == format_force_name(force)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
-ax.set_axis_off()
-# ctx.providers.keys()
-# dict_keys(['OpenStreetMap', 'OpenSeaMap', 'OpenPtMap', 'OpenTopoMap', 'OpenRailwayMap', 'OpenFireMap', 'SafeCast', 'Thunderforest', 'OpenMapSurfer', 'Hydda', 'MapBox', 'Stamen', 'Esri', 'OpenWeatherMap', 'HERE', 'FreeMapSK', 'MtbMap', 'CartoDB', 'HikeBike', 'BasemapAT', 'nlmaps', 'NASAGIBS', 'NLS', 'JusticeMap', 'Wikimedia', 'GeoportailFrance', 'OneMapSG'])
-# ctx.providers.CartoDB.keys()...
-ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
+# ax = msoas.plot(figsize=(10, 10), color=msoas.colour, edgecolor='k')
+# force_boundaries[force_boundaries.force == format_force_name(force)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
+# ax.set_axis_off()
+# # ctx.providers.keys()
+# # dict_keys(['OpenStreetMap', 'OpenSeaMap', 'OpenPtMap', 'OpenTopoMap', 'OpenRailwayMap', 'OpenFireMap', 'SafeCast', 'Thunderforest', 'OpenMapSurfer', 'Hydda', 'MapBox', 'Stamen', 'Esri', 'OpenWeatherMap', 'HERE', 'FreeMapSK', 'MtbMap', 'CartoDB', 'HikeBike', 'BasemapAT', 'nlmaps', 'NASAGIBS', 'NLS', 'JusticeMap', 'Wikimedia', 'GeoportailFrance', 'OneMapSG'])
+# # ctx.providers.CartoDB.keys()...
+# ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
 
-plt.suptitle("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.")
+# plt.suptitle("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.")
 
-plt.show()
+# plt.show()
 
-model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
-#print(model.crimes.head())
+# model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
+print(model.crimes.sample(10))
 
 
 # %%

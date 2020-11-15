@@ -3,12 +3,13 @@
 from zipfile import ZipFile
 from pathlib import Path
 import requests
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Polygon
 from police_api import PoliceAPI
 
-from .utils import month_range, msoa_from_lsoa, format_force_name, standardise_category_name
+from .utils import month_range, msoa_from_lsoa, format_force_name, standardise_category_name, smooth
 
 
 class Crime:
@@ -123,7 +124,10 @@ class Crime:
     # counts["count"] = counts["count"].astype(float) * 12 / 3
     counts = counts.astype(float) * 12 / 3
 
-    print(counts)
+    # smooth counts (ensuring numbers ar conserved)
+    before = counts.sum()
+    counts = counts.apply(lambda r: smooth(r.values, 7))
+    assert np.all(counts.sum() == before)
 
     # the incidences are the lambdas for sampling arrival times
     return counts

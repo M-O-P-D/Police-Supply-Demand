@@ -26,7 +26,7 @@ Uses the **neworder** [[5]](#references) microsimulation framework to run the mo
 
 ## Data sources
 
-- Bulk crime and outcome data, force boundaries: [data.police.uk](https://data.police.uk)
+- Bulk crime and outcome data, force boundaries: [data.police.uk](<https://data.police.uk>)
 
 - Sample (interim) victim data from **crime-sim-toolkit** [[6]](#references)
 
@@ -40,7 +40,7 @@ First install dependencies
 pip install -r requirements.txt
 ```
 
-The script `test_model.py` can be used to run the model on a single force area and plot some output. Change the force area by editing the script. Run it like so:
+The script `run_model.py` can be used to run the model on a single force area and plot some output. Change the force area by editing the script. Run it like so:
 
 ```bash
 python run_model.py "West Yorkshire" 2020 2022
