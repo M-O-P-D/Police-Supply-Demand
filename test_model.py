@@ -3,7 +3,7 @@ import pandas as pd
 import neworder as no
 from crims import model
 from crims import geography
-from crims.utils import format_force_name
+from crims.utils import standardise_force_name
 
 import warnings
 warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
@@ -46,7 +46,7 @@ no.run(model)
 # msoas = pd.merge(msoas[msoas.MSOA11CD.isin(crime_counts.index.values)][["MSOA11CD", "geometry"]], crime_counts, left_on="MSOA11CD", right_index=True)
 
 # ax = msoas.plot(figsize=(10, 10), color=msoas.colour, edgecolor='k')
-# force_boundaries[force_boundaries.force == format_force_name(force)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
+# force_boundaries[force_boundaries.force == standardise_force_name(force)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
 # ax.set_axis_off()
 # # ctx.providers.keys()
 # # dict_keys(['OpenStreetMap', 'OpenSeaMap', 'OpenPtMap', 'OpenTopoMap', 'OpenRailwayMap', 'OpenFireMap', 'SafeCast', 'Thunderforest', 'OpenMapSurfer', 'Hydda', 'MapBox', 'Stamen', 'Esri', 'OpenWeatherMap', 'HERE', 'FreeMapSK', 'MtbMap', 'CartoDB', 'HikeBike', 'BasemapAT', 'nlmaps', 'NASAGIBS', 'NLS', 'JusticeMap', 'Wikimedia', 'GeoportailFrance', 'OneMapSG'])

@@ -32,7 +32,7 @@ def main(force_name, start_year, end_year):
   ax = msoas.plot(figsize=(10, 10), color=msoas.colour, edgecolor='k')
 
   # add force area boundary to map, and background tiles
-  force_boundaries[force_boundaries.force == utils.format_force_name(force_name)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
+  force_boundaries[force_boundaries.force == utils.standardise_force_name(force_name)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
   ax.set_axis_off()
   ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
   plt.suptitle("Simulated crime density for %s Police, %d-%d" % (force_name, start_year, end_year), fontsize=16)

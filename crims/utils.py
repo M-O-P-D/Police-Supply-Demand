@@ -51,8 +51,62 @@ def smooth(a, n):
     s += w[m-i] * np.roll(a, -i) + w[m+i] * np.roll(a,i)
   return s
 
-def format_force_name(name):
-  return name.lower().replace(" ", "-") # e.g. "West Yorkshire" -> "west-yorkshire"
+
+def standardise_force_name(name):
+  """ use lower case with hyphens as per the filenames in the bulk crime data """
+  mapping = {
+    "Action Fraud": "action-fraud",
+    "Avon and Somerset": "avon-and-somerset",
+    "Bedfordshire": "bedfordshire",
+    "British Transport Police": "british-transport-police",
+    "Cambridgeshire": "cambridgeshire",
+    "Cheshire": "cheshire",
+    "CIFAS": "cifas",
+    "Cleveland": "cleveland",
+    "Cumbria": "cumbria",
+    "Derbyshire": "derbyshire",
+    "Devon and Cornwall": "devon-and-cornwall",
+    "Dorset": "dorset",
+    "Durham": "durham",
+    "Dyfed-Powys": "dyfed-powys",
+    "Essex": "essex",
+    "Financial Fraud Action UK": "financial-fraud-action-uk",
+    "Gloucestershire": "gloucestershire",
+    "Greater Manchester": "greater-manchester",
+    "Gwent": "gwent",
+    "Hampshire": "hampshire",
+    "Hertfordshire": "hertfordshire",
+    "Humberside": "humberside",
+    "Kent": "kent",
+    "Lancashire": "lancashire",
+    "Leicestershire": "leicestershire",
+    "Lincolnshire": "lincolnshire",
+    "London, City of": "city-of-london",
+    "City of London": "city-of-london",
+    "Merseyside": "merseyside",
+    "Metropolitan Police": "metropolitan-police",
+    "Norfolk": "norfolk",
+    "North Wales": "north-wales",
+    "North Yorkshire": "north-yorkshire",
+    "Northamptonshire": "northamptonshire",
+    "Northumbria": "northumbria",
+    "Nottinghamshire": "nottinghamshire",
+    "South Wales": "south-wales",
+    "South Yorkshire": "south-yorkshire",
+    "Staffordshire": "staffordshire",
+    "Suffolk": "suffolk",
+    "Surrey": "surrey",
+    "Sussex": "sussex",
+    "Thames Valley": "thames-valley",
+    "Warwickshire": "warwickshire",
+    "West Mercia": "west-mercia",
+    "West Midlands": "west-midlands",
+    "West Yorkshire": "west-yorkshire",
+    "Wiltshire": "wiltshire",
+    "UK Finance": "uk-finance"
+  }
+
+  return mapping.get(name, None)
 
 def standardise_category_name(typestr):
   return typestr.lower()

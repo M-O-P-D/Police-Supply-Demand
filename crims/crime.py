@@ -9,7 +9,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 from police_api import PoliceAPI
 
-from .utils import month_range, msoa_from_lsoa, format_force_name, standardise_category_name, smooth
+from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, smooth
 
 
 class Crime:
@@ -53,7 +53,7 @@ class Crime:
     # self.year = year
     # self.month = month
     self.original_force_name = force_name
-    self.force_name = format_force_name(force_name)
+    self.force_name = standardise_force_name(force_name)
     self.api = PoliceAPI()
     self.data = Crime.__get_raw_data(self.force_name, start_year, start_month, end_year, end_month)
     self.data["SuspectDemand"] = self.data["Last outcome category"].apply(lambda c: Crime.__outcomes_mapping[c])
@@ -159,10 +159,13 @@ class Crime:
 
     raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
 
+    #print(raw.force.unique())
+
     # add antisocial behaviour
     asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "Anti-social behaviour", "description": "Anti-social behaviour", "Number_of_Offences": 1})
     raw = raw.append(asb)
 
+    raw.force = raw.force.apply(standardise_force_name)
     raw.category = raw.category.apply(standardise_category_name)
 
     cats = raw.groupby(["force", "category", "description"]).sum() \
@@ -174,5 +177,5 @@ class Crime:
     cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_cat"])
     cats["proportion"] = cats.offences / cats.offences_cat
 
-    return cats.loc[self.original_force_name]
+    return cats.loc[self.force_name]
 
