@@ -1,15 +1,18 @@
 import numpy as np
 import pandas as pd
 import neworder as no
-from datetime import datetime
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from .crime import Crime
 from .streamer import DataStream
 
+no.verbose()
+
 class CrimeMicrosim(no.Model):
   def __init__(self, start_year, end_year, force_area):
     # timeline with monthly steps and annual checkpoints
-    timeline = no.Timeline(start_year, end_year, [(n+1-start_year)*12 for n in range(start_year, end_year)])
+    timeline = no.CalendarTimeline(date(start_year, 1, 1), date(end_year, 1, 1), 1, "m", end_year-start_year)
+    no.log(timeline)
     super().__init__(timeline, lambda _: 14)
 
     crime = Crime(force_area, 2017, 10, 2020, 9)
@@ -26,19 +29,16 @@ class CrimeMicrosim(no.Model):
   def step(self):
 
     # ensure we have crimes to sample to start with (this could be done in ctor but that would understimate reported exec time)
-    if self.timeline().index() == 1: self.crimes = self.__sample_crimes()
+    if self.timeline().index() == 0: self.crimes = self.__sample_crimes()
 
-    # get year and month
-    start_y = int(self.timeline().start() + (self.timeline().index()-1) // 12)
-    start_m = (self.timeline().index()-1) % 12 + 1
-
-    start_date = datetime(year=start_y, month=start_m, day=1)
+    # TODO *assumes* monthly but timeline might not be
+    start_date = self.timeline().start()
     end_date = start_date + relativedelta(months=1)
 
     # send monthly data to upstream model - if its listening
     adjustments = self.datastream.send_recv(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)])
 
-    no.log("%d-%d: %d crimes. posted: %s" % (start_y, start_m, len(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)]), adjustments is not None))
+    no.log("%s-%s: %d crimes. posted: %s" % (start_date, end_date, len(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)]), adjustments is not None))
 
     if adjustments is not None:
       no.log("received %d adjustments" % len(adjustments))
@@ -48,8 +48,8 @@ class CrimeMicrosim(no.Model):
     # from geographical and historical/seasonal incidence for each crime type
 
     # assumes time is year only
-    offset = datetime(int(self.timeline().time()), 1, 1).timestamp()
-    secs_year = datetime(int(self.timeline().time() + 1), 1, 1).timestamp() - offset
+    offset = self.timeline().time().timestamp()
+    secs_year = (self.timeline().time() + relativedelta(years=1)).timestamp() - offset
 
     crimes = pd.DataFrame()
 
