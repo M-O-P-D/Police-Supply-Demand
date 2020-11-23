@@ -83,7 +83,7 @@ class Crime:
 
     file = "%d-%02d.zip" % (end_year, end_month)
 
-    cache = Path("./cache")
+    cache = Path("./data")
     cache.mkdir(parents=True, exist_ok=True) # create if it doesnt already exist
 
     local_file = cache / file

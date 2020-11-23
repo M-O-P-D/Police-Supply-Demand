@@ -11,7 +11,6 @@ class CrimeMicrosim(no.Model):
   def __init__(self, start_year, start_month, end_year, end_month, force_area):
     # timeline with monthly steps and annual checkpoints
     timeline = no.CalendarTimeline(date(start_year, start_month, 1), date(end_year, end_month, 1), 1, "m", 1)
-    no.log(timeline)
     super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
 
     crime = Crime(force_area, 2017, 10, 2020, 9)
