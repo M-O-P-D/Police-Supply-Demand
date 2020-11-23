@@ -4,6 +4,7 @@ import pandas as pd
 from flask import Flask, request, render_template
 import json
 import io
+from io import StringIO
 import base64
 
 from crims import model
@@ -22,8 +23,12 @@ app = Flask(__name__)
 def run_sim(force_name, month):
 
   year = 2020
+
+  end_year = 2020 if month < 12 else 2021
+  end_month = month + 1 if month < 12 else 1
+
   # construct and run the model
-  microsim = model.CrimeMicrosim(year, year+1, force_name)
+  microsim = model.CrimeMicrosim(year, month, end_year, end_month, force_name)
   model.no.run(microsim)
   return microsim.crimes
 
@@ -34,11 +39,22 @@ def crime_data():
       if not p in request.args:
         raise KeyError("param not specified: %s" % p)
 
+    format = request.args.get("format", "json") # default to json
+
+    valid_formats = ["json", "csv"]
+    if format not in valid_formats:
+      raise ValueError("format must be one of %s" % str(valid_formats))
+
     force = request.args.get("force")
     month = int(request.args.get("month"))
 
     crimes = run_sim(force, month)
-    return json.loads(crimes.sort_values(by="time").to_json(orient="table")), 200
+    if format == "json":
+      return json.loads(crimes.sort_values(by="time").to_json(orient="table")), 200
+    else:
+      csvbuf = StringIO()
+      crimes.sort_values(by="time").to_csv(csvbuf)
+      return csvbuf.getvalue(), 200
 
   except Exception as e:
     return "%s: %s" % (type(e).__name__, str(e)), 400

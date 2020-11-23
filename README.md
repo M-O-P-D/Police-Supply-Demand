@@ -58,6 +58,28 @@ The model produces simulated crime data in four variables:
   - the type of the crime
   - whether a suspect has been identified
 
+## App Service
+
+Run
+
+```
+FLASK_APP=server.py flask run
+```
+
+which exposes an API at port 5000 with two endpoints:
+
+### `/data`
+
+Takes 2 query params, `force` and `month` plus an optional param `format` (which defaults to `json`), and returns one month's simulated crime data for a given force area, e.g.
+
+`http://localhost:5000/data?force=Durham&month=7`
+
+`http://localhost:5000/data?force=City%20of%20London&month=2&format=csv`
+
+`http://localhost:5000/map?force=Devon%20and%20Cornwall&month=12`
+
+this service will be packaged as a docker image shortly.
+
 ## References
 
 [1] [ukcensusapi: UK census data query automation](<https://pypi.org/project/ukcensusapi/>)
