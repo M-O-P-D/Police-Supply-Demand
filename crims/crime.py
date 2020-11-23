@@ -155,7 +155,7 @@ class Crime:
   def get_category_breakdown(self): # note this is e.g. West Yorkshire not west-yorkshire
     # TODO get original data and process it, see https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods
     # and https://github.com/M-O_P-D/crime_sim_toolkit/blob/master/data_manipulation/MappingCrimeCat2CrimeDes.ipynb
-    file = "../crime_sim_toolkit/crime_sim_toolkit/src/prc-pfa-201718_new.csv"
+    file = "./data/prc-pfa-201718_new.csv"
 
     raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
 

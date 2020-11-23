@@ -12,7 +12,6 @@ from crims import geography
 from crims import utils
 from crims import visualisation
 
-
 import warnings
 warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
 
@@ -84,6 +83,6 @@ def crime_map(): #force, start, end):
   except Exception as e:
     return "%s: %s" % (type(e).__name__, str(e)), 400
 
-
-
+if __name__ == "__main__":
+  app.run()
 
