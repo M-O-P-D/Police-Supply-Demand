@@ -32,7 +32,7 @@ class CrimeMicrosim(no.Model):
     if self.timeline().index() == 0: self.crimes = self.__sample_crimes()
 
     # TODO *assumes* monthly but timeline might not be
-    start_date = self.timeline().start()
+    start_date = self.timeline().time()
     end_date = start_date + relativedelta(months=1)
 
     # send monthly data to upstream model - if its listening
