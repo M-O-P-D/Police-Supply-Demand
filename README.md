@@ -1,34 +1,34 @@
 # CriMS
 
-Policing and Crime supply-demand modelling. *CriMS* is an evolution of **crime-sim-toolkit** [[6]] and forms the microsynthesis and microsimulation components of this workflow:
+Policing and Crime supply-demand modelling. *CriMS* is an evolution of **crime-sim-toolkit** <sup>[[6]](#references)</sup> and forms the microsynthesis and microsimulation components of this workflow:
 
 ![workflow](./doc/workflow.svg)
 
 ## Population Data
 
-Uses the **ukcensusapi** [[1]](#references) and **ukpopulation** [[2]](#references) packages to generate MSOA-level population data derived from the 2011 census and scaled to 2020 subnational population projections.
+Uses the **ukcensusapi** <sup>[[1]](#references)</sup> and **ukpopulation** <sup>[[2]](#references)</sup> packages to generate MSOA-level population data derived from the 2011 census and scaled to 2020 subnational population projections.
 
 ## Crime Data
 
-Uses the **police-api-client** [[3]](#references) and the **police open data portal** directly [[4]](#references)  to get open data on crime occurrences and some closed data to sample victim characteristics.
+Uses the **police-api-client** <sup>[[3]](#references)</sup> and the **police open data portal** <sup>[[4]](#references)</sup> directly to get open data on crime occurrences.
 
 ## Model
 
 ![sample visualisation](./doc/wy2020.png)
 
-Uses the **neworder** [[5]](#references) microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and type, so can capture seasonal fluctuations in crime frequency, and uses this data to simulate crime patterns as non-homogeneous Poisson processes. This crime data is to be fed into an agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
+Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and (broad) type, so can capture seasonal fluctuations in crime frequency. It then imposes further weekly and daily periodicity to the crime rate, and this to sample crime incidences from a non-homogeneous Poisson process. More detailed crime types, and whether a suspect has been identified, are also sampled at force area resolution. This synthetic crime data can be fed into an agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
 
 ### Planned Model Enhancements
 
 - [ ] Capture temporal trends in crime rates (as well as seasonality)
-- [X] Capture daily and weekly periodicity of crimes by crime type
+- [ ] Capture daily and weekly periodicity of crimes by crime type
 - [ ] Alter crime incidence rates according to feedback from upstream model
 
 ## Data sources
 
 - Bulk crime and outcome data, force boundaries: [data.police.uk](<https://data.police.uk>)
 
-- Sample (interim) victim data from **crime-sim-toolkit** [[6]](#references)
+- Sample (interim) victim data from **crime-sim-toolkit** <sup>[[6]](#references)</sup>
 
 - MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
 
@@ -88,7 +88,7 @@ This service is available as a docker image (due to its size and relatively infr
 docker pull mopd/crims
 docker run --rm -d  -p 80:5000/tcp mopd/crims
 ```
-which exposes it on the default http port. You can then request data from it. e.g. in python/pandas:
+which runs it locally, listening for requestios on the default http port. You can then request data from the container, e.g. in python/pandas:
 
 ```
 >>> import pandas as pd
@@ -113,16 +113,16 @@ which exposes it on the default http port. You can then request data from it. e.
 
 ## References
 
-[1] [ukcensusapi: UK census data query automation](<https://pypi.org/project/ukcensusapi/>)
+1. [ukcensusapi: UK census data query automation](<https://pypi.org/project/ukcensusapi/>)
 
-[2] [ukpopulation: UK Demographic Projections](<https://pypi.org/project/ukpopulation/>)
+2. [ukpopulation: UK Demographic Projections](<https://pypi.org/project/ukpopulation/>)
 
-[3] [police-api-client: Python client library for the Police API](<https://pypi.org/project/police-api-client/>)
+3. [police-api-client: Python client library for the Police API](<https://pypi.org/project/police-api-client/>)
 
-[4] [Police Open Data Portal](<https://data.police.uk/>)
+4. [Police Open Data Portal](<https://data.police.uk/>)
 
 <!--[4] [humanleague: Microsynthesis using quasirandom sampling and/or IPF](<https://pypi.org/project/humanleague/>)-->
 
-[5] [neworder: A dynamic microsimulation framework](<https://neworder.readthedocs.io>)
+5. [neworder: A dynamic microsimulation framework](<https://neworder.readthedocs.io>)
 
-[6] [crime-sim-toolkit](<https://github.com/M-O-P-D/crime_sim_toolkit>)
+6. [crime-sim-toolkit](<https://github.com/M-O-P-D/crime_sim_toolkit>)

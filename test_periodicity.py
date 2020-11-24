@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 
 from crims.utils import get_periodicity
 
-year = 2020
-month = 11 # starts on sun
+year = 2019
+month = 2
 
 start_dow, days_in_month = monthrange(year, month)
 
