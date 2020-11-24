@@ -19,6 +19,32 @@ def month_range(start_year, start_month, end_year, end_month):
       break
   return d
 
+def get_periodicity(dow_adj, days_in_month, _category):
+
+  # NB Mo=0, Su=6
+  # 1 week of days split into 3 8 hour periods
+  # for now all likelihoods equal
+  cycle = np.ones((7,3))
+
+  # TODO category-dependent periodicities
+  # for now fake some data
+  # make weekends more likely
+  cycle[5,:] *= 1.1
+  cycle[6,:] *= 1.1
+  # make evening and night more likely
+  cycle[:,1] *= 1.1
+  cycle[:,2] *= 1.21
+
+  cycle = cycle.reshape(21)
+
+  # repeat and trim to no. of days in month
+  weights = np.tile(np.roll(cycle, -3*dow_adj), 5)[:3*days_in_month]
+
+  # normalise to mean weight of zero
+  weights *= len(weights) / weights.sum()
+  return weights
+
+
 
 def lad_lookup(lads, subgeog_name):
   lookup = pd.read_csv("./data/gb_geog_lookup.csv.gz", dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,

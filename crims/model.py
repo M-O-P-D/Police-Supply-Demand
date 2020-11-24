@@ -6,6 +6,7 @@ from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 from .crime import Crime
 from .streamer import DataStream
+from .utils import get_periodicity
 
 class CrimeMicrosim(no.Model):
   def __init__(self, start_year, start_month, end_year, end_month, force_area):
@@ -48,6 +49,7 @@ class CrimeMicrosim(no.Model):
     # simulate crimes from a non-homogeneous Poisson process using a lambda derived
     # from geographical and historical/seasonal incidence for each crime type
     t = self.timeline().time()
+    # NB Mo=0, Su=6
     start_weekday, days_in_month = monthrange(t.year, t.month)
     periods_in_day = 3 # night (0:00-8:00) day (8:00-4:00), evening (4:00-0:00)
     periods = days_in_month * periods_in_day
@@ -64,10 +66,14 @@ class CrimeMicrosim(no.Model):
       # s = self.mc().sample(100, p)
       # print([d[i] for i in s])
 
+      time_weights = get_periodicity(start_weekday, days_in_month, ct)
+
       for g in self.geogs:
         if self.crime_rates.index.isin([(g, ct)]).any():
+          # impose daily/weekly periodicity to the monthly frequency
+          lambdas = self.crime_rates.loc[(g, ct), ("count", "%02d" % t.month)] * time_weights
+          #lambdas = np.full(periods + 1, self.crime_rates.loc[(g, ct), ("count", "%02d" % t.month)])
           # extra element at end must be zero
-          lambdas = np.full(periods + 1, self.crime_rates.loc[(g, ct), ("count", "%02d" % t.month)])
           lambdas[-1] = 0.0
           times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
           #no.log(times)

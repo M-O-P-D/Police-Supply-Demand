@@ -20,9 +20,9 @@ Uses the **neworder** [[5]](#references) microsimulation framework to run the mo
 
 ### Planned Model Enhancements
 
-- Capture temporal trends in crime rates (as well as seasonality)
-- Capture daily and weekly periodicity of crimes by crime type
-- Alter crime incidence rates according to feedback from upstream model
+[ ] Capture temporal trends in crime rates (as well as seasonality)
+[X] Capture daily and weekly periodicity of crimes by crime type
+[ ] Alter crime incidence rates according to feedback from upstream model
 
 ## Data sources
 
@@ -76,9 +76,13 @@ Takes 2 query params, `force` and `month` plus an optional param `format` (which
 
 `http://localhost:5000/data?force=City%20of%20London&month=2&format=csv`
 
+### `/map`
+
+Takes 2 query params, `force` and `month`, and returns crime density by MSOA plotted on a map.
+
 `http://localhost:5000/map?force=Devon%20and%20Cornwall&month=12`
 
-this service is available as a docker image (due to its size and relatively infrequent changes, the data is in a separate image - which will take a while to initially download):
+This service is available as a docker image (due to its size and relatively infrequent changes, the data is in a separate image - which will take a while to initially download):
 
 ```
 docker pull mopd/crims
