@@ -80,6 +80,8 @@ class CrimeMicrosim(no.Model):
             df = pd.DataFrame(index=range(len(d)), data={"MSOA": g, "crime_type": ct, "description": subcats.iloc[c].index.values, "time": d, "suspect": s })
             crimes = crimes.append(df, ignore_index=True)
 
+    # round to nearest minute
+    crimes["time"] = crimes["time"].round("min")
     return crimes.set_index(["MSOA", "crime_type"], drop=True)
 
 

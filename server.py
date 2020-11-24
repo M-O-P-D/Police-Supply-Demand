@@ -17,7 +17,6 @@ warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pypr
 
 app = Flask(__name__)
 
-#no.verbose()
 
 def run_sim(force_name, month):
 

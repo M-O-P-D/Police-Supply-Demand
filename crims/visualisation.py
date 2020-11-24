@@ -34,8 +34,7 @@ def density_map(crimes, force_name):
   force_boundaries[force_boundaries.force == standardise_force_name(force_name)].plot(ax=ax, facecolor="none", edgecolor='b', linewidth=2)
   ax.set_axis_off()
   ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
-  plt.title("Simulated crime density for %s Police, %d/%d - %d/%d" % (force_name, start.year, start.month, end.year, end.month), fontsize=14)
-  # now embedded in tiles
-  #plt.title("Map tiles by Carto, under CC BY 3.0. Data by OpenStreetMap, under ODbL.", fontsize=12)
+  period = "%d/%d" % (start.year, start.month) if start.year == end.year and start.month == end.month else "%d/%d - %d/%d" % (start.year, start.month, end.year, end.month)
+  plt.title("Simulated crime density for %s Police, %s" % (force_name, period) , fontsize=14)
 
   return plt

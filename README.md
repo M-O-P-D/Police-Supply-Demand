@@ -78,7 +78,34 @@ Takes 2 query params, `force` and `month` plus an optional param `format` (which
 
 `http://localhost:5000/map?force=Devon%20and%20Cornwall&month=12`
 
-this service will be packaged as a docker image shortly.
+this service is available in a docker image:
+
+```
+docker pull mopd/crims
+docker run --rm -d  -p 80:5000/tcp mopd/crims
+```
+which exposes it on the default http port. You can then request data from it. e.g. in python/pandas:
+
+```
+>>> import pandas as pd
+>>> df1 = pd.read_csv("http://localhost/data?force=City%20of%20London&month=3&format=csv")
+>>> df1.head()
+        MSOA                    crime_type                                  description                 time  suspect
+0  E02006924  violence and sexual offences  Sexual assault on a female aged 13 and over  2020-03-01 00:35:00    False
+1  E02000001  violence and sexual offences                       Assault without injury  2020-03-01 02:09:00     True
+2  E02000001                   other theft                                  Other theft  2020-03-01 02:37:00    False
+3  E02000001                 vehicle crime             Interfering with a motor vehicle  2020-03-01 03:33:00    False
+4  E02000001                   other theft                                  Other theft  2020-03-01 03:56:00    False
+>>> df2 = pd.read_json("http://localhost/data?force=City%20of%20London&month=3", orient="table")
+>>> df2.head()
+        MSOA             crime_type                                description                time  suspect
+0  E02000001  possession of weapons  Possession of article with blade or point 2020-03-01 00:09:00    False
+1  E02000001            other theft                                Other theft 2020-03-01 00:44:00     True
+2  E02000001          vehicle crime                         Theft from vehicle 2020-03-01 02:38:00    False
+3  E02000001          vehicle crime                         Theft from vehicle 2020-03-01 05:28:00    False
+4  E02000001               burglary            Burglary Business and Community 2020-03-01 06:39:00    False
+>>>
+```
 
 ## References
 

@@ -106,8 +106,11 @@ def standardise_force_name(name):
     "UK Finance": "uk-finance"
   }
 
-  # just return the input if not in the map (may be already standardised)
-  return mapping.get(name, None)
+  # just return the input if is a value in the map (may be already standardised)
+  if name in mapping.values(): return name
+
+  return mapping[name]
+  #return mapping.get(name)
 
 def standardise_category_name(typestr):
   return typestr.lower()
