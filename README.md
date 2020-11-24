@@ -20,9 +20,9 @@ Uses the **neworder** [[5]](#references) microsimulation framework to run the mo
 
 ### Planned Model Enhancements
 
-[ ] Capture temporal trends in crime rates (as well as seasonality)
-[X] Capture daily and weekly periodicity of crimes by crime type
-[ ] Alter crime incidence rates according to feedback from upstream model
+- [ ] Capture temporal trends in crime rates (as well as seasonality)
+- [X] Capture daily and weekly periodicity of crimes by crime type
+- [ ] Alter crime incidence rates according to feedback from upstream model
 
 ## Data sources
 
