@@ -78,7 +78,7 @@ Takes 2 query params, `force` and `month` plus an optional param `format` (which
 
 `http://localhost:5000/map?force=Devon%20and%20Cornwall&month=12`
 
-this service is available in a docker image:
+this service is available as a docker image (due to its size and relatively infrequent changes, the data is in a separate image - which will take a while to initially download):
 
 ```
 docker pull mopd/crims

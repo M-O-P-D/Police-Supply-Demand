@@ -1,13 +1,13 @@
-FROM python:3.8
+# base image contains the data
+FROM mopd/crims-data:latest
 
 WORKDIR /app
 
-COPY . /app
-
-# install non-python deps
-#RUN apt-get update -y && apt-get install --no-install-recommends -y libspatialindex-dev=1.9.0-1 \
-# && apt-get clean \
-# && rm -rf /var/lib/apt/lists/*
+COPY crims /app/crims
+COPY templates /app/templates
+COPY server.py /app
+COPY requirements.txt /app
+COPY LICENSE /app
 
 # ensure pip is up to date and install deps
 RUN python -m pip install -U pip \
