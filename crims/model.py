@@ -29,8 +29,6 @@ class CrimeMicrosim(no.Model):
 
   def step(self):
 
-    # ensure we have crimes to sample to start with (this could be done in ctor but that would understimate reported exec time)
-    #if self.timeline().index() == 0: self.crimes = self.__sample_crimes()
     self.crimes = self.crimes.append(self.__sample_crimes())
 
     # # TODO *assumes* monthly but timeline might not be
@@ -47,7 +45,7 @@ class CrimeMicrosim(no.Model):
 
   def __sample_crimes(self):
     # simulate crimes from a non-homogeneous Poisson process using a lambda derived
-    # from geographical and historical/seasonal incidence for each crime type
+    # from geographical and historical/seasonal incidence for each crime type, with weekly and daily periodicities superimposed
     t = self.timeline().time()
     # NB Mo=0, Su=6
     start_weekday, days_in_month = monthrange(t.year, t.month)

@@ -9,11 +9,12 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 from police_api import PoliceAPI
 
-from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, smooth
+from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, smooth, get_category_subtypes
 
 
 class Crime:
 
+  # use outcomes to ascertain the chances of identifying a suspect
   __outcomes_mapping = {
     'Action to be taken by another organisation': False,
     'Awaiting court outcome': True,
@@ -60,6 +61,7 @@ class Crime:
     # assume annual cycle and aggregate years
     self.data["MonthOnly"] = self.data.Month.apply(lambda ym: ym.split("-")[1])
 
+    self.category_data = get_category_subtypes()
 
   # returns a GeoDataFrame
   def get_neighbourhoods(self, force_name=None):
@@ -152,30 +154,7 @@ class Crime:
 
     return outcomes
 
-  def get_category_breakdown(self): # note this is e.g. West Yorkshire not west-yorkshire
-    # TODO get original data and process it, see https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods
-    # and https://github.com/M-O_P-D/crime_sim_toolkit/blob/master/data_manipulation/MappingCrimeCat2CrimeDes.ipynb
-    file = "./data/prc-pfa-201718_new.csv"
+  def get_category_breakdown(self):
+    return self.category_data.loc[self.force_name]
 
-    raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
-
-    #print(raw.force.unique())
-
-    # add antisocial behaviour
-    asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "Anti-social behaviour", "description": "Anti-social behaviour", "Number_of_Offences": 1})
-    raw = raw.append(asb)
-
-    raw.force = raw.force.apply(standardise_force_name)
-    raw.category = raw.category.apply(standardise_category_name)
-
-    cats = raw.groupby(["force", "category", "description"]).sum() \
-      .drop(["Unnamed: 0", "Financial_Quarter"], axis=1) \
-      .rename({"Number_of_Offences": "offences"}, axis=1)
-
-    cat_totals = cats.groupby(level=[0,1]).sum()
-
-    cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_cat"])
-    cats["proportion"] = cats.offences / cats.offences_cat
-
-    return cats.loc[self.force_name]
 

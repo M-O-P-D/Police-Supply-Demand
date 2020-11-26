@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 # inclusive range of months
 def month_range(start_year, start_month, end_year, end_month):
@@ -23,7 +24,6 @@ def get_periodicity(dow_adj, days_in_month, _category):
 
   # NB Mo=0, Su=6
   # 1 week of days split into 3 8 hour periods
-  # for now all likelihoods equal
   cycle = np.ones((7,3))
 
   # TODO category-dependent periodicities
@@ -81,22 +81,20 @@ def smooth(a, n):
 def standardise_force_name(name):
   """ use lower case with hyphens as per the filenames in the bulk crime data """
   mapping = {
-    "Action Fraud": "action-fraud",
+    "Avon & Somerset": "avon-and-somerset",
     "Avon and Somerset": "avon-and-somerset",
     "Bedfordshire": "bedfordshire",
-    "British Transport Police": "british-transport-police",
     "Cambridgeshire": "cambridgeshire",
     "Cheshire": "cheshire",
-    "CIFAS": "cifas",
     "Cleveland": "cleveland",
     "Cumbria": "cumbria",
     "Derbyshire": "derbyshire",
+    "Devon & Cornwall": "devon-and-cornwall",
     "Devon and Cornwall": "devon-and-cornwall",
     "Dorset": "dorset",
     "Durham": "durham",
     "Dyfed-Powys": "dyfed-powys",
     "Essex": "essex",
-    "Financial Fraud Action UK": "financial-fraud-action-uk",
     "Gloucestershire": "gloucestershire",
     "Greater Manchester": "greater-manchester",
     "Gwent": "gwent",
@@ -129,10 +127,9 @@ def standardise_force_name(name):
     "West Midlands": "west-midlands",
     "West Yorkshire": "west-yorkshire",
     "Wiltshire": "wiltshire",
-    "UK Finance": "uk-finance"
   }
 
-  # just return the input if is a value in the map (may be already standardised)
+  # just return the input if is a value in the map (i.e. already standardised)
   if name in mapping.values(): return name
 
   return mapping[name]
@@ -150,3 +147,66 @@ def standardise_category_name(typestr):
 #        'Robbery', 'Shoplifting', 'Theft from the Person', 'Vehicle Crime',
 #        'Violence and Sexual Offences'],
 #       dtype='object', name='category')
+
+
+# Using the lastest ONS data, when it works
+def get_category_subtypes_WIP():
+
+  cached_data = Path("./data/detailed_offence_counts.csv")
+
+  if not cached_data.is_file():
+    raw = pd.read_excel("https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods", sheet_name="2019-20")
+    raw.to_csv(cached_data, index=False)
+  else:
+    raw = pd.read_csv(cached_data)
+
+  # remove extraneous and rename for consistency
+  non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'UK Finance']
+  raw = raw[~raw["Force Name"].isin(non_geographic)].drop(["Financial Year", "Financial Quarter", "Offence Subgroup", "Offence Code"], axis=1) \
+    .rename({"Force Name": "force", "Offence Group": "category", "Offence Description": "description", "Offence Count": "count"}, axis=1)
+
+  raw.category = raw.category.apply(standardise_category_name)
+  raw.force = raw.force.apply(standardise_force_name)
+
+  # now process the raw data
+  asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "anti-social behaviour", "description": "Anti-social behaviour", "Offence Count": 1})
+  raw = raw.append(asb)
+
+  cats = raw.groupby(["force", "category", "description"]).sum()
+
+  cat_totals = cats.groupby(level=[0,1]).sum()
+
+  cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_total"])
+  cats["proportion"] = cats["count"] / cats.count_total
+
+  return cats
+
+# Using Alex's original data
+def get_category_subtypes():
+  # TODO get original data and process it, see https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods
+  # and https://github.com/M-O_P-D/crime_sim_toolkit/blob/master/data_manipulation/MappingCrimeCat2CrimeDes.ipynb
+  file = "./data/prc-pfa-201718_new.csv"
+
+  raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
+
+  non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'Financial Fraud Action UK', 'UK Finance']
+  raw = raw[~raw["force"].isin(non_geographic)]
+  #print(raw.force.unique())
+
+  # add antisocial behaviour
+  asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "Anti-social behaviour", "description": "Anti-social behaviour", "Number_of_Offences": 1})
+  raw = raw.append(asb)
+
+  raw.force = raw.force.apply(standardise_force_name)
+  raw.category = raw.category.apply(standardise_category_name)
+
+  cats = raw.groupby(["force", "category", "description"]).sum() \
+    .drop(["Unnamed: 0", "Financial_Quarter"], axis=1) \
+    .rename({"Number_of_Offences": "offences"}, axis=1)
+
+  cat_totals = cats.groupby(level=[0,1]).sum()
+
+  cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_cat"])
+  cats["proportion"] = cats.offences / cats.offences_cat
+
+  return cats

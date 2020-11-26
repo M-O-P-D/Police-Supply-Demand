@@ -28,9 +28,13 @@ Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to
 
 - Bulk crime and outcome data, force boundaries: [data.police.uk](<https://data.police.uk>)
 
-- Sample (interim) victim data from **crime-sim-toolkit** <sup>[[6]](#references)</sup>
+<!--- Sample (interim) victim data from **crime-sim-toolkit** <sup>[[6]](#references)</sup>-->
 
 - MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
+
+- [Detailed crime counts by classification](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods)
+
+- [Crime severity scores](https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics)
 
 ## Usage
 
