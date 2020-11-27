@@ -1,4 +1,4 @@
-extensions [csv table time]
+extensions [csv table time pathdir]
 
 globals
 [
@@ -62,32 +62,21 @@ resources-own
 events-own
 [
   eventID ;link back to event data
-
   current-resource ; the resource agent(s) (can be multiple) - if any - currently repsonding to this event
   event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
-
   event-type ;event type in this model - crime type - i.e. aggravated burglary
   event-class ;event broad class - i.e. burglary
-
   event-LSOA
-
   event-start-dt ;datetime event came in
   event-response-start-dt ;datetime response to event started
   event-response-end-dt ;when the event will be reconciled calculated once an event is assigned a resource.
-
   event-resource-counter ;counts the amount of resource hours remaining before an event is finished
-
   event-paused ; flags wether an event has previoiusly been acted on - this is used if events are passed between resources at shift change
-
-
   event-resource-type ; placeholders to allow units of resource to only be able to respond of events of a certain type - currently not used
-
   event-resource-req-time ;amount of time resource required to repsond to event - drawn from event-reference
   event-resource-req-amount ;number of resource units required to repsond to event - drawn from event-reference
   event-resource-req-total
-
   event-priority ; placeholder for variable that allows events to be triaged in terms of importance of response
-
 ]
 
 
@@ -132,12 +121,24 @@ to setup
   ca
   reset-ticks
 
+  ;create folder path to store results based on settings
+  let path (word "model-output/" demand-events "/resources" number-resources "/rep" replication "/")
+  pathdir:create path
 
-  set event-summary-file (word "model-output/event-summary-file-" replication ".csv")
-  set active-event-trends-file (word "model-output/active-event-trends-file-" replication ".csv")
-  set active-resource-trends-file (word "model-output/active-resource-trends-file-" replication ".csv")
-  set resource-summary-file (word "model-output/officer-summary-file-" replication ".csv")
-  set resource-usage-trends-file (word "model-output/resource-usage-trends-file-" replication ".csv")
+  ;setup output files
+  set event-summary-file (word path "event-summary-file.csv")
+  set active-event-trends-file (word path "active-event-trends-file.csv")
+  set active-resource-trends-file (word path "active-resource-trends-file.csv")
+  set resource-summary-file (word path "officer-summary-file.csv")
+  set resource-usage-trends-file (word path "resource-usage-trends-file.csv")
+
+
+  ;old manual output files
+;  set event-summary-file (word "model-output/" number-resources "/event-summary-file-rep=" replication ".csv")
+;  set active-event-trends-file (word "model-output/" number-resources "/active-event-trends-file-rep=" replication ".csv")
+;  set active-resource-trends-file (word "model-output/" number-resources "/active-resource-trends-rep=" replication ".csv")
+;  set resource-summary-file (word "model-output/" number-resources "/officer-summary-file-rep=" replication ".csv")
+;  set resource-usage-trends-file (word "model-output/"  number-resources  "/resource-usage-trends-file-rep=" replication ".csv")
 
 
 
@@ -182,8 +183,24 @@ to setup
   print "Reading Event Data from file ......"
 
   if demand-events = "Synthetic" [ set event-data csv:from-file "input-data/fine-categories/WYP_synthetic_day_reports.csv" set dt time:create "2019/01/01 7:00" ]
-  if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/WYP_historic_day_reports.csv" set dt time:create "2016/03/01 7:00" ]
   if demand-events = "#Testing" [ set event-data csv:from-file "input-data/fine-categories/test-events.csv" set dt time:create "2016/03/01 7:00" ]
+
+
+  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/WYP_historic_day_reports.csv" set dt time:create "2016/03/01 7:00" ]
+
+  if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_BASELINE.csv" set dt time:create "2019/01/01 7:00" ]
+
+  if demand-events = "Burg-10per-increase" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_increase_10per.csv" set dt time:create "2019/01/01 7:00" ]
+
+  if demand-events = "Burg-10per-decrease" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_decrease_10per.csv" set dt time:create "2019/01/01 7:00" ]
+
+  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
+  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
+  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
+  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
+
+
+
   set event-data remove-item 0 event-data ;remove top row
 
   ;read in the event reference table to assign resource charactersitics by offence
@@ -230,13 +247,7 @@ to go-step
 
 
   ;assign resources - right now this is written events look for resources where in reality resources should look for events
-  ifelse not triage-events
-  [
-
-    ask events with [event-status = 1 and event-paused = true] [get-resources]
-    ask events with [event-status = 1] [get-resources]
-    ask events with [event-status = 2 and count current-resource < event-resource-req-amount] [get-resources]
-  ]
+  ifelse triage-events
   [
     ;rudimentary triage
 
@@ -246,17 +257,20 @@ to go-step
     ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources]
     ;then jobs that are ongoing but under staffed
     ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources ]
-    ;REALLY NEED TO THINK ABOUT THOSE EVENTS THAT HAVE HIGHER RESOURCE REQUIREMENTS THAN THEY HAVE - BUT ARE STILL ONGOING
 
     ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources]
     ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources]
     ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
-    ;REALLY NEED TO THINK ABOUT THOSE EVENTS THAT HAVE HIGHER RESOURCE REQUIREMENTS THAN THEY HAVE - BUT ARE STILL ONGOING
 
     ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources]
     ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources]
     ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
-    ;REALLY NEED TO THINK ABOUT THOSE EVENTS THAT HAVE HIGHER RESOURCE REQUIREMENTS THAN THEY HAVE - BUT ARE STILL ONGOING
+
+  ]
+  [
+    ask events with [event-status = 1 and event-paused = true] [get-resources]
+    ask events with [event-status = 1] [get-resources]
+    ask events with [event-status = 2 and count current-resource < event-resource-req-amount] [get-resources]
   ]
 
 
@@ -311,7 +325,17 @@ to start-file-out
 
 end
 
+to close-files
+  if file-exists? resource-summary-file [file-delete resource-summary-file]
+  file-open resource-summary-file
+  file-print "resourceID, events-completed"
+  ask resources
+  [
+    file-print (word who "," events-completed)
+  ]
 
+  file-close-all
+end
 
 
 
@@ -319,10 +343,15 @@ end
 to read-events
 
   ;event structure is
-
   ;0    1         2     3   4   5     6                     7                     8         9
   ;row  UID	      Year	Mon	Day	Hour	Crime_description	    Crime_type	          LSOA_code	Police_force
   ;0    E010111A0	2019	1	  1	  22	  Anti-social behaviour	Anti-social behaviour	E01010650	West Yorkshire
+
+  ;NEW FORMAT
+  ;0    1           2         3     4                     5                     6               7
+  ;U    ID	        datetime	Hour	Crime_description	    Crime_type	          LSOA_code	      Police_force
+  ;27	  West11AN27	1/1/19	  0	    anti-social behaviour	Anti-social behaviour	West Yorkshire	West Yorkshire
+
 
 
   let day-end FALSE
@@ -335,14 +364,12 @@ to read-events
 
       let temp item 0 event-data
 
-      ;extract hour/day/month from next event
-      let tmp-event-year item 2 temp
-      let tmp-event-month item 3 temp
-      let tmp-event-day item 4 temp
-      let tmp-event-hour item 5 temp
+      ;extract date annd time from next event
+      let tmp-event-date item 2 temp
+      let tmp-event-hour item 3 temp
 
       ;construct a date
-      let temp-dt time:create (word tmp-event-year  "-" tmp-event-month "-"  tmp-event-day " " tmp-event-hour ":00:00")
+      let temp-dt time:create-with-format (word tmp-event-date " " tmp-event-hour ":00:00") "dd/MM/yy HH:mm:ss"
 
       ;check if the event occurs at current tick
       ifelse (time:is-equal temp-dt dt)
@@ -358,12 +385,11 @@ to read-events
           ;fill in relevant details for event from data
           set eventID item 1 temp
 
-          set event-type item 6 temp
-          set event-class item 7 temp
-          set event-LSOA item 8 temp
+          set event-type item 4 temp
+          set event-class item 5 temp
+          set event-LSOA item 6 temp
           set event-start-dt dt
-          set event-status 1 ; awaiting resource
-
+          set event-status 1 ;awaiting resource
           set event-paused false
 
           ;get the amount of units/time required to respond to resource from event info
@@ -371,7 +397,6 @@ to read-events
           set event-resource-req-time get-event-resource-time event-type
           set event-resource-req-total event-resource-req-amount * event-resource-req-time
           set event-resource-counter event-resource-req-total
-
           set event-priority get-event-priority event-type
         ]
 
@@ -392,9 +417,26 @@ end
 
 ; color resource agents based on current state - blue for responding - grey for available
 to draw-resource-status
+
+  ifelse color-by-priority
+  [
+  if resource-status = 0 [ set color grey ] ; rostered off
+  if resource-status = 1 [ set color white ] ; active & available
+  if resource-status = 2
+    [
+      let tmp-priority [event-priority] of current-event
+      if tmp-priority = 1 [set color red]
+      if tmp-priority = 2 [set color blue]
+      if tmp-priority = 3 [set color yellow]
+    ] ; active & on event
+
+  ]
+  [
   if resource-status = 0 [ set color grey ] ; rostered off
   if resource-status = 1 [ set color white ] ; active & available
   if resource-status = 2 [ set color blue ] ; active & on event
+  ]
+
 end
 
 
@@ -990,13 +1032,13 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-225
-13
-388
-1696
+185
+15
+298
+512
 -1
 -1
-7.75
+5.25
 1
 10
 1
@@ -1009,7 +1051,7 @@ GRAPHICS-WINDOW
 0
 19
 0
-215
+92
 0
 0
 1
@@ -1034,19 +1076,19 @@ NIL
 1
 
 SLIDER
-188
-13
-221
-165
+305
+120
+445
+153
 number-resources
 number-resources
 60
 5000
-4320.0
+1860.0
 60
 1
 NIL
-VERTICAL
+HORIZONTAL
 
 BUTTON
 85
@@ -1066,10 +1108,10 @@ NIL
 1
 
 MONITOR
-397
-217
-537
-262
+304
+219
+444
+264
 Resources Free
 count resources with [resource-status = 1]
 17
@@ -1077,10 +1119,10 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-397
-360
-537
-405
+304
+362
+444
+407
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -1088,10 +1130,10 @@ count events with [event-status = 1]
 11
 
 MONITOR
-398
-409
-535
-454
+305
+412
+442
+457
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -1099,10 +1141,10 @@ count events with [event-status = 2]
 11
 
 MONITOR
-398
-459
-536
-504
+305
+462
+443
+507
 Events - Completed
 count-completed-events
 17
@@ -1110,10 +1152,10 @@ count-completed-events
 11
 
 PLOT
-908
-13
-1288
-133
+815
+15
+1195
+135
 Total Resource Usage
 time
 %
@@ -1128,10 +1170,10 @@ PENS
 "Supply" 1.0 0 -16777216 true "" ""
 
 PLOT
-543
-259
-1288
-518
+450
+262
+1195
+521
 active-events
 time
 count of events
@@ -1186,10 +1228,10 @@ Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 1
 
 MONITOR
-397
-13
-536
-58
+304
+15
+443
+60
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
 17
@@ -1197,10 +1239,10 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1293
-260
-1727
-780
+1200
+262
+1634
+782
 scatter
 count events
 count resource
@@ -1228,10 +1270,10 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-544
-524
-1289
-781
+451
+526
+1196
+783
 resources
 time
 resources
@@ -1270,10 +1312,10 @@ VERBOSE
 -1000
 
 MONITOR
-397
-265
-537
-310
+304
+267
+444
+312
 Resources Responding
 count resources with [resource-status = 2]
 17
@@ -1303,10 +1345,10 @@ length event-data
 11
 
 PLOT
-1294
-13
-1723
-133
+1201
+15
+1630
+135
 Events Waiting
 NIL
 NIL
@@ -1337,12 +1379,12 @@ event-file-out
 CHOOSER
 10
 98
-175
+180
 143
 demand-events
 demand-events
-"Actual" "Synthetic" "#Testing"
-0
+"Actual" "Synthetic" "#Testing" "Burg-10per-increase" "Burg-10per-decrease"
+3
 
 CHOOSER
 10
@@ -1366,10 +1408,10 @@ triage-events
 -1000
 
 MONITOR
-399
-527
-533
-572
+306
+529
+440
+574
 priority 1 waiting
 count events with [event-status = 1 and event-priority = 1]
 17
@@ -1377,10 +1419,10 @@ count events with [event-status = 1 and event-priority = 1]
 11
 
 MONITOR
-399
-575
-533
-620
+306
+577
+440
+622
 priority 2 waiting
 count events with [event-status = 1 and event-priority = 2]
 17
@@ -1388,10 +1430,10 @@ count events with [event-status = 1 and event-priority = 2]
 11
 
 MONITOR
-399
-627
-534
-672
+306
+629
+441
+674
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
 17
@@ -1399,10 +1441,10 @@ count events with [event-status = 1 and event-priority = 3]
 11
 
 PLOT
-543
-13
-903
-133
+450
+15
+810
+135
 Crime
 NIL
 NIL
@@ -1419,10 +1461,10 @@ PENS
 BUTTON
 10
 590
-188
+170
 625
 close files
-if file-exists? resource-summary-file [file-delete resource-summary-file]\nfile-open resource-summary-file\nfile-print \"resourceID, events-completed\"\nask resources \n[\nfile-print (word who \",\" events-completed)\n]\n\nfile-close-all
+close-files
 NIL
 1
 T
@@ -1442,17 +1484,17 @@ replication
 replication
 1
 100
-10.0
+9.0
 1
 1
 NIL
 HORIZONTAL
 
 MONITOR
-397
-62
-536
-107
+304
+64
+443
+109
 Shift1-Shift2-Shift3
 (word Shift-1 \"-\" Shift-2 \"-\" Shift-3)
 17
@@ -1460,10 +1502,10 @@ Shift1-Shift2-Shift3
 11
 
 PLOT
-1294
-135
-1724
-255
+1201
+137
+1631
+257
 paused events
 NIL
 NIL
@@ -1478,10 +1520,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count events with [event-paused = true]"
 
 PLOT
-908
-133
-1288
-253
+815
+135
+1195
+255
 Count Active Resources
 NIL
 NIL
@@ -1496,10 +1538,10 @@ PENS
 "count-active-resources" 1.0 0 -16777216 true "" ""
 
 PLOT
-544
-135
-904
-255
+451
+137
+811
+257
 Count Available Resources
 NIL
 NIL
@@ -1514,15 +1556,25 @@ PENS
 "resources" 1.0 0 -16777216 true "" ""
 
 SWITCH
-108
-750
-226
-783
-paperwork
-paperwork
+10
+635
+172
+668
+color-by-priority
+color-by-priority
 1
 1
 -1000
+
+TEXTBOX
+14
+700
+297
+846
+1. Normal\n2. Normal\n3. 20% Increase - Violence and sexual offences\n4. 20% Reduction - Violence and sexual offences\n5. 20% Increase - Burglary\n6. 20% Reduction - Burglary\n7. 20% Reduction - Vehicle Crime\n8. 20% Reduction - Vehicle Crime (2)\n
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1870,6 +1922,43 @@ NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-step</go>
+    <final>close-files</final>
+    <timeLimit steps="736"/>
+    <enumeratedValueSet variable="demand-events">
+      <value value="&quot;Actual&quot;"/>
+      <value value="&quot;Burg-10per-decrease&quot;"/>
+      <value value="&quot;Burg-10per-increase&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="event-characteristics">
+      <value value="&quot;Experimental&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="replication" first="1" step="1" last="10"/>
+    <enumeratedValueSet variable="color-by-priority">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-resources">
+      <value value="1800"/>
+      <value value="1860"/>
+      <value value="1980"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="VERBOSE">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Shifts">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="event-file-out">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="triage-events">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
