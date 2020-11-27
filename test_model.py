@@ -26,7 +26,7 @@ model = model.CrimeMicrosim(start_year, 1, end_year, 1, force)
 no.run(model)
 
 # model.crimes.sample(frac=0.001).to_csv("./data/crime_sample.csv")
-print(model.crimes.sample(10))
+#print(model.crimes.sample(10))
 
 
 # %%

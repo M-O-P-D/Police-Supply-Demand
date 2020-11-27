@@ -5,6 +5,10 @@ from pathlib import Path
 
 from crims import utils
 
+# see also crime detail from here: https://data.police.uk/static/files/police-uk-category-mappings.csv
+# saved to police-uk-category-mappings.csv
+
+
 cached_data = Path("./data/detailed_offence_weights.csv")
 
 if not cached_data.is_file():
