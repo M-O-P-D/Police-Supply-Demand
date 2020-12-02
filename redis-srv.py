@@ -4,8 +4,6 @@ import redis
 import pandas as pd
 import pickle
 import json
-#import pyarrow as pa
-from time import sleep
 from datetime import date
 
 # requires non-python dependency redis-server

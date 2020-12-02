@@ -2,8 +2,7 @@
 
 import redis
 import pickle
-import pandas as pd
-from time import sleep
+#import pandas as pd
 import json
 
 cache = redis.StrictRedis(host='localhost', port=6379)

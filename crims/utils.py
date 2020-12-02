@@ -108,7 +108,7 @@ def standardise_force_name(name):
     "London, City of": "city-of-london",
     "City of London": "city-of-london",
     "Merseyside": "merseyside",
-    "Metropolitan Police": "metropolitan-police",
+    "Metropolitan Police": "metropolitan",
     "Norfolk": "norfolk",
     "North Wales": "north-wales",
     "North Yorkshire": "north-yorkshire",
@@ -149,6 +149,20 @@ def standardise_category_name(typestr):
 #       dtype='object', name='category')
 
 
+def map_code(original_code):
+
+  mapping = {
+    "30A": "30C",
+    "28A": "28C",
+    "4.1": "1, 4.1/2/10",
+    "4.2": "1, 4.1/2/10",
+    "4.1": "1, 4.1/2/10",
+    "1": "1, 4.1/2/10",
+    "1/4.1/4.10/4.2": "1, 4.1/2/10"
+  }
+
+  return mapping.get(original_code, original_code)
+
 # Using the lastest ONS data, when it works
 def get_category_subtypes_WIP():
 
@@ -162,19 +176,23 @@ def get_category_subtypes_WIP():
 
   # remove extraneous and rename for consistency
   non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'UK Finance']
-  raw = raw[~raw["Force Name"].isin(non_geographic)].drop(["Financial Year", "Financial Quarter", "Offence Subgroup", "Offence Code"], axis=1) \
-    .rename({"Force Name": "force", "Offence Group": "category", "Offence Description": "description", "Offence Count": "count"}, axis=1)
+  raw = raw[~raw["Force Name"].isin(non_geographic)].drop(["Financial Year", "Financial Quarter", "Offence Subgroup"], axis=1) \
+    .rename({"Force Name": "force", "Offence Group": "category", "Offence Description": "description", "Offence Code": "code_original", "Offence Count": "count"}, axis=1)
+
+  # duplicate code column and modify values that don't match the codes in the severity scores
+  raw["code_severity"] = raw.code_original.apply(map_code)
 
   raw.category = raw.category.apply(standardise_category_name)
   raw.force = raw.force.apply(standardise_force_name)
 
   # now process the raw data
-  asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "anti-social behaviour", "description": "Anti-social behaviour", "Offence Count": 1})
+  asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "anti-social behaviour", "description": "Anti-social behaviour", "count": 1})
   raw = raw.append(asb)
 
-  cats = raw.groupby(["force", "category", "description"]).sum()
+  cats = raw.groupby(["force", "category", "description", "code_original", "code_severity"]).sum()
 
   cat_totals = cats.groupby(level=[0,1]).sum()
+  #print(cat_totals.head())
 
   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_total"])
   cats["proportion"] = cats["count"] / cats.count_total
