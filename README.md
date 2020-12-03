@@ -28,6 +28,8 @@ Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to
 
 - Bulk crime and outcome data, force boundaries: [data.police.uk](<https://data.police.uk>)
 
+- Mapping between Home Office Offence Codes and the data.police.uk categories. : [data.police.uk](<https://www.police.uk/SysSiteAssets/police-uk/media/downloads/crime-categories/police-uk-category-mappings.csv>)
+
 <!--- Sample (interim) victim data from **crime-sim-toolkit** <sup>[[6]](#references)</sup>-->
 
 - MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
