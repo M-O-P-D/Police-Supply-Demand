@@ -52,6 +52,16 @@ The home office codes can then be used to join the crime counts and their severi
 
 The mapping dataset is in [data/policeuk_code_join.csv](./data/policeuk_code_join.csv)
 
+
+
+| File              | File Description                                                                                   | Download Location                                                                                                                         | Links to                    | Via Col(s)                                                                   | Linking Method | Column Prefix in Matched File |
+|-------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------|------------------------------------------------------------------------------|----------------|-------------------------------|
+| ONS_COUNTS        | Detailed crime counts by ONS classification by police force area by calendar year                  | https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods | ONS_SEVERITY_               | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_COUNTS_                   |
+| ONS_SEVERITY      | ONS Crime Severity Scores by offence type                                                          | https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics                     | ONS_COUNTS_                 | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_SEVERITY_                 |
+| POLICE_UK_CAT_MAP | Mapping between Home Office Offence Codes and descriptions and the data.police.uk broad categories | https://www.police.uk/SysSiteAssets/police-uk/media/downloads/crime-categories/police-uk-category-mappings.csv                            | ONS_COUNTS_ & ONS_SEVERITY_ | POLICE_UK_CAT_MAP_Offence ~=~ ONS_SEVERITY_offence or ONS_COUNTS_description | Manual         | POLICE_UK_CAT_MAP_            |
+
+
+
 ## Usage
 
 First install dependencies
