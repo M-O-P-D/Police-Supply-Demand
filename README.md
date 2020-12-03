@@ -32,9 +32,23 @@ Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to
 
 - MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
 
-- [Detailed crime counts by classification](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods)
+- [Detailed crime counts by ONS classification](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods)
 
 - [Crime severity scores](https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics)
+
+# Mapping crime types to counts and severity weights
+
+Crimes are sampled only by the 14 broad Police.UK categories, since this is the only categorisation in the bulk data. Police.UK also provide a breakdown of finer crime types by category.
+
+ONS provide annual counts of crimes by force area in a more detailed categorisation with 134 distinct types, including the home office code for each type
+
+However, the resourcing impact on the police of different crimes varyies enormously and "severity scores" are given by crime type for 246 detailed crime descriptions, including the home office code.
+
+The first two datasets are not consistent, and require manual (i.e. insightful) matching of the finer/detailed crime type across the two datasets, which in turn allows weighted sampling of the *ONS* finer crime categorisation from the *Police.UK* broad category.
+
+The home office codes can then be used to join the crime counts and their severity scores, so that the data supplied to the upstream (agent-based) model includes a measure of the police resourcing required to deal with each simulated crime. This step is can be done programmatically, and the code is given in [weights.py](./weights.py)
+
+The mapping dataset is in [data/policeuk_code_join.csv](./data/policeuk_code_join.csv)
 
 ## Usage
 

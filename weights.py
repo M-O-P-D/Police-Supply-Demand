@@ -43,15 +43,15 @@ print(len(raw)) # 252
 print(raw.weight.sum()) # ~140267.55
 
 
-# Alex's 2017 processed data
-bd = utils.get_category_subtypes().reset_index()
+# # Alex's 2017 processed data
+# bd = utils.get_category_subtypes().reset_index()
 
-bd_desc = bd.description.apply(lambda s: s.lower()).unique()
+# bd_desc = bd.description.apply(lambda s: s.lower()).unique()
 
-raw_desc = raw.offence.apply(lambda s: s.lower()).unique()
+# raw_desc = raw.offence.apply(lambda s: s.lower()).unique()
 
-print(len(raw_desc))
-print(len(bd_desc), len(np.intersect1d(bd_desc, raw_desc)),len(np.setdiff1d(bd_desc, raw_desc)))
+# print(len(raw_desc))
+# print(len(bd_desc), len(np.intersect1d(bd_desc, raw_desc)),len(np.setdiff1d(bd_desc, raw_desc)))
 
 # %%
 
@@ -82,8 +82,7 @@ count_codes = count_codes.merge(cats_sev, left_on="code_severity", right_on="cod
 
 print("union has %d unique crimes" % len(count_codes))
 
-count_codes.drop("code", axis=1).to_csv("./data/severity_codes.csv", index=False)
+count_codes.drop("code", axis=1).to_csv("./data/policeuk_code_join.csv", index=False)
 
 
 # %%
-
