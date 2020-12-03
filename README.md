@@ -50,7 +50,7 @@ The first two datasets are not consistent, and require manual (i.e. insightful) 
 
 The home office codes can then be used to join the crime counts and their severity scores, so that the data supplied to the upstream (agent-based) model includes a measure of the police resourcing required to deal with each simulated crime. This step is can be done programmatically, and the code is given in [weights.py](./weights.py)
 
-The mapping dataset is in [data/policeuk_code_join.csv](./data/policeuk_code_join.csv)
+The mapping dataset is in [data/policeuk_ons_code_join.csv](./data/policeuk_ons_code_join.csv)
 
 
 
