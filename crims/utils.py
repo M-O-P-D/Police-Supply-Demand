@@ -164,7 +164,7 @@ def map_code(original_code):
   return mapping.get(original_code, original_code)
 
 # Using the lastest ONS data, when it works
-def get_category_subtypes_WIP():
+def get_category_subtypes():
 
   cached_data = Path("./data/detailed_offence_counts.csv")
 
@@ -185,46 +185,60 @@ def get_category_subtypes_WIP():
   raw.category = raw.category.apply(standardise_category_name)
   raw.force = raw.force.apply(standardise_force_name)
 
-  # now process the raw data
-  asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "anti-social behaviour", "description": "Anti-social behaviour", "count": 1})
-  raw = raw.append(asb)
+  cat_mapping = pd.read_csv("./data/policeuk_ons_code_join.csv")[["POLICE_UK_CAT_MAP_category", "ONS_COUNTS_code", "ONS_SEVERITY_weight"]]
+  cat_mapping.POLICE_UK_CAT_MAP_category = cat_mapping.POLICE_UK_CAT_MAP_category.apply(standardise_category_name)
 
-  cats = raw.groupby(["force", "category", "description", "code_original", "code_severity"]).sum()
+  #print(cat_mapping.head())
 
-  cat_totals = cats.groupby(level=[0,1]).sum()
-  #print(cat_totals.head())
+  #raw["POLICE_UK_CAT_MAP_category"] = raw.code_original.apply()
 
+  cats = raw.groupby(["force", "category", "description", "code_original"]).sum().reset_index()
+
+  cats = pd.merge(cats, cat_mapping, how="left", left_on="code_original", right_on="ONS_COUNTS_code").set_index(["force", "POLICE_UK_CAT_MAP_category"]).drop(["category", "ONS_COUNTS_code"], axis=1)
+
+  # now append antisocial behaviour
+  asb = pd.DataFrame({"force": raw.force.unique(),
+                      "POLICE_UK_CAT_MAP_category": "anti-social behaviour",
+                      "description": "Anti-social behaviour",
+                      "code_original": "",
+                      "ONS_SEVERITY_weight": 1.0,
+                      "count": 1}) \
+    .set_index(["force", "POLICE_UK_CAT_MAP_category"])
+  cats = cats.append(asb)
+
+  # turn counts into per-category proportions
+  cat_totals = cats[["count"]].groupby(level=[0,1]).sum()
   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_total"])
   cats["proportion"] = cats["count"] / cats.count_total
 
-  return cats
+  return cats.drop(["count", "count_total"], axis=1)
 
-# Using Alex's original data
-def get_category_subtypes():
-  # TODO get original data and process it, see https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods
-  # and https://github.com/M-O_P-D/crime_sim_toolkit/blob/master/data_manipulation/MappingCrimeCat2CrimeDes.ipynb
-  file = "./data/prc-pfa-201718_new.csv"
+# # Using Alex's original data
+# def get_category_subtypes():
+#   # TODO get original data and process it, see https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods
+#   # and https://github.com/M-O_P-D/crime_sim_toolkit/blob/master/data_manipulation/MappingCrimeCat2CrimeDes.ipynb
+#   file = "./data/prc-pfa-201718_new.csv"
 
-  raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
+#   raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
 
-  non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'Financial Fraud Action UK', 'UK Finance']
-  raw = raw[~raw["force"].isin(non_geographic)]
-  #print(raw.force.unique())
+#   non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'Financial Fraud Action UK', 'UK Finance']
+#   raw = raw[~raw["force"].isin(non_geographic)]
+#   #print(raw.force.unique())
 
-  # add antisocial behaviour
-  asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "Anti-social behaviour", "description": "Anti-social behaviour", "Number_of_Offences": 1})
-  raw = raw.append(asb)
+#   # add antisocial behaviour
+#   asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "Anti-social behaviour", "description": "Anti-social behaviour", "Number_of_Offences": 1})
+#   raw = raw.append(asb)
 
-  raw.force = raw.force.apply(standardise_force_name)
-  raw.category = raw.category.apply(standardise_category_name)
+#   raw.force = raw.force.apply(standardise_force_name)
+#   raw.category = raw.category.apply(standardise_category_name)
 
-  cats = raw.groupby(["force", "category", "description"]).sum() \
-    .drop(["Unnamed: 0", "Financial_Quarter"], axis=1) \
-    .rename({"Number_of_Offences": "offences"}, axis=1)
+#   cats = raw.groupby(["force", "category", "description"]).sum() \
+#     .drop(["Unnamed: 0", "Financial_Quarter"], axis=1) \
+#     .rename({"Number_of_Offences": "offences"}, axis=1)
 
-  cat_totals = cats.groupby(level=[0,1]).sum()
+#   cat_totals = cats.groupby(level=[0,1]).sum()
 
-  cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_cat"])
-  cats["proportion"] = cats.offences / cats.offences_cat
+#   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_cat"])
+#   cats["proportion"] = cats.offences / cats.offences_cat
 
-  return cats
+#   return cats

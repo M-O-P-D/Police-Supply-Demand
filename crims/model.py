@@ -58,12 +58,14 @@ class CrimeMicrosim(no.Model):
     crimes = pd.DataFrame()
 
     for ct in self.crime_types:
-      subcats = self.crime_categories.loc[ct]
       # cd = subcats.index.values
       # p = subcats.proportion.values
       # s = self.mc().sample(100, p)
       # print([d[i] for i in s])
+      subcats = self.crime_categories.loc[ct]
 
+      print(subcats.proportion)
+      continue
       time_weights = get_periodicity(start_weekday, days_in_month, ct)
 
       for g in self.geogs:
