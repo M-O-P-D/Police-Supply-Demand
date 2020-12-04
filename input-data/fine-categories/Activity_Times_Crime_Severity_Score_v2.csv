@@ -1,0 +1,136 @@
+Offence,Mean-hours,SD-hours,Mean-units,SD-units,Event-Priority,Weight,Cost,Cost cat,Police Hours Assuming £50p/h
+homicide,,,,,1,7973.393423,11960,Homicide,239.2
+attempted murder,,,,,1,4654.298133,5980,Homicide / 2,119.6
+rape of a male child under 16,,,,,1,3894.781113,21624,Rape,432.48
+rape of a female child under 16,,,,,1,3883.132787,21624,Rape,432.48
+intentional destruction of a viable unborn child,,,,,1,3775.695341,,,0
+rape of a female child under 13,,,,,1,3225.096476,21624,Rape,432.48
+rape of a male aged 16 and over,,,,,1,3191.964624,21624,Rape,432.48
+rape of a female aged 16 and over,,,,,1,2952.940993,21624,Rape,432.48
+rape of a male child under 13,,,,,1,2397.258672,21624,Rape,432.48
+aggravated burglary in a dwelling (outcome only),,,,,1,2288.669158,2938,Violence with injury ,58.76
+aggravated burglary residential,,,,,1,2288.669158,2938,Violence with injury ,58.76
+assault with intent to cause serious harm,,,,,1,2034.74186,2938,Violence with injury ,58.76
+conspiracy to murder,,,,,1,2024.222684,1469,Homicide / 2,29.38
+aggravated burglary in a building other than a dwelling(outcome only),,,,,1,1849.520062,2938,Violence with injury ,58.76
+aggravated burglary business and community,,,,,1,1849.520062,2938,Violence with injury ,58.76
+trafficking for sexual exploitation,,,,,1,1671.442958,9405,Other sexual offences ,188.1
+causing death by careless driving under influence of drink or drugs,,,,,1,1512.002797,,,0
+endangering life,,,,,1,1446.982552,,,0
+sexual activity etc with a person with a mental disorder,,,,,1,1444.951261,9405,Other sexual offences ,188.1
+other firearms offences,,,,,1,1287.544413,,,0
+kidnapping,,,,,1,1216.814993,,,0
+sexual assault on a female child under 13,,,,,1,1211.971364,9405,Other sexual offences ,188.1
+incest or familial sexual offences,,,,,1,1122.369238,9405,Other sexual offences ,188.1
+modern slavery,,,,,1,1069.064103,,,0
+procuring illegal abortion,,,,,2,1056.409091,,,0
+causing sexual activity without consent,,,,,2,1054.746637,9405,Other sexual offences ,188.1
+other miscellaneous sexual offences,,,,,2,1026.879353,9405,Other sexual offences ,188.1
+causing death or serious injury by dangerous driving,,,,,2,1022.814458,,,0
+causing or allowing death of child or vulnerable person,,,,,2,1005.176862,,,0
+abuse of children through sexual exploitation,,,,,2,939.2643958,9405,Other sexual offences ,188.1
+sexual assault on a male child under 13,,,,,2,862.2690865,9405,Other sexual offences ,188.1
+arson endangering life,,,,,2,826.1900614,,,0
+sexual activity involving a child under 13,,,,,2,823.7189951,9405,Other sexual offences ,188.1
+sexual activity involving a child under 13,,,,,2,823.7189951,9405,Other sexual offences ,188.1
+aiding suicide,,,,,2,817.4375,,,0
+robbery of business property,,,,,2,799.6288702,4343,Robbery ,86.86
+robbery of personal property,,,,,2,799.6288702,4343,Robbery ,86.86
+blackmail,,,,,2,785.8097197,3216,Fraud,64.32
+sexual assault on a male aged 13 and over,,,,,2,767.4437103,9405,Other sexual offences ,188.1
+sexual activity involving child under 16,,,,,2,726.44497,9405,Other sexual offences ,188.1
+possession of firearms with intent,,,,,2,616.5600893,,,0
+causing death by aggravated vehicle taking,,,,,2,532.4166667,,,0
+trafficking in controlled drugs,,,,,2,512.9573594,,,0
+burglary in a dwelling(outcome only),,,,,3,465.3814732,1908,Domestic burglary ,38.16
+attempted burglary in a dwelling (outcome only),,,,,3,465.3814732,1909,Domestic burglary ,38.18
+distraction burglary in a dwelling (outcome only),,,,,3,465.3814732,1910,Domestic burglary ,38.2
+attempted distraction burglary in a dwelling (outcome only),,,,,3,465.3814732,1911,Domestic burglary ,38.22
+burglary residential,,,,,3,465.3814732,1912,Domestic burglary ,38.24
+attempted burglary residential,,,,,3,465.3814732,1913,Domestic burglary ,38.26
+distraction burglary residential,,,,,3,465.3814732,1914,Domestic burglary ,38.28
+attempted distraction burglary residential,,,,,3,465.3814732,1915,Domestic burglary ,38.3
+burglary in a building other than a dwelling (outcome only),,,,,3,465.3814732,1916,Domestic burglary ,38.32
+sexual grooming,,,,,3,462.9493138,9405,Other sexual offences ,188.1
+sexual assault on a female aged 13 and over,,,,,3,459.0699167,9405,Other sexual offences ,188.1
+possession of firearms offences,,,,,3,412.2023946,,,0
+assault with injury on a constable,,,,,3,401.4243971,2938,Violence with injury ,58.76
+exploitation of prostitution,,,,,3,366.0203236,,,0
+violent disorder,,,,,3,348.4823517,2076.5,(Violence with injury  + Violence without injury) / 2,41.53
+racially or religiously aggravated assault with injury,,,,,3,312.906712,2938,Violence with injury ,58.76
+child abduction,,,,,3,289.815402,,,0
+threats to kill,,,,,3,275.308777,,,0
+other knives offences,,,,,3,250.25,,,0
+profiting from or concealing knowledge of the proceeds of crime,,,,,3,248.1816914,,,0
+wildlife,,,,,3,247.8549904,,,0
+abuse of position of trust of a sexual nature,,,,,3,240.6490449,9405,Other sexual offences ,188.1
+offender management act offences,,,,,3,207.0434495,,,0
+concealing an infant death close to birth,,,,,3,201.3989582,,,0
+bigamy,,,,,3,201.3989582,,,0
+possession of false documents,,,,,3,193.6861178,,,0
+absconding from lawful custody,,,,,3,192.3759917,,,0
+assault with injury,,,,,3,189.1538871,2938,Violence with injury ,58.76
+arson not endangering life,,,,,3,186.6682183,1080,Arson,21.6
+causing death by driving: unlicensed or disqualified or uninsured drivers,,,,,3,180.0981935,,,0
+other notifiable offences,,,,,3,179.2494716,,,0
+perverting the course of justice,,,,,3,168.73846,,,0
+other forgery,,,,,3,145.800704,,,0
+cruelty to children/young persons,,,,,3,138.7163315,,,0
+obscene publications etc,,,,,3,137.2825444,,,0
+"making, supplying or possessing articles for use in fraud",,,,,3,135.274869,,,0
+theft or unauthorised taking of motor vehicle,,,,,3,128.4294318,1624,Theft of vehicle,32.48
+attempted burglary in a building other than a dwelling (outcome only),,,,,3,123.0183965,1911,Domestic burglary ,38.22
+burglary business and community,,,,,3,123.0183965,1912,Domestic burglary ,38.24
+attempted burglary business and community,,,,,3,123.0183965,1913,Domestic burglary ,38.26
+dangerous driving,,,,,3,119.8773131,,,0
+fraud offences recorded by action fraud,,,,,3,116.9107143,3216,Fraud,64.32
+fraud offences recorded by cifas,,,,,3,116.9107143,3217,Fraud,64.34
+fraud offences recorded by financial fraud action uk,,,,,3,116.9107143,3218,Fraud,64.36
+fraud offences recorded by uk finance,,,,,3,116.9107143,3219,Fraud,64.38
+causing death by careless or inconsiderate driving,,,,,3,111.3613218,,,0
+theft from automatic machine or meter,,,,,3,110.5808024,,,0
+perjury,,,,,3,97.84558125,,,0
+theft of mail,,,,,3,84.86543762,,,0
+theft from the person,,,,,3,80.4051597,236,theft from person,4.72
+other offences against the state or public order,,,,,3,72.50873282,,,0
+other miscellaneous sexual offences,,,,,3,69.01673543,,,0
+threat or possession with intent to commit criminal damage,,,,,3,60.93167303,,,0
+stalking,,,,,3,56.34970967,,,0
+handling stolen goods,,,,,3,55.13528999,,,0
+aggravated vehicle taking,,,,,3,53.45003689,,,0
+possession of article with blade or point,,,,,3,53.0382391,,,0
+possession of other weapons,,,,,3,52.12609711,,,0
+unnatural sexual offences,,,,,3,51.71302083,,,0
+theft in a dwelling other than from an automatic machine or meter,,,,,3,51.41640803,,,0
+theft by an employee,,,,,3,49.29978822,,,0
+exposure and voyeurism,,,,,3,39.92200196,,,0
+racially or religiously aggravated harassment,,,,,3,37.51129786,,,0
+other theft,,,,,3,36.80988326,,,0
+harassment,,,,,3,36.09753014,,,0
+theft from vehicle,,,,,3,32.92067737,,,0
+forgery or use of false drug prescription,,,,,3,31.53685297,,,0
+"going equipped for stealing, etc",,,,,3,31.25076655,,,0
+racially or religiously aggravated assault without injury,,,,,3,30.76323605,,,0
+theft or unauthorised taking of a pedal cycle,,,,,3,15.17572799,,,0
+malicious communications,,,,,3,15.13892861,,,0
+racially or religiously aggravated criminal damage,,,,,3,14.00559871,,,0
+assault without injury,,,,,3,13.51054152,,,0
+"disclosure, obstruction, false or misleading statements etc",,,,,3,12.91719167,,,0
+"racially or religiously aggravated public fear, alarm or distress",,,,,3,12.76338434,,,0
+shoplifting,,,,,3,11.85553905,,,0
+interfering with a motor vehicle,,,,,3,9.314706802,,,0
+other drug offences,,,,,3,9.062218937,,,0
+possession of controlled drugs (excl. cannabis),,,,,3,8.082043408,,,0
+assault without injury on a constable,,,,,3,7.54380645,,,0
+"fraud, forgery etc associated with vehicle or driver records",,,,,3,7.259604054,,,0
+making off without payment,,,,,3,7.005610687,,,0
+"public fear, alarm or distress",,,,,3,6.81175759,,,0
+criminal damage to a dwelling,,,,,3,5.39670789,,,0
+criminal damage to a building other than a dwelling,,,,,3,5.39670789,,,0
+criminal damage to a vehicle,,,,,3,5.39670789,,,0
+other criminal damage,,,,,3,5.39670789,,,0
+dishonest use of electricity,,,,,3,5.290243799,,,0
+soliciting for the purposes of prostitution,,,,,3,3.815915301,,,0
+bail offences,,,,,3,3.304401327,,,0
+possession of controlled drugs (cannabis),,,,,3,1.770623478,,,0
+anti-social behaviour,,,,,3,1,,,0
