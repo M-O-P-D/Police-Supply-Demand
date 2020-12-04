@@ -1,4 +1,4 @@
-extensions [csv table time pathdir]
+extensions [csv table time pathdir fetch]
 
 globals
 [
@@ -121,6 +121,8 @@ to setup
   ca
   reset-ticks
 
+
+
   ;create folder path to store results based on settings
   let path (word "model-output/" demand-events "/resources" number-resources "/rep" replication "/")
   pathdir:create path
@@ -131,15 +133,6 @@ to setup
   set active-resource-trends-file (word path "active-resource-trends-file.csv")
   set resource-summary-file (word path "officer-summary-file.csv")
   set resource-usage-trends-file (word path "resource-usage-trends-file.csv")
-
-
-  ;old manual output files
-;  set event-summary-file (word "model-output/" number-resources "/event-summary-file-rep=" replication ".csv")
-;  set active-event-trends-file (word "model-output/" number-resources "/active-event-trends-file-rep=" replication ".csv")
-;  set active-resource-trends-file (word "model-output/" number-resources "/active-resource-trends-rep=" replication ".csv")
-;  set resource-summary-file (word "model-output/" number-resources "/officer-summary-file-rep=" replication ".csv")
-;  set resource-usage-trends-file (word "model-output/"  number-resources  "/resource-usage-trends-file-rep=" replication ".csv")
-
 
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
@@ -184,21 +177,11 @@ to setup
 
   if demand-events = "Synthetic" [ set event-data csv:from-file "input-data/fine-categories/WYP_synthetic_day_reports.csv" set dt time:create "2019/01/01 7:00" ]
   if demand-events = "#Testing" [ set event-data csv:from-file "input-data/fine-categories/test-events.csv" set dt time:create "2016/03/01 7:00" ]
-
-
-  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/WYP_historic_day_reports.csv" set dt time:create "2016/03/01 7:00" ]
-
   if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_BASELINE.csv" set dt time:create "2019/01/01 7:00" ]
-
   if demand-events = "Burg-10per-increase" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_increase_10per.csv" set dt time:create "2019/01/01 7:00" ]
-
   if demand-events = "Burg-10per-decrease" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_decrease_10per.csv" set dt time:create "2019/01/01 7:00" ]
 
-  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
-  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
-  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
-  ;if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_day_reports_1.csv" set dt time:create "2019/01/01 7:00" ]
-
+  if demand-events = "API-Test" [ print "Reading Event Data from API ......" set event-data csv:from-string (fetch:url ("http://localhost/data?force=Durham&month=7&format=csv")) set dt time:create "2020/07/01 0:00" print event-data]
 
 
   set event-data remove-item 0 event-data ;remove top row
@@ -342,6 +325,84 @@ end
 ; procedure to read in the events for the given time window / tick
 to read-events
 
+
+
+
+  ;API DATA FORMAT
+  ;0            1                     2                       3                     4
+  ;MSOA         crime_type            description             time                  suspect
+  ;E02004336    anti-social behaviour Anti-social behaviour   2020-07-01 00:17:00   false]
+  ;E02002561    vehicle crime         Theft from vehicle      2020-07-01 00:20:00   false]
+
+  ;OLD CSV FORMAT
+  ;0    1           2         3     4                     5                     6               7
+  ;U    ID	        datetime	Hour	Crime_description	    Crime_type	          LSOA_code	      Police_force
+  ;27	  West11AN27	1/1/19	  0	    anti-social behaviour	Anti-social behaviour	West Yorkshire	West Yorkshire
+
+
+
+  let day-end FALSE
+
+  if length event-data > 1
+  [
+    while [not day-end]
+    [
+      ;pull the top row from the data
+      let temp item 0 event-data
+
+      ;construct a date
+      let temp-dt time:create-with-format (item 3 temp) "yyyy-MM-dd HH:mm:ss"
+
+      user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
+
+      ;check if the event occurs at current tick - which is one hour window
+      ifelse (time:is-between temp-dt dt (time:plus dt 59 "minutes"))
+      [
+        user-message "is within yes"
+        ;creat an event agent
+        create-events 1
+        [
+          set count-crime-hour count-crime-hour + 1
+
+          ;make it invisible
+          set hidden? true
+
+          ;fill in relevant details for event from data
+          set eventID item 1 temp
+
+          set event-type item 2 temp
+          set event-class item 1 temp
+          set event-LSOA item 0 temp
+          set event-start-dt dt
+          set event-status 1 ;awaiting resource
+          set event-paused false
+
+          ;get the amount of units/time required to respond to resource from event info
+          set event-resource-req-amount get-event-resource-amount event-type
+          set event-resource-req-time get-event-resource-time event-type
+          set event-resource-req-total event-resource-req-amount * event-resource-req-time
+          set event-resource-counter event-resource-req-total
+          set event-priority get-event-priority event-type
+        ]
+
+        ;once the event agent has been created delete it from the data file
+        set event-data remove-item 0 event-data
+      ]
+      [
+        set day-end TRUE
+        ;print "Next Day......"
+        ;print data
+      ]
+    ]
+  ]
+
+end
+
+
+
+; procedure to read in the events for the given time window / tick
+to read-events-bck
+
   ;event structure is
   ;0    1         2     3   4   5     6                     7                     8         9
   ;row  UID	      Year	Mon	Day	Hour	Crime_description	    Crime_type	          LSOA_code	Police_force
@@ -412,6 +473,10 @@ to read-events
   ]
 
 end
+
+
+
+
 
 
 
@@ -961,6 +1026,30 @@ to update-all-plots
 end
 
 
+to-report equal-ignore-case? [ str1 str2 ]
+
+  if (length str1 != length str2) [ report false ]
+
+  foreach (range length str1) [ i ->
+    let c1 (item i str1)
+    let c2 (item i str2)
+    ; if c1 = c2, no need to do the `to-upper-char` stuff
+    if (c1 != c2 and to-upper-char c1 != to-upper-char c2) [
+      report false
+    ]
+  ]
+  report true
+end
+
+; this only works with a string length 1
+to-report to-upper-char [ c ]
+  let lower "abcdefghijklmnopqrstuvwxyz"
+  let upper "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+  let pos (position c lower)
+  report ifelse-value (is-number? pos) [ item pos upper ] [ c ]
+end
+
 
 
 ;Anti-social behaviour
@@ -1383,8 +1472,8 @@ CHOOSER
 143
 demand-events
 demand-events
-"Actual" "Synthetic" "#Testing" "Burg-10per-increase" "Burg-10per-decrease"
-3
+"API-Test" "Actual" "Synthetic" "#Testing" "Burg-10per-increase" "Burg-10per-decrease"
+0
 
 CHOOSER
 10
