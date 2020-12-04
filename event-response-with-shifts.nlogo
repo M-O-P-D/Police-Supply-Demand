@@ -1,66 +1,82 @@
-extensions [csv table time]
+extensions [csv table time pathdir fetch]
 
 globals
 [
-  event-data
-  event-reference
+  event-data ;data structure storing all demand events output from generator
+  event-reference ;data structure storing characteristics of event types - i.e. resource requirements - to be derived in first instance from ONS crime severity scores
   count-completed-events
-  Day
-  Hour
+
+  ;Globals to keep track of time
+  dt
   Shift-1
   Shift-2
   Shift-3
-  dt
+
+  count-crime-hour
+
+  ;file globals
+  event-summary-file
+  active-event-trends-file
+  active-resource-trends-file
+  resource-summary-file
+  resource-usage-trends-file
+
 ]
 
-
+;Events store demand - the things the police muct respond to
 breed [events event]
 
+;Resource store supply the thing police use to respond to demand - each unit nominally represents a single officer
 breed [resources resource]
 
 
-
-
-;patches represent
+;POLICE RESOURCE VARIABLES
 resources-own
 [
-  current-event
-  current-event-type
 
-  resource-ID
+  current-event ;the id of the event-agent the resource-agent is responding to
+  current-event-type ;the type of event the resource-agent is responding to
+  current-event-class ; broader crime class
 
+  ;placeholders to allow units of resource to only be able to respond of events of a certain type - currently not used
   resource-type
   resource-roles
 
+  ;status of resource agent
+  resource-status ;represents the current state of the resource agent - coded: 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
+  resource-start-dt ; the date-time when the current job started
 
-  ;status of ev
-  resource-status ;represents current officer state - coded: 0 = off duty, 1
-  resource-start-dt
-
-  resource-timer
-
-  resource-hours-required
-  resource-end-dt
+  ;resource-hours-required ;count of hours required to respond to current event
+  ;resource-end-dt ;calculated end date/time of current event - equates to resource-start-dt + resource-hours-required
 
   ;records what shift - if any - a resource is working on
   working-shift
 
+  events-completed ;measure of total number of incidents completed
+
 ]
 
 
 
+;DEMAND EVENT VARIABLES
 events-own
 [
-  current-resource
+  eventID ;link back to event data
+  current-resource ; the resource agent(s) (can be multiple) - if any - currently repsonding to this event
   event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
-  event-type
-  event-start-dt
-  event-harm
-  event-timer
-  event-resource-type
-  ;number of resource units required to repsond to event
-  event-resource-amount
-  event-trigger
+  event-type ;event type in this model - crime type - i.e. aggravated burglary
+  event-class ;event broad class - i.e. burglary
+  event-LSOA
+  event-start-dt ;datetime event came in
+  event-response-start-dt ;datetime response to event started
+  event-response-end-dt ;when the event will be reconciled calculated once an event is assigned a resource.
+  event-resource-counter ;counts the amount of resource hours remaining before an event is finished
+  event-paused ; flags wether an event has previoiusly been acted on - this is used if events are passed between resources at shift change
+  event-resource-type ; placeholders to allow units of resource to only be able to respond of events of a certain type - currently not used
+  event-resource-req-time ;amount of time resource required to repsond to event - drawn from event-reference
+  event-resource-req-amount ;number of resource units required to repsond to event - drawn from event-reference
+  event-resource-req-total
+  event-priority ; placeholder for variable that allows events to be triaged in terms of importance of response
 ]
 
 
@@ -68,35 +84,28 @@ events-own
 
 
 
-
+;Procedure to check datetime and adjust flags for shifts currently active/inactive
 to check-shift
-
-;  ifelse Hour = 7 and Hour < 17 [ set Shift-1 TRUE ] [ set Shift-1 FALSE ]
-;
-;  ifelse Hour >= 14 and Hour < 24 [ set Shift-2 TRUE ] [ set Shift-2 FALSE ]
-;
-;  ifelse Hour < 7 or Hour >= 22 [ set Shift-3 TRUE ] [ set Shift-3 FALSE ]
-;
-;
 
   ;Shifts:
   ;1. 0700 - 1700
   ;2. 1400 - 2400
   ;3. 2200 - 0700
 
+  let hour time:get "hour" dt
+
+  ;Currently no working roster-off solution - what to do when a job is ongoing?
 
   ;Shift 1
-  if Hour = 7 [ set Shift-1 TRUE roster-on 1  ]
-  if Hour = 17 [ set Shift-1 FALSE roster-off 1 ]
+  if hour = 7 [ set Shift-1 TRUE set Shift-3 FALSE roster-on 1 roster-off 3]
+  if hour = 17 [ set Shift-1 FALSE  roster-off 1 ]
 
   ;Shift 2
-  if Hour = 14 [ set Shift-2 TRUE roster-on 2 ]
-  if Hour = 0 [ set Shift-2 FALSE ]
+  if hour = 14 [ set Shift-2 TRUE roster-on 2 ]
+  if hour = 0 [ set Shift-2 FALSE roster-off 2]
 
   ;Shift 3
-  if Hour = 22 [ set Shift-3 TRUE roster-on 3 ]
-  if Hour = 7 [ set Shift-3 FALSE ]
-
+  if hour = 22 [ set Shift-3 TRUE roster-on 3]
 
 
 end
@@ -105,123 +114,165 @@ end
 
 
 
-
+;main setup procedure
 to setup
 
+  ;clear stuff
   ca
   reset-ticks
 
 
+
+  ;create folder path to store results based on settings
+  let path (word "model-output/" demand-events "/resources" number-resources "/rep" replication "/")
+  pathdir:create path
+
+  ;setup output files
+  set event-summary-file (word path "event-summary-file.csv")
+  set active-event-trends-file (word path "active-event-trends-file.csv")
+  set active-resource-trends-file (word path "active-resource-trends-file.csv")
+  set resource-summary-file (word path "officer-summary-file.csv")
+  set resource-usage-trends-file (word path "resource-usage-trends-file.csv")
+
+
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
-  let dim-resource-temp (number-resources / 50) - 1
+  let y-dim-resource-temp (number-resources / 20) - 1
 
-  resize-world 0 49 0 dim-resource-temp
+  resize-world 0 19 0 y-dim-resource-temp
 
 
+  ;initialize shift bools
   set Shift-1 false
   set Shift-2 false
   set Shift-3 false
 
-
-
   ; create police resoruce agents - one per patch
-  ask n-of number-resources patches [ sprout-resources 1 [set shape "square" set color grey set resource-status 0] ]
+  ask n-of number-resources patches
+  [
+    sprout-resources 1
+    [
+      set shape "square"
+      set color grey
+      ifelse Shifts [set resource-status 0] [set resource-status 1]
+      set events-completed 0
+    ]
+  ]
+
+  ;if shfts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
+  if Shifts
+  [
+    let third-split-unit ((y-dim-resource-temp + 1) / 3)
+    ask resources with [ycor >= 0 and ycor <= ((third-split-unit * 1) - 1)  ] [ set working-shift 1]
+    ask resources with [ycor > ((third-split-unit * 1) - 1) and ycor <= ((third-split-unit * 2) - 1)] [ set working-shift 2]
+    ask resources with [ycor > ((third-split-unit * 2) - 1)] [ set working-shift 3]
+  ]
 
   ;set the global clock
-  set dt time:create "2000/01/01 7:00"
-
-
-  ;hack roster-on shift 3 - as  file starts at midnight
-
+  if event-file-out [start-file-out]
 
 
   ;read in the event data
-  ;set event-data csv:from-file "input-data/synthetic_day_reports_no_header.csv"
-  set event-data csv:from-file "input-data/synthetic_day_reports_fake_time_no_header_from7.csv"
   print "Reading Event Data from file ......"
+
+  if demand-events = "Synthetic" [ set event-data csv:from-file "input-data/fine-categories/WYP_synthetic_day_reports.csv" set dt time:create "2019/01/01 7:00" ]
+  if demand-events = "#Testing" [ set event-data csv:from-file "input-data/fine-categories/test-events.csv" set dt time:create "2016/03/01 7:00" ]
+  if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_BASELINE.csv" set dt time:create "2019/01/01 7:00" ]
+  if demand-events = "Burg-10per-increase" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_increase_10per.csv" set dt time:create "2019/01/01 7:00" ]
+  if demand-events = "Burg-10per-decrease" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_decrease_10per.csv" set dt time:create "2019/01/01 7:00" ]
+
+  if demand-events = "API-Test" [ print "Reading Event Data from API ......" set event-data csv:from-string (fetch:url ("http://localhost/data?force=Durham&month=7&format=csv")) set dt time:create "2020/07/01 0:00" print event-data]
+
+
+  set event-data remove-item 0 event-data ;remove top row
 
   ;read in the event reference table to assign resource charactersitics by offence
   print "Importing Event Resourcing Profiles from file ......"
   set event-reference table:make
-  let event-ref-file csv:from-file "input-data/crime-ref-with-mean-sd.csv"
-  print event-ref-file
+
   ;Build the dictionary from event ref file - thsi allows us to update the resourcing weighst associate with offences by editing the CSV
-  foreach event-ref-file [x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x)]
-  ;print event-reference
-
-
-
-
-
-
-
-end
-
-
-
-to roster-on [ shift ]
-
-  ;as a shift changes roster on new staff - assumes that each shift has 1/3 of resources active - although there is overlap between shifts
-
-  print (word "Shift " shift " - Rostering on ")
-
-  if shift = 1 [ ask n-of floor ( number-resources / 3 )  resources with [resource-status = 0] [set resource-status 1 set working-shift 1 ]]
-  if shift = 2 [ ask n-of floor ( number-resources / 3 )  resources with [resource-status = 0] [set resource-status 1 set working-shift 2 ]]
-  if shift = 3 [ ask n-of floor ( number-resources / 3 ) resources with [resource-status = 0] [set resource-status 1 set working-shift 3 ]]
-
-end
-
-
-
-;to do next - howdo we roster off officers - what happens to events that arecurrently underway - how are they passed on
-; A few  options
-; Pass events on to specific  other resource agents
-;put the events backon the stack (this would require to count amount of time spent on event so to know remaining hours
-; continue working until event finishes - this would likely require agents to pick up events based on how much  time they have lefton their shift
-to roster-off [ shift ]
-
-  if shift = 1
+  if event-characteristics = "Uniform"
   [
-    print (word "Shift 1 ends - currently there are " count resources with [ working-shift = 1] " working and " count resources with [resource-status = 1 and working-shift = 1] " officers not on a job to be easily rostered off")
-    ask resources with [resource-status = 1 and working-shift = 1] [end-shift]
+    let event-ref-file csv:from-file "input-data/fine-categories/Activity_Times_Uniform.csv"
+    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x) ]
+    ;print event-ref-file
   ]
-  ;if shift = 2 [ ask n-of 100 resources with [resource-status = 0] [set resource-status 1 set working-shift 2 ]]
-  ;if shift = 3 [ ask n-of 100 resources with [resource-status = 0] [set resource-status 1 set working-shift 3 ]]
+  if event-characteristics = "Experimental"
+  [
+    let event-ref-file csv:from-file "input-data/fine-categories/Activity_Times_Crime_Severity_Score_v1.csv"
+    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x item 5 x) ]
+    ;print event-ref-file
+  ]
+
+  ;print event-ref-file
 
 end
 
 
 
-to end-shift
-
-  set resource-status 0
-  set working-shift 0
-
-end
 
 
 
 
 
+
+;the main simulation loop
 to go-step
 
   if VERBOSE [print time:show dt "dd-MM-yyyy HH:mm"]
 
-  update-time
+  ;update time and check shift bool
+  if Shifts [check-shift]
+  set count-crime-hour 0
 
+  ;read in current hour's events
   read-events
-  assign-resources
 
-  ask events [ check-events ]
+
+  ;assign resources - right now this is written events look for resources where in reality resources should look for events
+  ifelse triage-events
+  [
+    ;rudimentary triage
+
+    ;pickup ongoing jobs that are paused first
+    ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources]
+    ;then jobs that have no one
+    ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources]
+    ;then jobs that are ongoing but under staffed
+    ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources ]
+
+    ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources]
+    ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources]
+    ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+
+    ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources]
+    ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources]
+    ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+
+  ]
+  [
+    ask events with [event-status = 1 and event-paused = true] [get-resources]
+    ask events with [event-status = 1] [get-resources]
+    ask events with [event-status = 2 and count current-resource < event-resource-req-amount] [get-resources]
+  ]
+
+
+  ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
   ask resources [  draw-resource-status ]
   update-all-plots
+
+  ;check status of ongoing events so those about to complete can be closed
+  ask events with [event-status = 2] [ check-event-status ]
+
+  ;tick by one hour
   increment-time
+
+  ;repeat
 
 end
 
 
-
+;increment internal tick clock and date time object - 1 tick = 1 hour
 to increment-time
   tick
   set dt time:plus dt 1 "hours"
@@ -229,61 +280,119 @@ end
 
 
 
-to update-time
-; set globals for hour and day for easy access
-  set Day time:get "day" dt
-  set Hour time:get "hour" dt
-  check-shift
+
+
+
+
+
+
+to start-file-out
+
+  file-close-all
+
+  if file-exists? event-summary-file [file-delete event-summary-file]
+  file-open event-summary-file
+  file-print "eventID,count-resources,event-status,event-type,event-class,event-LSOA,event-start-dt,event-response-start-dt,event-response-end-dt,event-resource-counter,event-resource-type,event-resource-req-time,event-resource-req-amount,event-resource-req-total"
+
+  if file-exists? active-event-trends-file [file-delete active-event-trends-file]
+  file-open active-event-trends-file
+  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+
+  if file-exists? active-resource-trends-file [file-delete active-resource-trends-file]
+  file-open active-resource-trends-file
+  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+
+  if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
+  file-open resource-usage-trends-file
+  file-print "date-time,usage%,events-ongoing,events-waiting,piority1-waiting,piority2-waiting,piority3-waiting"
+
+end
+
+to close-files
+  if file-exists? resource-summary-file [file-delete resource-summary-file]
+  file-open resource-summary-file
+  file-print "resourceID, events-completed"
+  ask resources
+  [
+    file-print (word who "," events-completed)
+  ]
+
+  file-close-all
 end
 
 
+
+; procedure to read in the events for the given time window / tick
 to read-events
+
+
+
+
+  ;API DATA FORMAT
+  ;0            1                     2                       3                     4
+  ;MSOA         crime_type            description             time                  suspect
+  ;E02004336    anti-social behaviour Anti-social behaviour   2020-07-01 00:17:00   false]
+  ;E02002561    vehicle crime         Theft from vehicle      2020-07-01 00:20:00   false]
+
+  ;OLD CSV FORMAT
+  ;0    1           2         3     4                     5                     6               7
+  ;U    ID	        datetime	Hour	Crime_description	    Crime_type	          LSOA_code	      Police_force
+  ;27	  West11AN27	1/1/19	  0	    anti-social behaviour	Anti-social behaviour	West Yorkshire	West Yorkshire
+
 
 
   let day-end FALSE
 
-  while [not day-end]
+  if length event-data > 1
   [
-    ;pull the top row from the data
-    let temp item 0 event-data
-
-    ;print temp
-    ;extract day
-    let tmp-event-day item 1 temp
-    let tmp-event-hour item 6 temp
-
-    ;print tmp-event-day
-    ;print tmp-event-hour
-
-    ;check if the event occurs at current tick
-    ifelse (tmp-event-day = Day and tmp-event-hour = Hour)
+    while [not day-end]
     [
-      ;creat an event agent
-      create-events 1
+      ;pull the top row from the data
+      let temp item 0 event-data
+
+      ;construct a date
+      let temp-dt time:create-with-format (item 3 temp) "yyyy-MM-dd HH:mm:ss"
+
+      user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
+
+      ;check if the event occurs at current tick - which is one hour window
+      ifelse (time:is-between temp-dt dt (time:plus dt 59 "minutes"))
       [
+        user-message "is within yes"
+        ;creat an event agent
+        create-events 1
+        [
+          set count-crime-hour count-crime-hour + 1
 
+          ;make it invisible
+          set hidden? true
 
-        ;make it invisible
-        set shape "dot"
-        set color white
+          ;fill in relevant details for event from data
+          set eventID item 1 temp
 
-        ;fill in relevant details for event from data
-        set event-type item 3 temp
-        set event-start-dt dt
-        set event-status 1 ; awaiting resource
-        ;get the amount of units required to respond to resource from event info
-        set event-resource-amount get-event-resource-amount event-type
+          set event-type item 2 temp
+          set event-class item 1 temp
+          set event-LSOA item 0 temp
+          set event-start-dt dt
+          set event-status 1 ;awaiting resource
+          set event-paused false
+
+          ;get the amount of units/time required to respond to resource from event info
+          set event-resource-req-amount get-event-resource-amount event-type
+          set event-resource-req-time get-event-resource-time event-type
+          set event-resource-req-total event-resource-req-amount * event-resource-req-time
+          set event-resource-counter event-resource-req-total
+          set event-priority get-event-priority event-type
+        ]
+
+        ;once the event agent has been created delete it from the data file
+        set event-data remove-item 0 event-data
       ]
-
-      ;once the event agent has been created delete it from the data file
-      set event-data remove-item 0 event-data
-
-    ]
-
-    [
-      set day-end TRUE
-      ;print "Next Day......"
-      ;print data
+      [
+        set day-end TRUE
+        ;print "Next Day......"
+        ;print data
+      ]
     ]
   ]
 
@@ -291,16 +400,114 @@ end
 
 
 
-; color resource agents based on current state - blue for responding - grey for available
-to draw-resource-status
-  if resource-status = 0 [ set color grey ] ; rostered off
-  if resource-status = 1 [ set color white ] ; active & available
-  if resource-status = 2 [ set color blue ] ; active & on event
+; procedure to read in the events for the given time window / tick
+to read-events-bck
+
+  ;event structure is
+  ;0    1         2     3   4   5     6                     7                     8         9
+  ;row  UID	      Year	Mon	Day	Hour	Crime_description	    Crime_type	          LSOA_code	Police_force
+  ;0    E010111A0	2019	1	  1	  22	  Anti-social behaviour	Anti-social behaviour	E01010650	West Yorkshire
+
+  ;NEW FORMAT
+  ;0    1           2         3     4                     5                     6               7
+  ;U    ID	        datetime	Hour	Crime_description	    Crime_type	          LSOA_code	      Police_force
+  ;27	  West11AN27	1/1/19	  0	    anti-social behaviour	Anti-social behaviour	West Yorkshire	West Yorkshire
+
+
+
+  let day-end FALSE
+
+  if length event-data > 1
+  [
+    while [not day-end]
+    [
+      ;pull the top row from the data
+
+      let temp item 0 event-data
+
+      ;extract date annd time from next event
+      let tmp-event-date item 2 temp
+      let tmp-event-hour item 3 temp
+
+      ;construct a date
+      let temp-dt time:create-with-format (word tmp-event-date " " tmp-event-hour ":00:00") "dd/MM/yy HH:mm:ss"
+
+      ;check if the event occurs at current tick
+      ifelse (time:is-equal temp-dt dt)
+      [
+        ;creat an event agent
+        create-events 1
+        [
+          set count-crime-hour count-crime-hour + 1
+
+          ;make it invisible
+          set hidden? true
+
+          ;fill in relevant details for event from data
+          set eventID item 1 temp
+
+          set event-type item 4 temp
+          set event-class item 5 temp
+          set event-LSOA item 6 temp
+          set event-start-dt dt
+          set event-status 1 ;awaiting resource
+          set event-paused false
+
+          ;get the amount of units/time required to respond to resource from event info
+          set event-resource-req-amount get-event-resource-amount event-type
+          set event-resource-req-time get-event-resource-time event-type
+          set event-resource-req-total event-resource-req-amount * event-resource-req-time
+          set event-resource-counter event-resource-req-total
+          set event-priority get-event-priority event-type
+        ]
+
+        ;once the event agent has been created delete it from the data file
+        set event-data remove-item 0 event-data
+      ]
+      [
+        set day-end TRUE
+        ;print "Next Day......"
+        ;print data
+      ]
+    ]
+  ]
+
 end
 
 
 
 
+
+
+
+; color resource agents based on current state - blue for responding - grey for available
+to draw-resource-status
+
+  ifelse color-by-priority
+  [
+  if resource-status = 0 [ set color grey ] ; rostered off
+  if resource-status = 1 [ set color white ] ; active & available
+  if resource-status = 2
+    [
+      let tmp-priority [event-priority] of current-event
+      if tmp-priority = 1 [set color red]
+      if tmp-priority = 2 [set color blue]
+      if tmp-priority = 3 [set color yellow]
+    ] ; active & on event
+
+  ]
+  [
+  if resource-status = 0 [ set color grey ] ; rostered off
+  if resource-status = 1 [ set color white ] ; active & available
+  if resource-status = 2 [ set color blue ] ; active & on event
+  ]
+
+end
+
+
+
+
+; procedure that takes an event type and probabilistically returns how many hours it will require
 to-report get-event-resource-time [ eventType ]
 
 
@@ -320,8 +527,9 @@ to-report get-event-resource-time [ eventType ]
 
 end
 
-to-report get-event-resource-amount [ eventType ]
 
+; procedure that takes an event type and probabilistically returns how many resource agents it will require
+to-report get-event-resource-amount [ eventType ]
 
   ; pull the mean amount of resource required to adress an event from the event-reference dictionary -
   let event-info  table:get event-reference eventType
@@ -332,120 +540,145 @@ to-report get-event-resource-amount [ eventType ]
   ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
   let amount (round random-poisson mean-amount) + 1
 
-
   ;show (word eventType " - mean-amount=" mean-amount " ,sd-amount=" sd-amount " -- Actual=" amount)
 
- report amount
+  report amount
+
+end
+
+
+to-report get-event-priority [ eventType ]
+
+  let event-info  table:get event-reference eventType
+  let priority item 4 event-info
+  report priority
 
 end
 
 
 
 
-;to-report end-time-day [start-day start-time duration-hours]
-;
-;  let temp-hour 0
-;  let temp-day 0
-;
-;  ifelse duration-hours <= 24
-;  [
-;    set temp-hour start-time + duration-hours
-;    ifelse temp-hour > 23 [ set temp-day start-day + 1 set temp-hour temp-hour - 24] [ set temp-day start-day ]
-;  ]
-;  [
-;    set temp-day start-day + floor (duration-hours / 24) set temp-hour duration-hours mod 24
-;  ]
-;
-;  print (word "start-day=" start-day " , start-time=" start-time " , duration=" duration-hours " >>>>> End-day=" temp-day " , end-hour=" temp-hour)
-;  report (list temp-day temp-hour)
-;end
 
 
 
 
 
-to check-events
-  ;check when the event should end (by asking one of the resources assigned to it) - if it is this cycle - end it, record the result, destroy the agent
-  if time:is-equal ([resource-end-dt] of one-of current-resource) dt
+to roster-on [ shift ]
+
+  ;as a shift changes roster on new staff - assumes that each shift has 1/3 of resources active - although there is overlap between shifts
+
+  if VERBOSE [ print (word "Shift " shift " - Rostering on ") ]
+
+  if shift = 1 [ ask resources with [resource-status = 0 and working-shift = 1] [set resource-status 1 set working-shift 1 ]]
+  if shift = 2 [ ask resources with [resource-status = 0 and working-shift = 2] [set resource-status 1 set working-shift 2 ]]
+  if shift = 3 [ ask resources with [resource-status = 0 and working-shift = 3] [set resource-status 1 set working-shift 3 ]]
+
+end
+
+
+
+
+;to do next - howdo we roster off officers - what happens to events that arecurrently underway - how are they passed on
+; A few  options
+; Pass events on to specific  other resource agents
+;put the events backon the stack (this would require to count amount of time spent on event so to know remaining hours
+; continue working until event finishes - this would likely require agents to pick up events based on how much  time they have lefton their shift
+to roster-off [ shift ]
+
+  if VERBOSE [ print (word "Shift " shift " - Rostering off") ]  ;" ends - currently there are " count resources with [ working-shift = shift] " working and " count resources with [resource-status = 1 and working-shift = shift] " officers not on a job to be easily rostered off")
+    shift-drop-events shift
+    ask resources with [working-shift = shift] [end-shift]
+
+end
+
+
+
+to end-shift
+  set resource-status 0
+  set current-event nobody
+  set current-event-type ""
+  set current-event-class ""
+end
+
+
+
+
+
+
+to shift-drop-events  [ shift ]
+  ; look at all ongoing events
+  ask events with [event-status = 2]
   [
-    ;relinquish resource
+    ;drop all units whose shift has just ended from those events
+    set current-resource current-resource with [working-shift != shift]
+    ;check if that leaves any resource left
+    if count current-resource = 0
+    [
+      ;if not pause the event and set its status back to 1
+      set event-status 1
+      set event-paused true
+      ;print (word self " was paused due to lack of staff - a further " event-resource-counter " are required to complete this event")
+    ]
+  ]
+end
+
+
+
+
+
+
+
+
+; event procedure that checks whether a currently running event can be closed off
+to check-event-status
+  ;check when event being responded to should be finshed
+
+  ;alternative - check if no more resource hours are required
+  ifelse event-resource-counter = 0
+  ;check if the secdeuled event end date/time is now
+  ;ifelse time:is-equal event-response-end-dt dt
+  [
+    ; if it is this cycle - end the event, record that, relinquish resource(s), destroy the event agent
     ask current-resource [ relinquish ]
     ;count completion
     set count-completed-events count-completed-events + 1
-    ;destroy agent object
+
+    if VERBOSE [print (word "Event complete - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
+
+    ;destroy event object
+
+    ;show (word "Job complete")
+
+
+    ;if the job is complete write its details to the event output file
+    if event-file-out
+    [
+      file-open event-summary-file
+      file-print (word
+        eventID ","
+        count current-resource ","
+        event-status ",\""
+        event-type "\",\""
+        event-class "\","
+        event-LSOA ","
+        (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
+        (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
+        (time:show dt "dd-MM-yyyy HH:mm") ","
+        event-resource-counter ","
+        event-resource-type ","
+        event-resource-req-time ","
+        event-resource-req-amount ","
+        event-resource-req-total
+      )
+    ]
+
+    ;then destroy the object
     die
   ]
-end
-
-
-to relinquish
-
-  set resource-status 1
-  ;set current-event nothing
-  set current-event-type ""
-
-end
-
-
-
-
-
-
-to assign-resources
-
-
-
-
-  ask events with [event-status = 1]
-
   [
-    ;check if the required number of resources are available
-
-
-
-    ifelse count resources with [resource-status = 1] >= event-resource-amount
-    [
-
-
-    ;check if any resources are currently available?
-
-    ;ifelse any? resources with [resource-status = 0]
-    ;[
-
-      let my-resources n-of event-resource-amount resources with [resource-status = 1]
-
-      let event-resource-time get-event-resource-time event-type
-      let temp-end-dt time:plus dt (event-resource-time) "hours"
-
-
-      if VERBOSE [print (word "Officers responding to " event-type " event - " event-resource-amount " unit(s) required for " event-resource-time " hour(s)")]
-
-      ;print temp-end-dt
-
-      ;link resource to event
-      set current-resource my-resources
-      ask my-resources
-      [
-
-
-        ;link event to resource
-        set current-event myself
-        set current-event-type [event-type] of current-event
-        set resource-status 2
-        set resource-start-dt dt
-        set resource-hours-required event-resource-time
-        set resource-end-dt temp-end-dt
-
-
-        ;show "responding to event...."
-        set color blue
-      ]
-      ;move-to my-resource
-      set event-status 2 ; ongoing"
-    ]
-    [
-      print "Insuffiecient resources available for event .... waiting ...."
-    ]
+    ;otherwise count the time spent thus far
+    set event-resource-counter (event-resource-counter - count current-resource)
+    ;show (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " resources allocated - " event-resource-counter " resource hours remaining")
   ]
 
 
@@ -453,114 +686,368 @@ to assign-resources
 end
 
 
+;
+to relinquish
+
+  set events-completed events-completed + 1
+  set resource-status 1
+  set current-event-type ""
+  set current-event-class ""
+
+end
 
 
 
 
 
+; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
+to get-resources
+
+  ;check if the required number of resources are available
+  if count resources with [resource-status = 1] >= (event-resource-req-amount)
+  [
+    if VERBOSE [print (word "Officers responding to priority " event-priority " " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
+    ;link resource to event
+    set current-resource n-of event-resource-req-amount resources with [resource-status = 1]
+
+    ;record start and end datetime of response
+    if event-paused = false [set event-response-start-dt dt]
+    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
+    set event-status 2 ; mark the event as ongoing
+
+    ask current-resource
+    [
+      set current-event myself
+      set current-event-type [event-type] of current-event
+      set current-event-class [event-class] of current-event
+      set resource-status 2
+    ]
+    set event-paused false
+  ]
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
+to replenish-resources
+
+  ;check if the required number of resources are available to replenish job
+  if count resources with [resource-status = 1] >= (event-resource-req-amount - (count current-resource))
+  [
+    if VERBOSE [print (word "Adding officers to " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
+
+    ;link resource to event
+    ;print (word count current-resource " - pre replenish - paused - " event-paused )
+    set current-resource (turtle-set current-resource n-of (event-resource-req-amount - (count current-resource)) resources with [resource-status = 1])
+    ;print (word count current-resource " - post replenish")
+
+    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
+    set event-status 2 ; mark the event as ongoing
+
+    ask current-resource
+    [
+      ;link event to resource
+      set current-event myself
+      set current-event-type [event-type] of current-event
+      set current-event-class [event-class] of current-event
+      set resource-status 2
+    ]
+
+  ]
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;plot update commands
 to update-all-plots
+
+
+
+  file-open resource-usage-trends-file
+  file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
+
+
+
+
+
+  set-current-plot "Crime"
+  set-current-plot-pen "total"
+  plot count-crime-hour
+
+
+  set-current-plot "Count Available Resources"
+  set-current-plot-pen "resources"
+  plot count resources with [resource-status = 1 or resource-status = 2]
+
 
   set-current-plot "Total Resource Usage"
   set-current-plot-pen "Supply"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
 
+  set-current-plot "Count Active Resources"
+  set-current-plot-pen "count-active-resources"
+  plot (count resources with [resource-status = 2])
+
+  set-current-plot "Events Waiting"
+  set-current-plot-pen "waiting-total"
+  plot count events with [event-status = 1]
+  set-current-plot-pen "waiting-1"
+  plot count events with [event-status = 1 and event-priority = 1]
+  set-current-plot-pen "waiting-2"
+  plot count events with [event-status = 1 and event-priority = 2]
+  set-current-plot-pen "waiting-3"
+  plot count events with [event-status = 1 and event-priority = 3]
 
 
+  ;------------------------------------------------------------------------------------------------------------------------------
 
-  set-current-plot "events"
+  ;plotting and recording the amount of events currently being responded to by crime-classes this hour
+  set-current-plot "active-events"
+  file-open active-event-trends-file
+  ;only look at active events
+  let current-events events with [event-status = 2]
+  let out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
+
   set-current-plot-pen "Anti-social behaviour"
-  plot count events with [event-type = "Anti-social behaviour"]
+  let x count current-events with [event-class = "Anti-social behaviour"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Bicycle theft"
-  plot count events with [event-type = "Bicycle theft"]
+  set x count current-events with [event-class = "Bicycle theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Burglary"
-  plot count events with [event-type = "Burglary"]
+  set x count current-events with [event-class = "Burglary"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Criminal damage and arson"
-  plot count events with [event-type = "Criminal damage and arson"]
+  set x count current-events with [event-class = "Criminal damage and arson"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Drugs"
-  plot count events with [event-type = "Drugs"]
+  set x count current-events with [event-class = "Drugs"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other crime"
-  plot count events with [event-type = "Other crime"]
+  set x count current-events with [event-class = "Other crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other theft"
-  plot count events with [event-type = "Other theft"]
+  set x count current-events with [event-class = "Other theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Possession of weapons"
-  plot count events with [event-type = "Possession of weapons"]
+  set x count current-events with [event-class = "Possession of weapons"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Public order"
-  plot count events with [event-type = "Public order"]
+  set x count current-events with [event-class = "Public order"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Robbery"
-  plot count events with [event-type = "Robbery"]
+  set x count current-events with [event-class = "Robbery"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Shoplifting"
-  plot count events with [event-type = "Shoplifting"]
+  set x count current-events with [event-class = "Shoplifting"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Theft from the person"
-  plot count events with [event-type = "Theft from the person"]
+  set x count current-events with [event-class = "Theft from the person"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Vehicle crime"
-  plot count events with [event-type = "Vehicle crime"]
+  set x count current-events with [event-class = "Vehicle crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Violence and sexual offences"
-  plot count events with [event-type = "Violence and sexual offences"]
+  set x count current-events with [event-class = "Violence and sexual offences"]
+  plot x
+  set out-string (word out-string x)
+
+  file-print out-string
 
 
+  ;------------------------------------------------------------------------------------------------------------------------------
+
+  ;plotting and recording the amount of resources devoted to crime-classes this hour
   set-current-plot "resources"
+  file-open active-resource-trends-file
+  set out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
+
   set-current-plot-pen "Anti-social behaviour"
-  plot count resources with [current-event-type = "Anti-social behaviour"]
+  set x count resources with [current-event-class = "Anti-social behaviour"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Bicycle theft"
-  plot count resources with [current-event-type = "Bicycle theft"]
+  set x count resources with [current-event-class = "Bicycle theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Burglary"
-  plot count resources with [current-event-type = "Burglary"]
+  set x count resources with [current-event-class = "Burglary"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Criminal damage and arson"
-  plot count resources with [current-event-type = "Criminal damage and arson"]
+  set x count resources with [current-event-class = "Criminal damage and arson"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Drugs"
-  plot count resources with [current-event-type = "Drugs"]
+  set x count resources with [current-event-class = "Drugs"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other crime"
-  plot count resources with [current-event-type = "Other crime"]
+  set x count resources with [current-event-class = "Other crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Other theft"
-  plot count resources with [current-event-type = "Other theft"]
+  set x count resources with [current-event-class = "Other theft"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Possession of weapons"
-  plot count resources with [current-event-type = "Possession of weapons"]
+  set x count resources with [current-event-class = "Possession of weapons"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Public order"
-  plot count resources with [current-event-type = "Public order"]
+  set x count resources with [current-event-class = "Public order"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Robbery"
-  plot count resources with [current-event-type = "Robbery"]
+  set x count resources with [current-event-class = "Robbery"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Shoplifting"
-  plot count resources with [current-event-type = "Shoplifting"]
+  set x count resources with [current-event-class = "Shoplifting"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Theft from the person"
-  plot count resources with [current-event-type = "Theft from the person"]
+  set x count resources with [current-event-class = "Theft from the person"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Vehicle crime"
-  plot count resources with [current-event-type = "Vehicle crime"]
+  set x count resources with [current-event-class = "Vehicle crime"]
+  plot x
+  set out-string (word out-string x ",")
+
   set-current-plot-pen "Violence and sexual offences"
-  plot count resources with [current-event-type = "Violence and sexual offences"]
+  set x count resources with [current-event-class = "Violence and sexual offences"]
+  plot x
+  set out-string (word out-string x)
 
+  file-print out-string
 
+  ;--------------------------------------------------------------------------------------------------------------------------------------------
 
   set-current-plot "scatter"
   ;clear-plot
   set-current-plot-pen "Anti-social behaviour"
-  plotxy (count events with [event-type = "Anti-social behaviour"]) (count resources with [current-event-type = "Anti-social behaviour"])
+  plotxy (count events with [event-class = "Anti-social behaviour" and event-status = 2]) (count resources with [current-event-class = "Anti-social behaviour"])
   set-current-plot-pen "Bicycle theft"
-  plotxy (count events with [event-type = "Bicycle theft"]) (count resources with [current-event-type = "Bicycle theft"])
+  plotxy (count events with [event-class = "Bicycle theft" and event-status = 2]) (count resources with [current-event-class = "Bicycle theft"])
   set-current-plot-pen "Burglary"
-  plotxy (count events with [event-type = "Burglary"]) (count resources with [current-event-type = "Burglary"])
+  plotxy (count events with [event-class = "Burglary" and event-status = 2]) (count resources with [current-event-class = "Burglary"])
   set-current-plot-pen "Criminal damage and arson"
-  plotxy (count events with [event-type = "Criminal damage and arson"]) (count resources with [current-event-type = "Criminal damage and arson"])
+  plotxy (count events with [event-class = "Criminal damage and arson" and event-status = 2]) (count resources with [current-event-class = "Criminal damage and arson"])
   set-current-plot-pen "Drugs"
-  plotxy (count events with [event-type = "Drugs"]) (count resources with [current-event-type = "Drugs"])
+  plotxy (count events with [event-class = "Drugs" and event-status = 2]) (count resources with [current-event-class = "Drugs"])
   set-current-plot-pen "Other crime"
-  plotxy (count events with [event-type = "Other crime"]) (count resources with [current-event-type = "Other crime"])
+  plotxy (count events with [event-class = "Other crime" and event-status = 2]) (count resources with [current-event-class = "Other crime"])
   set-current-plot-pen "Other theft"
-  plotxy (count events with [event-type = "Other theft"]) (count resources with [current-event-type = "Other theft"])
+  plotxy (count events with [event-class = "Other theft" and event-status = 2]) (count resources with [current-event-class = "Other theft"])
   set-current-plot-pen "Possession of weapons"
-  plotxy (count events with [event-type = "Possession of weapons"]) (count resources with [current-event-type = "Possession of weapons"])
+  plotxy (count events with [event-class = "Possession of weapons" and event-status = 2]) (count resources with [current-event-class = "Possession of weapons"])
   set-current-plot-pen "Public order"
-  plotxy (count events with [event-type = "Public order"]) (count resources with [current-event-type = "Public order"])
+  plotxy (count events with [event-class = "Public order" and event-status = 2]) (count resources with [current-event-class = "Public order"])
   set-current-plot-pen "Robbery"
-  plotxy (count events with [event-type = "Robbery"]) (count resources with [current-event-type = "Robbery"])
+  plotxy (count events with [event-class = "Robbery" and event-status = 2]) (count resources with [current-event-class = "Robbery"])
   set-current-plot-pen "Shoplifting"
-  plotxy (count events with [event-type = "Shoplifting"]) (count resources with [current-event-type = "Shoplifting"])
+  plotxy (count events with [event-class = "Shoplifting" and event-status = 2]) (count resources with [current-event-class = "Shoplifting"])
   set-current-plot-pen "Theft from the person"
-  plotxy (count events with [event-type = "Theft from the person"]) (count resources with [current-event-type = "Theft from the person"])
+  plotxy (count events with [event-class = "Theft from the person" and event-status = 2]) (count resources with [current-event-class = "Theft from the person"])
   set-current-plot-pen "Vehicle crime"
-  plotxy (count events with [event-type = "Vehicle crime"]) (count resources with [current-event-type = "Vehicle crime"])
+  plotxy (count events with [event-class = "Vehicle crime" and event-status = 2]) (count resources with [current-event-class = "Vehicle crime"])
   set-current-plot-pen "Violence and sexual offences"
-  plotxy (count events with [event-type = "Violence and sexual offences"]) (count resources with [current-event-type = "Violence and sexual offences"])
+  plotxy (count events with [event-class = "Violence and sexual offences" and event-status = 2]) (count resources with [current-event-class = "Violence and sexual offences"])
 
+end
+
+
+to-report equal-ignore-case? [ str1 str2 ]
+
+  if (length str1 != length str2) [ report false ]
+
+  foreach (range length str1) [ i ->
+    let c1 (item i str1)
+    let c2 (item i str2)
+    ; if c1 = c2, no need to do the `to-upper-char` stuff
+    if (c1 != c2 and to-upper-char c1 != to-upper-char c2) [
+      report false
+    ]
+  ]
+  report true
+end
+
+; this only works with a string length 1
+to-report to-upper-char [ c ]
+  let lower "abcdefghijklmnopqrstuvwxyz"
+  let upper "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+  let pos (position c lower)
+  report ifelse-value (is-number? pos) [ item pos upper ] [ c ]
 end
 
 
@@ -634,13 +1121,13 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-100
-10
-573
-251
+185
+15
+298
+512
 -1
 -1
-9.31
+5.25
 1
 10
 1
@@ -651,9 +1138,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-49
+19
 0
-24
+92
 0
 0
 1
@@ -661,10 +1148,10 @@ ticks
 30.0
 
 BUTTON
-12
 10
-92
-43
+15
+80
+48
 NIL
 setup\n
 NIL
@@ -678,25 +1165,25 @@ NIL
 1
 
 SLIDER
-35
-125
-68
-281
+305
+120
+445
+153
 number-resources
 number-resources
-0
+60
 5000
-1250.0
-50
+1860.0
+60
 1
 NIL
-VERTICAL
+HORIZONTAL
 
 BUTTON
-11
-45
-92
-78
+85
+15
+175
+48
 NIL
 go-step
 T
@@ -710,21 +1197,21 @@ NIL
 1
 
 MONITOR
-620
-135
-807
-180
-Active Resources Remaining 
+304
+219
+444
+264
+Resources Free
 count resources with [resource-status = 1]
 17
 1
 11
 
 MONITOR
-618
-273
-752
-318
+304
+362
+444
+407
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -732,10 +1219,10 @@ count events with [event-status = 1]
 11
 
 MONITOR
-616
-325
-753
-370
+305
+412
+442
+457
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -743,10 +1230,10 @@ count events with [event-status = 2]
 11
 
 MONITOR
-613
-377
-752
-422
+305
+462
+443
+507
 Events - Completed
 count-completed-events
 17
@@ -754,11 +1241,11 @@ count-completed-events
 11
 
 PLOT
-835
-220
-1214
-370
-Total Resource Usage test
+815
+15
+1195
+135
+Total Resource Usage
 time
 %
 0.0
@@ -771,34 +1258,12 @@ false
 PENS
 "Supply" 1.0 0 -16777216 true "" ""
 
-MONITOR
-772
-13
-829
-58
-NIL
-Day
-17
-1
-11
-
-MONITOR
-635
-65
-705
-110
-Shift-1
-Shift-1
-17
-1
-11
-
 PLOT
-610
-430
-1355
-689
-events
+450
+262
+1195
+521
+active-events
 time
 count of events
 0.0
@@ -825,10 +1290,10 @@ PENS
 "Violence and sexual offences" 1.0 0 -5825686 true "" ""
 
 BUTTON
-11
-80
-92
-113
+85
+50
+175
+83
 NIL
 go-step
 NIL
@@ -842,59 +1307,31 @@ NIL
 1
 
 TEXTBOX
-1104
-20
-1317
-97
+15
+498
+140
+575
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
 1
 
 MONITOR
-834
+304
 15
-955
+443
 60
-Hour
-Hour
-17
-1
-11
-
-MONITOR
-637
-12
-768
-57
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
 17
 1
 11
 
-BUTTON
-1045
-390
-1169
-423
-Report ASB
-Print (word \"There are currently \" count events with [event-type = \"Anti-social behaviour\"] \" Anti-social behaviour events in progress - being dealt with by \" count resources with [current-event-type = \"Anti-social behaviour\"])
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 PLOT
-1360
-430
-1935
-950
+1200
+262
+1634
+782
 scatter
 count events
 count resource
@@ -922,10 +1359,10 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-611
-696
-1356
-953
+451
+526
+1196
+783
 resources
 time
 resources
@@ -953,68 +1390,280 @@ PENS
 "Violence and sexual offences" 1.0 0 -5825686 true "" ""
 
 SWITCH
-1230
 10
-1341
-43
+423
+175
+456
 VERBOSE
 VERBOSE
-0
+1
 1
 -1000
 
-TEXTBOX
-1580
-20
-1730
-146
-If we weight events by a harm score - this is, in essence - describing what resourcing would look like if supply was directly proportionate to estimated harm...\nThis is an intersting question ..... 
-11
-0.0
-1
-
-TEXTBOX
-1400
-155
-1550
-196
-\nTo do ....\nIMPLEMENT SHIFTS
-11
-0.0
-1
-
 MONITOR
-710
-65
-780
-110
-NIL
-Shift-2
-17
-1
-11
-
-MONITOR
-785
-65
-860
-110
-NIL
-Shift-3
-17
-1
-11
-
-MONITOR
-620
-185
-805
-230
-Active Resources Responding
+304
+267
+444
+312
+Resources Responding
 count resources with [resource-status = 2]
 17
 1
 11
+
+SWITCH
+10
+343
+175
+376
+Shifts
+Shifts
+0
+1
+-1000
+
+MONITOR
+12
+147
+177
+192
+Events in Queue
+length event-data
+17
+1
+11
+
+PLOT
+1201
+15
+1630
+135
+Events Waiting
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"waiting-total" 1.0 0 -16777216 true "" ""
+"waiting-1" 1.0 0 -2674135 true "" ""
+"waiting-2" 1.0 0 -955883 true "" ""
+"waiting-3" 1.0 0 -1184463 true "" ""
+
+SWITCH
+10
+458
+175
+491
+event-file-out
+event-file-out
+0
+1
+-1000
+
+CHOOSER
+10
+98
+180
+143
+demand-events
+demand-events
+"API-Test" "Actual" "Synthetic" "#Testing" "Burg-10per-increase" "Burg-10per-decrease"
+0
+
+CHOOSER
+10
+195
+175
+240
+event-characteristics
+event-characteristics
+"Uniform" "Experimental"
+1
+
+SWITCH
+10
+378
+175
+411
+triage-events
+triage-events
+0
+1
+-1000
+
+MONITOR
+306
+529
+440
+574
+priority 1 waiting
+count events with [event-status = 1 and event-priority = 1]
+17
+1
+11
+
+MONITOR
+306
+577
+440
+622
+priority 2 waiting
+count events with [event-status = 1 and event-priority = 2]
+17
+1
+11
+
+MONITOR
+306
+629
+441
+674
+priority 3 waiting
+count events with [event-status = 1 and event-priority = 3]
+17
+1
+11
+
+PLOT
+450
+15
+810
+135
+Crime
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"total" 1.0 0 -16777216 true "" ""
+
+BUTTON
+10
+590
+170
+625
+close files
+close-files
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+SLIDER
+9
+255
+177
+288
+replication
+replication
+1
+100
+9.0
+1
+1
+NIL
+HORIZONTAL
+
+MONITOR
+304
+64
+443
+109
+Shift1-Shift2-Shift3
+(word Shift-1 \"-\" Shift-2 \"-\" Shift-3)
+17
+1
+11
+
+PLOT
+1201
+137
+1631
+257
+paused events
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count events with [event-paused = true]"
+
+PLOT
+815
+135
+1195
+255
+Count Active Resources
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"count-active-resources" 1.0 0 -16777216 true "" ""
+
+PLOT
+451
+137
+811
+257
+Count Available Resources
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"resources" 1.0 0 -16777216 true "" ""
+
+SWITCH
+10
+635
+172
+668
+color-by-priority
+color-by-priority
+1
+1
+-1000
+
+TEXTBOX
+14
+700
+297
+846
+1. Normal\n2. Normal\n3. 20% Increase - Violence and sexual offences\n4. 20% Reduction - Violence and sexual offences\n5. 20% Increase - Burglary\n6. 20% Reduction - Burglary\n7. 20% Reduction - Vehicle Crime\n8. 20% Reduction - Vehicle Crime (2)\n
+10
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1362,6 +2011,43 @@ NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-step</go>
+    <final>close-files</final>
+    <timeLimit steps="736"/>
+    <enumeratedValueSet variable="demand-events">
+      <value value="&quot;Actual&quot;"/>
+      <value value="&quot;Burg-10per-decrease&quot;"/>
+      <value value="&quot;Burg-10per-increase&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="event-characteristics">
+      <value value="&quot;Experimental&quot;"/>
+    </enumeratedValueSet>
+    <steppedValueSet variable="replication" first="1" step="1" last="10"/>
+    <enumeratedValueSet variable="color-by-priority">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number-resources">
+      <value value="1800"/>
+      <value value="1860"/>
+      <value value="1980"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="VERBOSE">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Shifts">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="event-file-out">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="triage-events">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

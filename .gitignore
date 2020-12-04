@@ -2,6 +2,7 @@
 
 # folders 
 relevant-data/*
+model-output/*
 
 
 *.tmp.nlogo

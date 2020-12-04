@@ -1,0 +1,15 @@
+﻿Offence,Mean-hours,SD-hours,Mean-units,SD-units
+Anti-social behaviour,2,0.1,1,0.5
+Bicycle theft,2,0.3,1,0.5
+Burglary,3,0.3,1.6,0.5
+Criminal damage and arson,3,1,1.2,2.1
+Drugs,2,1,2.3,2
+Other crime,2,3,5,7.8
+Other theft,1,0.2,1.1,1
+Possession of weapons,4,4,3,3
+Public order,5,3,4,12
+Robbery,3,1,4.2,2
+Shoplifting,1,2,1,0.5
+Theft from the person,2,1,1,0.5
+Vehicle crime,2,1,1,0.5
+Violence and sexual offences,11,10,4,3
