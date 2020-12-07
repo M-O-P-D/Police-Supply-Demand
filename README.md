@@ -90,7 +90,25 @@ The model produces simulated crime data in four variables:
 
 ## App Service
 
-Run
+### Building
+
+The app's data is in a separate image due to its size and infrequent changes. Build and push this image only as necessary:
+
+```
+docker build -t mopd/crims-data -f Dockerfile.data .
+docker push mopd/crims-data
+```
+
+The app itself it more lightweight, and uses the data as a base image
+
+```
+docker build -t mopd/crims -f Dockerfile.app .
+docker push mopd/crims
+```
+
+### Running
+
+To run locally
 
 ```
 FLASK_APP=server.py flask run
@@ -98,7 +116,7 @@ FLASK_APP=server.py flask run
 
 which exposes an API at port 5000 with two endpoints:
 
-### `/data`
+#### `/data`
 
 Takes 2 query params, `force` and `month` plus an optional param `format` (which defaults to `json`), and returns one month's simulated crime data for a given force area, e.g.
 
@@ -106,11 +124,13 @@ Takes 2 query params, `force` and `month` plus an optional param `format` (which
 
 `http://localhost:5000/data?force=City%20of%20London&month=2&format=csv`
 
-### `/map`
+#### `/map`
 
 Takes 2 query params, `force` and `month`, and returns crime density by MSOA plotted on a map.
 
 `http://localhost:5000/map?force=Devon%20and%20Cornwall&month=12`
+
+#### Docker
 
 This service is available as a docker image (due to its size and relatively infrequent changes, the data is in a separate image - which will take a while to initially download):
 
@@ -118,7 +138,7 @@ This service is available as a docker image (due to its size and relatively infr
 docker pull mopd/crims
 docker run --rm -d  -p 80:5000/tcp mopd/crims
 ```
-which runs it locally, listening for requestios on the default http port. You can then request data from the container, e.g. in python/pandas:
+which runs it locally, listening for requests on the default http port. You can then request data from the container, e.g. in python/pandas:
 
 ```
 >>> import pandas as pd
