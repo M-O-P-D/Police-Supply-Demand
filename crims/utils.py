@@ -166,7 +166,7 @@ def map_code(original_code):
 # Using the lastest ONS data, when it works
 def get_category_subtypes():
 
-  cached_data = Path("./data/detailed_offence_counts.csv")
+  cached_data = Path("./data/detailed-offence-counts.csv")
 
   if not cached_data.is_file():
     raw = pd.read_excel("https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods", sheet_name="2019-20")
@@ -185,7 +185,8 @@ def get_category_subtypes():
   raw.category = raw.category.apply(standardise_category_name)
   raw.force = raw.force.apply(standardise_force_name)
 
-  cat_mapping = pd.read_csv("./data/policeuk_ons_code_join.csv")[["POLICE_UK_CAT_MAP_category", "ONS_COUNTS_code", "ONS_SEVERITY_weight"]]
+  # manual match of police.uk to ONS crime descriptions -> codes
+  cat_mapping = pd.read_csv("./data/policeuk-ons-code-join.csv")[["POLICE_UK_CAT_MAP_category", "ONS_COUNTS_code", "ONS_SEVERITY_weight"]]
   cat_mapping.POLICE_UK_CAT_MAP_category = cat_mapping.POLICE_UK_CAT_MAP_category.apply(standardise_category_name)
 
   #print(cat_mapping.head())

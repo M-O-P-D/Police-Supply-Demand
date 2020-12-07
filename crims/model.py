@@ -62,10 +62,12 @@ class CrimeMicrosim(no.Model):
       # p = subcats.proportion.values
       # s = self.mc().sample(100, p)
       # print([d[i] for i in s])
-      subcats = self.crime_categories.loc[ct]
+      # extra [] to sure result is always a dataframe (even if 1 row)
+      # see https://stackoverflow.com/questions/20383647/pandas-selecting-by-label-sometimes-return-series-sometimes-returns-dataframe
+      subcats = self.crime_categories.loc[[ct]]
 
-      print(subcats.proportion)
-      continue
+      # print(subcats.proportion)
+      # continue
       time_weights = get_periodicity(start_weekday, days_in_month, ct)
 
       for g in self.geogs:
@@ -83,7 +85,13 @@ class CrimeMicrosim(no.Model):
             d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
             s = self.mc().hazard(p_suspect, len(times)).astype(bool)
             c = self.mc().sample(len(times), subcats.proportion.values)
-            df = pd.DataFrame(index=range(len(d)), data={"MSOA": g, "crime_type": ct, "description": subcats.iloc[c].index.values, "time": d, "suspect": s })
+            df = pd.DataFrame(index=range(len(d)), data={"MSOA": g,
+                                                         "crime_type": ct,
+                                                         "code": subcats.iloc[c]["code_original"].values,
+                                                         "description": subcats.iloc[c]["description"].values,
+                                                         "time": d,
+                                                         "suspect": s,
+                                                         "severity": subcats.iloc[c]["ONS_SEVERITY_weight"].values })
             crimes = crimes.append(df, ignore_index=True)
 
     # round to nearest minute
