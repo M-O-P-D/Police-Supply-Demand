@@ -325,21 +325,11 @@ end
 ; procedure to read in the events for the given time window / tick
 to read-events
 
-
-
-
   ;API DATA FORMAT
-  ;0            1                     2                       3                     4
-  ;MSOA         crime_type            description             time                  suspect
-  ;E02004336    anti-social behaviour Anti-social behaviour   2020-07-01 00:17:00   false]
-  ;E02002561    vehicle crime         Theft from vehicle      2020-07-01 00:20:00   false]
-
-  ;OLD CSV FORMAT
-  ;0    1           2         3     4                     5                     6               7
-  ;U    ID	        datetime	Hour	Crime_description	    Crime_type	          LSOA_code	      Police_force
-  ;27	  West11AN27	1/1/19	  0	    anti-social behaviour	Anti-social behaviour	West Yorkshire	West Yorkshire
-
-
+  ;0           1               2       3                                             4                     5           6
+  ;MSOA        crime_type      code    description                                   time                  suspect     severity
+  ;E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
+  ;E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 
   let day-end FALSE
 
@@ -351,14 +341,14 @@ to read-events
       let temp item 0 event-data
 
       ;construct a date
-      let temp-dt time:create-with-format (item 3 temp) "yyyy-MM-dd HH:mm:ss"
+      let temp-dt time:create-with-format (item 4 temp) "yyyy-MM-dd HH:mm:ss"
 
-      user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
+      ;user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
 
       ;check if the event occurs at current tick - which is one hour window
       ifelse (time:is-between temp-dt dt (time:plus dt 59 "minutes"))
       [
-        user-message "is within yes"
+        ;user-message "is within yes"
         ;creat an event agent
         create-events 1
         [
@@ -370,7 +360,7 @@ to read-events
           ;fill in relevant details for event from data
           set eventID item 1 temp
 
-          set event-type item 2 temp
+          set event-type item 3 temp
           set event-class item 1 temp
           set event-LSOA item 0 temp
           set event-start-dt dt
@@ -398,81 +388,6 @@ to read-events
 
 end
 
-
-
-; procedure to read in the events for the given time window / tick
-to read-events-bck
-
-  ;event structure is
-  ;0    1         2     3   4   5     6                     7                     8         9
-  ;row  UID	      Year	Mon	Day	Hour	Crime_description	    Crime_type	          LSOA_code	Police_force
-  ;0    E010111A0	2019	1	  1	  22	  Anti-social behaviour	Anti-social behaviour	E01010650	West Yorkshire
-
-  ;NEW FORMAT
-  ;0    1           2         3     4                     5                     6               7
-  ;U    ID	        datetime	Hour	Crime_description	    Crime_type	          LSOA_code	      Police_force
-  ;27	  West11AN27	1/1/19	  0	    anti-social behaviour	Anti-social behaviour	West Yorkshire	West Yorkshire
-
-
-
-  let day-end FALSE
-
-  if length event-data > 1
-  [
-    while [not day-end]
-    [
-      ;pull the top row from the data
-
-      let temp item 0 event-data
-
-      ;extract date annd time from next event
-      let tmp-event-date item 2 temp
-      let tmp-event-hour item 3 temp
-
-      ;construct a date
-      let temp-dt time:create-with-format (word tmp-event-date " " tmp-event-hour ":00:00") "dd/MM/yy HH:mm:ss"
-
-      ;check if the event occurs at current tick
-      ifelse (time:is-equal temp-dt dt)
-      [
-        ;creat an event agent
-        create-events 1
-        [
-          set count-crime-hour count-crime-hour + 1
-
-          ;make it invisible
-          set hidden? true
-
-          ;fill in relevant details for event from data
-          set eventID item 1 temp
-
-          set event-type item 4 temp
-          set event-class item 5 temp
-          set event-LSOA item 6 temp
-          set event-start-dt dt
-          set event-status 1 ;awaiting resource
-          set event-paused false
-
-          ;get the amount of units/time required to respond to resource from event info
-          set event-resource-req-amount get-event-resource-amount event-type
-          set event-resource-req-time get-event-resource-time event-type
-          set event-resource-req-total event-resource-req-amount * event-resource-req-time
-          set event-resource-counter event-resource-req-total
-          set event-priority get-event-priority event-type
-        ]
-
-        ;once the event agent has been created delete it from the data file
-        set event-data remove-item 0 event-data
-      ]
-      [
-        set day-end TRUE
-        ;print "Next Day......"
-        ;print data
-      ]
-    ]
-  ]
-
-end
 
 
 
@@ -1208,10 +1123,10 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-304
-362
-444
-407
+305
+365
+445
+410
 Events - Awaiting
 count events with [event-status = 1]
 17
