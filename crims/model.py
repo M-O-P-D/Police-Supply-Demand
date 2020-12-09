@@ -74,9 +74,8 @@ class CrimeMicrosim(no.Model):
         if self.crime_rates.index.isin([(g, ct)]).any():
           # impose daily/weekly periodicity to the monthly frequency
           lambdas = self.crime_rates.loc[(g, ct), ("count", "%02d" % t.month)] * time_weights
-          #lambdas = np.full(periods + 1, self.crime_rates.loc[(g, ct), ("count", "%02d" % t.month)])
-          # extra element at end must be zero
-          lambdas[-1] = 0.0
+          # append extra zero element at end so don't sample into next timestep
+          lambdas = np.append(lambdas, 0.0)
           times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
           #no.log(times)
           p_suspect = self.crime_outcomes.loc[(g,ct), "pSuspect"]
