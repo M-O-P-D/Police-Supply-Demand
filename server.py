@@ -30,6 +30,22 @@ def run_sim(force_name, month):
   model.no.run(microsim)
   return microsim.crimes
 
+
+from numpy.random import Generator, MT19937
+rg = Generator(MT19937(12345))
+
+
+# test function for netlogo integration
+@app.route("/rand", methods=["GET"])
+def rand():
+  try:
+    if not "max" in request.args:
+      raise KeyError("max param not specified")
+    return json.dumps(rg.random() * float(request.args.get("max"))), 200
+  except Exception as e:
+    return "%s: %s" % (type(e).__name__, str(e)), 400
+
+
 @app.route('/data', methods=["GET"])
 def crime_data():
   try:
