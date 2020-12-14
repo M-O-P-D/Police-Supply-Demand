@@ -29,7 +29,7 @@ class CrimeMicrosim(no.Model):
 
   def step(self):
 
-    self.crimes = self.crimes.append(self.__sample_crimes())
+    self.crimes = self.__sample_crimes().sort_values(by="time")
 
     # # TODO *assumes* monthly but timeline might not be
     # start_date = self.timeline().time()
@@ -100,8 +100,8 @@ class CrimeMicrosim(no.Model):
 
   def checkpoint(self):
     no.log("Simualated %d crimes between %s and %s" % (len(self.crimes), self.timeline().start(), self.timeline().end()))
-    no.log("Annual average = %f" % self.crime_rates.sum().mean())
-    no.log(self.crimes.sort_values(by="time"))
+    #no.log("Annual average = %f" % self.crime_rates.sum().mean())
+    #no.log(self.crimes)
 
 
 

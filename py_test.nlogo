@@ -2,12 +2,16 @@
 
 extensions [
   py
+  csv
 ]
 
 globals [
   percent-similar  ; on the average, what percent of a turtle's neighbors
                    ; are the same color as that turtle?
   percent-unhappy  ; what percent of the turtles are unhappy?
+  force-area       ; force area we are sampling
+  event-data       ; simulated crimes
+  month            ; month number
 ]
 
 turtles-own [
@@ -22,9 +26,10 @@ to setup
   clear-all
   ; init python session
   py:setup py:python
-  ; pointless doing this here as the session is not persisted
-  ;py:run "from numpy.random import Generator, MT19937"
-  ;py:run "rg = Generator(MT19937(19937))"
+  py:run "from netlogo import rand, model"
+
+  set force-area ("City of London")
+  set month 1
 
   ; create turtles on random patches.
   ask patches [
@@ -44,29 +49,38 @@ to setup
   reset-ticks
 end
 
+; test communication with downstream model
 to-report pyrand [n]
-
-  (py:run "from netlogo import rand")
-
   let call (word "rand(" n ")")
-
   report py:runresult call
+end
 
+; exchange data with downstream model
+to-report pycrimes [m]
+  ; TODO pass param variations
+  let call (word "model('" force-area "', " m ")")
+  report py:runresult call
 end
 
 ; run the model for one tick
 to go
   if all? turtles [ happy? ] [ stop ]
 
-  show pyrand 360
-  ;py:run "rg = Generator(MT19937(19937))"
-  ;show py:runresult "rg.random()"
+  set event-data csv:from-string pycrimes(month)
+  ;set event-data pycrimes(month)
+  let n-crimes (length event-data - 1)
+  print (word n-crimes " crimes")
+  print item 0 event-data
+  print item 1 event-data
+  print "..."
+  print item n-crimes event-data
 
   move-unhappy-turtles
   update-turtles
   update-globals
+  set month (month + 1)
+  if month = 13 [ set month 1 ]
   tick
-  stop
 end
 
 ; unhappy turtles try a new spot
@@ -77,8 +91,8 @@ end
 
 ; move until we find an unoccupied spot
 to find-new-spot
-  rt random-float 360
-  fd random-float 10
+  rt pyrand 360
+  fd pyrand 10
   if any? other turtles-here [ find-new-spot ] ; keep going until we find an unoccupied patch
   move-to patch-here  ; move to center of patch
 end
@@ -262,7 +276,7 @@ density
 density
 50
 99
-59.0
+50.0
 1
 1
 %
@@ -305,6 +319,28 @@ MONITOR
 # agents
 count turtles
 1
+1
+11
+
+MONITOR
+825
+45
+930
+90
+Force Area
+force-area
+17
+1
+11
+
+MONITOR
+795
+135
+852
+180
+Month
+month
+17
 1
 11
 
