@@ -11,7 +11,7 @@ globals [
   percent-unhappy  ; what percent of the turtles are unhappy?
   force-area       ; force area we are sampling
   event-data       ; simulated crimes
-  month            ; month number
+  loading-factor   ; over/undersampling of historic data
 ]
 
 turtles-own [
@@ -26,10 +26,12 @@ to setup
   clear-all
   ; init python session
   py:setup py:python
-  py:run "from netlogo import rand, model"
+  py:run "from netlogo_adapter import rand, init_model, get_time, at_end, get_crimes"
 
-  set force-area ("City of London")
-  set month 1
+  set force-area "City of London"
+  set loading-factor 1.0
+
+  py:run (word "init_model('" force-area "', " 1")")
 
   ; create turtles on random patches.
   ask patches [
@@ -55,10 +57,21 @@ to-report pyrand [n]
   report py:runresult call
 end
 
-; exchange data with downstream model
-to-report pycrimes [m]
-  ; TODO pass param variations
-  let call (word "model('" force-area "', " m ")")
+; get the current time
+to-report pytime
+  let call "get_time()"
+  report py:runresult call
+end
+
+; get the current time
+to-report pydone
+  let call "at_end()"
+  report py:runresult call
+end
+
+; exchange data with downstream model - f is a blanket loading factor for crime intensity
+to-report pycrimes [f]
+  let call (word "get_crimes(" f ")")
   report py:runresult call
 end
 
@@ -66,8 +79,10 @@ end
 to go
   if all? turtles [ happy? ] [ stop ]
 
-  set event-data csv:from-string pycrimes(month)
-  ;set event-data pycrimes(month)
+  if pydone [ stop ]
+
+  ; print pytime
+  set event-data csv:from-string pycrimes(loading-factor)
   let n-crimes (length event-data - 1)
   print (word n-crimes " crimes")
   print item 0 event-data
@@ -78,8 +93,7 @@ to go
   move-unhappy-turtles
   update-turtles
   update-globals
-  set month (month + 1)
-  if month = 13 [ set month 1 ]
+  set loading-factor (loading-factor * (0.9 + pyrand(0.2)))
   tick
 end
 
@@ -334,12 +348,34 @@ force-area
 11
 
 MONITOR
-795
-135
-852
-180
-Month
-month
+825
+100
+930
+145
+Date
+pytime
+17
+1
+11
+
+MONITOR
+810
+165
+945
+210
+Crimes in past month
+(length event-data - 1)
+17
+1
+11
+
+MONITOR
+825
+220
+930
+265
+Loading Factor
+loading-factor
 17
 1
 11

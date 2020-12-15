@@ -14,22 +14,30 @@ class CrimeMicrosim(no.Model):
     timeline = no.CalendarTimeline(date(start_year, start_month, 1), date(end_year, end_month, 1), 1, "m", 1)
     super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
 
-    crime = Crime(force_area, 2017, 10, 2020, 9)
-    self.crime_rates = crime.get_crime_counts()
-    self.crime_outcomes = crime.get_crime_outcomes()
+    self.__force_area = force_area
+    crime = Crime(self.__force_area, 2017, 10, 2020, 9)
+    self.__crime_rates = crime.get_crime_counts()
+    self.__crime_outcomes = crime.get_crime_outcomes()
 
-    self.crime_types = self.crime_rates.index.unique(level=1)
-    self.geogs = self.crime_rates.index.unique(level=0)
-    self.crime_categories = crime.get_category_breakdown()
+    self.__crime_types = self.__crime_rates.index.unique(level=1)
+    self.__geogs = self.__crime_rates.index.unique(level=0)
+    self.__crime_categories = crime.get_category_breakdown()
+
+    # loading factor for crime sampling
+    # TODO make function of crime type
+    self.__loading = 1.0
 
     # upstream model
-    self.datastream = DataStream("http://localhost:5000")
+    #self.datastream = DataStream("http://localhost:5000")
 
     self.crimes = pd.DataFrame()
 
   def step(self):
 
     self.crimes = self.__sample_crimes().sort_values(by="time")
+
+    # yield to calling process
+    self.halt()
 
     # # TODO *assumes* monthly but timeline might not be
     # start_date = self.timeline().time()
@@ -42,6 +50,12 @@ class CrimeMicrosim(no.Model):
 
     # if adjustments is not None:
     #   no.log("received %d adjustments" % len(adjustments))
+  
+  def set_loading(self, f):
+    self.__loading = f
+
+  def force_area(self):
+    return self.__force_area
 
   def __sample_crimes(self):
     # simulate crimes from a non-homogeneous Poisson process using a lambda derived
@@ -57,28 +71,28 @@ class CrimeMicrosim(no.Model):
 
     crimes = pd.DataFrame()
 
-    for ct in self.crime_types:
+    for ct in self.__crime_types:
       # cd = subcats.index.values
       # p = subcats.proportion.values
       # s = self.mc().sample(100, p)
       # print([d[i] for i in s])
       # extra [] to sure result is always a dataframe (even if 1 row)
       # see https://stackoverflow.com/questions/20383647/pandas-selecting-by-label-sometimes-return-series-sometimes-returns-dataframe
-      subcats = self.crime_categories.loc[[ct]]
+      subcats = self.__crime_categories.loc[[ct]]
 
       # print(subcats.proportion)
       # continue
       time_weights = get_periodicity(start_weekday, days_in_month, ct)
 
-      for g in self.geogs:
-        if self.crime_rates.index.isin([(g, ct)]).any():
-          # impose daily/weekly periodicity to the monthly frequency
-          lambdas = self.crime_rates.loc[(g, ct), ("count", "%02d" % t.month)] * time_weights
+      for g in self.__geogs:
+        if self.__crime_rates.index.isin([(g, ct)]).any():
+          # impose daily/weekly periodicity to the monthly frequency and adjust by loading factor
+          lambdas = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)] * time_weights * self.__loading
           # append extra zero element at end so don't sample into next timestep
           lambdas = np.append(lambdas, 0.0)
           times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
           #no.log(times)
-          p_suspect = self.crime_outcomes.loc[(g,ct), "pSuspect"]
+          p_suspect = self.__crime_outcomes.loc[(g,ct), "pSuspect"]
           #print(p_suspect)
           if len(times) > 0:
             d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
@@ -100,7 +114,7 @@ class CrimeMicrosim(no.Model):
 
   def checkpoint(self):
     no.log("Simualated %d crimes between %s and %s" % (len(self.crimes), self.timeline().start(), self.timeline().end()))
-    #no.log("Annual average = %f" % self.crime_rates.sum().mean())
+    #no.log("Annual average = %f" % self.__crime_rates.sum().mean())
     #no.log(self.crimes)
 
 
