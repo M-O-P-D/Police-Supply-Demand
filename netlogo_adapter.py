@@ -1,11 +1,11 @@
 
-""" python functions called by netlogo for downstream model communication """
+"""python functions called by netlogo for downstream model communication"""
 
 from io import StringIO
 import neworder as no
 
 
-from crims.model import CrimeMicrosim 
+from crims.model import CrimeMicrosim
 
 
 class RandModel(no.Model):
@@ -23,12 +23,6 @@ rand_model = RandModel()
 # test function
 def rand(maxval):
   return rand_model.mc().ustream(1)[0] * maxval
-  # response = requests.get("http://localhost:5000/rand?max=%f" % float(maxval))
-  # if response.status_code == 200:
-  #   res = response.json()
-  #   return res
-  # else:
-  #   raise ValueError("error %d: %s" % (response.status_code, response.text))
 
 # init_model must be called to instantiate model
 model = None
@@ -36,7 +30,7 @@ model = None
 def init_model(force_area, month):
   global model
   # 1y monthly timeline TODO open-ended...
-  model = CrimeMicrosim(2020, month, 2021, month, force_area)
+  model = CrimeMicrosim(2020, month, 2021, month, force_area, agg_mode=False)
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
 
 

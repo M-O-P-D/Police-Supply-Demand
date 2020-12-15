@@ -1,18 +1,21 @@
 import numpy as np
 import pandas as pd
 import neworder as no
-from datetime import datetime, date
+from datetime import date
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 from .crime import Crime
-from .streamer import DataStream
+#from .streamer import DataStream
 from .utils import get_periodicity
 
 class CrimeMicrosim(no.Model):
-  def __init__(self, start_year, start_month, end_year, end_month, force_area):
+  def __init__(self, start_year, start_month, end_year, end_month, force_area, agg_mode=True):
     # timeline with monthly steps and annual checkpoints
     timeline = no.CalendarTimeline(date(start_year, start_month, 1), date(end_year, end_month, 1), 1, "m", 1)
     super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
+
+    # this controls whether the model yields to the caller after each timestep, or runs to the end (aggregrating all the data)
+    self.__aggregrate = agg_mode
 
     self.__force_area = force_area
     crime = Crime(self.__force_area, 2017, 10, 2020, 9)
@@ -34,10 +37,12 @@ class CrimeMicrosim(no.Model):
 
   def step(self):
 
-    self.crimes = self.__sample_crimes().sort_values(by="time")
-
-    # yield to calling process
-    self.halt()
+    if self.__aggregrate:
+      self.crimes = self.crimes.append(self.__sample_crimes().sort_values(by="time"))
+    else:
+      self.crimes = self.__sample_crimes().sort_values(by="time")
+      # yield to calling process
+      self.halt()
 
     # # TODO *assumes* monthly but timeline might not be
     # start_date = self.timeline().time()
@@ -50,7 +55,7 @@ class CrimeMicrosim(no.Model):
 
     # if adjustments is not None:
     #   no.log("received %d adjustments" % len(adjustments))
-  
+
   def set_loading(self, f):
     self.__loading = f
 

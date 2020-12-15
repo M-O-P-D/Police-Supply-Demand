@@ -1,6 +1,4 @@
 
-import pandas as pd
-
 from flask import Flask, request, render_template
 import json
 import io
@@ -8,8 +6,6 @@ from io import StringIO
 import base64
 
 from crims import model
-from crims import geography
-from crims import utils
 from crims import visualisation
 
 import warnings
@@ -53,17 +49,17 @@ def crime_data():
       if not p in request.args:
         raise KeyError("param not specified: %s" % p)
 
-    format = request.args.get("format", "json") # default to json
+    fmt = request.args.get("format", "json") # default to json
 
     valid_formats = ["json", "csv"]
-    if format not in valid_formats:
+    if fmt not in valid_formats:
       raise ValueError("format must be one of %s" % str(valid_formats))
 
     force = request.args.get("force")
     month = int(request.args.get("month"))
 
     crimes = run_sim(force, month)
-    if format == "json":
+    if fmt == "json":
       return json.loads(crimes.sort_values(by="time").to_json(orient="table")), 200
     else:
       csvbuf = StringIO()

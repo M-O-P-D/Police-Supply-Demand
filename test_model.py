@@ -1,9 +1,6 @@
 # %%
-import pandas as pd
 import neworder as no
 from crims import model
-from crims import geography
-from crims.utils import standardise_force_name
 
 import warnings
 warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )

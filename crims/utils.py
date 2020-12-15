@@ -79,7 +79,7 @@ def smooth(a, n):
 
 
 def standardise_force_name(name):
-  """ use lower case with hyphens as per the filenames in the bulk crime data """
+  """use lower case with hyphens as per the filenames in the bulk crime data"""
   mapping = {
     "Avon & Somerset": "avon-and-somerset",
     "Avon and Somerset": "avon-and-somerset",
@@ -156,7 +156,6 @@ def map_code(original_code):
     "28A": "28C",
     "4.1": "1, 4.1/2/10",
     "4.2": "1, 4.1/2/10",
-    "4.1": "1, 4.1/2/10",
     "1": "1, 4.1/2/10",
     "1/4.1/4.10/4.2": "1, 4.1/2/10"
   }

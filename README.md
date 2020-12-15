@@ -27,18 +27,15 @@ Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to
 ## Data sources
 
 - Bulk crime and outcome data, force boundaries: [data.police.uk](<https://data.police.uk>)
-
 - Mapping between Home Office Offence Codes and the data.police.uk categories. : [data.police.uk](<https://www.police.uk/SysSiteAssets/police-uk/media/downloads/crime-categories/police-uk-category-mappings.csv>)
 
 <!--- Sample (interim) victim data from **crime-sim-toolkit** <sup>[[6]](#references)</sup>-->
 
 - MSOA (2011) boundaries: [geoportal.statistics.gov.uk](<https://geoportal.statistics.gov.uk/datasets/middle-layer-super-output-areas-december-2011-ew-bsc-v2>)
-
 - [Detailed crime counts by ONS classification](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods)
-
 - [Crime severity scores](https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics)
 
-# Mapping crime types to counts and severity weights
+### Mapping crime types to counts and severity weights
 
 Crimes are sampled only by the 14 broad Police.UK categories, since this is the only categorisation in the bulk data. Police.UK also provide a breakdown of finer crime types by category.
 
@@ -52,15 +49,11 @@ The home office codes can then be used to join the crime counts and their severi
 
 The mapping dataset is in [data/policeuk-ons-code-join.csv](./data/policeuk-ons-code-join.csv)
 
-
-
 | File              | File Description                                                                                   | Download Location                                                                                                                         | Links to                    | Via Col(s)                                                                   | Linking Method | Column Prefix in Matched File |
 |-------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------|------------------------------------------------------------------------------|----------------|-------------------------------|
 | ONS_COUNTS        | Detailed crime counts by ONS classification by police force area by calendar year                  | https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods | ONS_SEVERITY_               | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_COUNTS_                   |
 | ONS_SEVERITY      | ONS Crime Severity Scores by offence type                                                          | https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics                     | ONS_COUNTS_                 | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_SEVERITY_                 |
 | POLICE_UK_CAT_MAP | Mapping between Home Office Offence Codes and descriptions and the data.police.uk broad categories | https://www.police.uk/SysSiteAssets/police-uk/media/downloads/crime-categories/police-uk-category-mappings.csv                            | ONS_COUNTS_ & ONS_SEVERITY_ | POLICE_UK_CAT_MAP_Offence ~=~ ONS_SEVERITY_offence or ONS_COUNTS_description | Manual         | POLICE_UK_CAT_MAP_            |
-
-
 
 ## Usage
 
@@ -94,7 +87,7 @@ The model produces simulated crime data in four variables:
 
 The app's data is in a separate image due to its size and infrequent changes. Build and push this image only as necessary:
 
-```
+```bash
 docker build -t mopd/crims-data -f Dockerfile.data .
 docker push mopd/crims-data
 ```
@@ -164,15 +157,10 @@ which runs it locally, listening for requests on the default http port. You can 
 ## References
 
 1. [ukcensusapi: UK census data query automation](<https://pypi.org/project/ukcensusapi/>)
-
 2. [ukpopulation: UK Demographic Projections](<https://pypi.org/project/ukpopulation/>)
-
 3. [police-api-client: Python client library for the Police API](<https://pypi.org/project/police-api-client/>)
-
 4. [Police Open Data Portal](<https://data.police.uk/>)
+5. [neworder: A dynamic microsimulation framework](<https://neworder.readthedocs.io>)
+6. [crime-sim-toolkit](<https://github.com/M-O-P-D/crime_sim_toolkit>)
 
 <!--[4] [humanleague: Microsynthesis using quasirandom sampling and/or IPF](<https://pypi.org/project/humanleague/>)-->
-
-5. [neworder: A dynamic microsimulation framework](<https://neworder.readthedocs.io>)
-
-6. [crime-sim-toolkit](<https://github.com/M-O-P-D/crime_sim_toolkit>)

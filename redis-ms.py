@@ -7,7 +7,7 @@ import json
 from datetime import date
 
 
-# v2: microsim model 
+# v2: microsim model
 
 # requires non-python dependency redis-server
 # sudo apt install redis-server
@@ -40,7 +40,7 @@ class RedisDemoModel(no.Model):
         self.len = json.loads(m["data"])
         break
       if m["type"] == "message" and m["channel"] == b"crime_model_stop":
-        self.halt() 
+        self.halt()
 
 
   def checkpoint(self):

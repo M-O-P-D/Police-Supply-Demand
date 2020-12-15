@@ -1,9 +1,9 @@
-import pandas as pd
+#import pandas as pd
 import neworder as no
 import argparse
 from crims import model
-from crims import geography
-from crims import utils
+#from crims import geography
+#from crims import utils
 from crims import visualisation
 
 #import matplotlib.pyplot as plt
