@@ -94,7 +94,7 @@ docker push mopd/crims-data
 
 The app itself it more lightweight, and uses the data as a base image
 
-```
+```bash
 docker build -t mopd/crims -f Dockerfile.app .
 docker push mopd/crims
 ```
@@ -103,7 +103,7 @@ docker push mopd/crims
 
 To run locally
 
-```
+```bash
 FLASK_APP=server.py flask run
 ```
 
@@ -125,15 +125,18 @@ Takes 2 query params, `force` and `month`, and returns crime density by MSOA plo
 
 #### Docker
 
+##### App Service Container
+
 This service is available as a docker image (due to its size and relatively infrequent changes, the data is in a separate image - which will take a while to initially download):
 
-```
+```bash
 docker pull mopd/crims
 docker run --rm -d  -p 80:5000/tcp mopd/crims
 ```
+
 which runs it locally, listening for requests on the default http port. You can then request data from the container, e.g. in python/pandas:
 
-```
+```python
 >>> import pandas as pd
 >>> df1 = pd.read_csv("http://localhost/data?force=City%20of%20London&month=3&format=csv")
 >>> df1.head()
@@ -153,6 +156,25 @@ which runs it locally, listening for requests on the default http port. You can 
 4  E02000001               burglary            Burglary Business and Community 2020-03-01 06:39:00    False
 >>>
 ```
+
+##### Integrated Models Container
+
+An interactive GUI-based demo of the model integration between the *crims* microsimulation and an agent-based *netlogo* model can be found in the `mopd/crims-int` container. The ABM currently performs the Schelling segregation model whilst also sampling crimes from *crims* and feeding back a (random) loading factor that increases or decreases the overall crime rate.
+
+This is built with
+
+```bash
+docker build -t mopd/crims-int -f Dockerfile.int .
+```
+
+and requires permission to connect to the host's graphical display when it runs. On ubuntu, this works:
+
+```bash
+xhost +
+docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mopd/crims-int
+```
+
+on other platforms YMMV. Google is your friend.
 
 ## References
 
