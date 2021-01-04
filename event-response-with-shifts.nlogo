@@ -331,11 +331,11 @@ to read-events
   ;E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
   ;E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 
-  let day-end FALSE
+  let hour-end FALSE
 
   if length event-data > 1
   [
-    while [not day-end]
+    while [not hour-end]
     [
       ;pull the top row from the data
       let temp item 0 event-data
@@ -348,8 +348,8 @@ to read-events
       ;check if the event occurs at current tick - which is one hour window
       ifelse (time:is-between temp-dt dt (time:plus dt 59 "minutes"))
       [
-        ;user-message "is within yes"
-        ;creat an event agent
+
+        ;create an event agent
         create-events 1
         [
           set count-crime-hour count-crime-hour + 1
@@ -379,9 +379,8 @@ to read-events
         set event-data remove-item 0 event-data
       ]
       [
-        set day-end TRUE
-        ;print "Next Day......"
-        ;print data
+        ; Event belongs to next hour - set hour-end to stop looping
+        set hour-end TRUE
       ]
     ]
   ]
