@@ -1,4 +1,4 @@
-extensions [csv table time pathdir fetch]
+extensions [csv table time pathdir py]
 
 globals
 [
@@ -21,6 +21,8 @@ globals
   resource-summary-file
   resource-usage-trends-file
 
+  force-area       ; force area we are sampling
+  loading-factor   ; over/undersampling of historic data
 ]
 
 ;Events store demand - the things the police muct respond to
@@ -110,8 +112,24 @@ to check-shift
 
 end
 
+; python interface
+; get the current time
+to-report pytime
+  let call "get_time()"
+  report py:runresult call
+end
 
+; get the current time
+to-report pydone
+  let call "at_end()"
+  report py:runresult call
+end
 
+; exchange data with downstream model - f is a blanket loading factor for crime intensity
+to-report pycrimes [f]
+  let call (word "get_crimes(" f ")")
+  report py:runresult call
+end
 
 
 ;main setup procedure
@@ -121,7 +139,14 @@ to setup
   ca
   reset-ticks
 
+  ; init python session
+  py:setup py:python
+  py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes"
 
+  set force-area "Durham"
+  set loading-factor 1.0
+  ; TODO month is hard-coded below
+  py:run (word "init_model('" force-area "', " 7")")
 
   ;create folder path to store results based on settings
   let path (word "model-output/" demand-events "/resources" number-resources "/rep" replication "/")
@@ -181,8 +206,9 @@ to setup
   if demand-events = "Burg-10per-increase" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_increase_10per.csv" set dt time:create "2019/01/01 7:00" ]
   if demand-events = "Burg-10per-decrease" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_decrease_10per.csv" set dt time:create "2019/01/01 7:00" ]
 
-  if demand-events = "API-Test" [ print "Reading Event Data from API ......" set event-data csv:from-string (fetch:url ("http://localhost/data?force=Durham&month=7&format=csv")) set dt time:create "2020/07/01 0:00" print event-data]
-
+  ;if demand-events = "API-Test" [ print "Reading Event Data from API ......" set event-data csv:from-string (fetch:url ("http://localhost/data?force=Durham&month=7&format=csv")) set dt time:create "2020/07/01 0:00" print event-data]
+  ; TODO get time from CriMS
+  if demand-events = "API-Test" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/07/01 0:00" print event-data]
 
   set event-data remove-item 0 event-data ;remove top row
 
@@ -340,13 +366,15 @@ to read-events
       ;pull the top row from the data
       let temp item 0 event-data
 
+      print temp
+
       ;construct a date
       let temp-dt time:create-with-format (item 4 temp) "yyyy-MM-dd HH:mm:ss"
 
       ;user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
 
       ;check if the event occurs at current tick - which is one hour window
-      ifelse (time:is-between temp-dt dt (time:plus dt 59 "minutes"))
+      ifelse (time:is-between? temp-dt dt (time:plus dt 59 "minutes"))
       [
 
         ;create an event agent
@@ -1921,7 +1949,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.1.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@

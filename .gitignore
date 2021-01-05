@@ -1,6 +1,7 @@
-#gitignore file 
+#gitignore file
+.venv*
 
-# folders 
+# folders
 relevant-data/*
 model-output/*
 
