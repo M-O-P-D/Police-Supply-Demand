@@ -1,5 +1,7 @@
 #gitignore file
 .venv*
+crims/
+data
 
 # folders
 relevant-data/*

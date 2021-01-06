@@ -2,10 +2,24 @@
 
 ## CriMS integration
 
-1. clone the M-O-P-D crims repo if you don't have it already, or ensure it's up-to-date
-2. symlink the crims/crims subdirectory into this repo (so that you have `Police-Supply-Demand/crims`, containing `model.py`), e.g. `ln -s ../crims/crims`
-3. symlink the crims/data subdirectory into this repo (so that you have `Police-Supply-Demand/data`)
-4. initialise your python environment (ideally use a virtualenv) - `pip install -r requirements.txt`
+1. clone the *M-O-P-D/crims* repo if you don't have it already, or ensure it's up-to-date
+2. run the script `get_crims.py` (it assumes crims and this repo have a common parent directory)
+4. initialise your python (3) environment (ideally use a virtualenv) - `pip install -r requirements.txt`
 5. ensure the python integration is working by running `python netlogo_adapter.py`. You should get some crimes displayed (and no errors)
 6. start netlogo (from within your virtualenv if you're using one)
 7. run the netlogo model
+
+## Docker container
+
+Get it from docker-hub:
+
+```
+docker pull mopd/police-supply-demand
+```
+
+Run it with permission to connect to the host's display manager:
+
+```bash
+xhost +
+docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mopd/police-supply-demand
+```
