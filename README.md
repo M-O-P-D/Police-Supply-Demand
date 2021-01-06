@@ -13,7 +13,7 @@
 
 Get it from docker-hub:
 
-```
+```bash
 docker pull mopd/police-supply-demand
 ```
 
