@@ -1597,16 +1597,6 @@ color-by-priority
 1
 -1000
 
-TEXTBOX
-14
-700
-297
-846
-1. Normal\n2. Normal\n3. 20% Increase - Violence and sexual offences\n4. 20% Reduction - Violence and sexual offences\n5. 20% Increase - Burglary\n6. 20% Reduction - Burglary\n7. 20% Reduction - Vehicle Crime\n8. 20% Reduction - Vehicle Crime (2)\n
-10
-0.0
-1
-
 @#$#@#$#@
 ## WHAT IS IT?
 
@@ -1949,7 +1939,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.1
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
