@@ -18,7 +18,7 @@ class CrimeMicrosim(no.Model):
     self.__aggregate = agg_mode
 
     self.__force_area = force_area
-    crime = Crime(self.__force_area, 2017, 10, 2020, 9)
+    crime = Crime(self.__force_area, 2017, 12, 2020, 11)
     self.__crime_rates = crime.get_crime_counts()
     self.__crime_outcomes = crime.get_crime_outcomes()
 
@@ -74,7 +74,8 @@ class CrimeMicrosim(no.Model):
     dt = self.timeline().dt() / periods
     secs_per_year = 365.2475 * 86400 # consistent with dt() implementation
 
-    crimes = pd.DataFrame()
+    # force column ordering
+    crimes = pd.DataFrame(columns=[])
 
     for ct in self.__crime_types:
       # cd = subcats.index.values
