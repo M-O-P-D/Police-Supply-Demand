@@ -15,7 +15,7 @@ class CrimeMicrosim(no.Model):
     super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
 
     # this controls whether the model yields to the caller after each timestep, or runs to the end (aggregrating all the data)
-    self.__aggregrate = agg_mode
+    self.__aggregate = agg_mode
 
     self.__force_area = force_area
     crime = Crime(self.__force_area, 2017, 10, 2020, 9)
@@ -37,7 +37,7 @@ class CrimeMicrosim(no.Model):
 
   def step(self):
 
-    if self.__aggregrate:
+    if self.__aggregate:
       self.crimes = self.crimes.append(self.__sample_crimes().sort_values(by="time"))
     else:
       self.crimes = self.__sample_crimes().sort_values(by="time")
