@@ -18,12 +18,6 @@ Uses the **police-api-client** <sup>[[3]](#references)</sup> and the **police op
 
 Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and (broad) type, so can capture seasonal fluctuations in crime frequency. It then imposes further weekly and daily periodicity to the crime rate, and this to sample crime incidences from a non-homogeneous Poisson process. More detailed crime types, and whether a suspect has been identified, are also sampled at force area resolution. This synthetic crime data can be fed into an agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
 
-### Planned Model Enhancements
-
-- [ ] Capture temporal trends in crime rates (as well as seasonality)
-- [ ] Capture daily and weekly periodicity of crimes by crime type
-- [ ] Alter crime incidence rates according to feedback from upstream model
-
 ## Data sources
 
 - Bulk crime and outcome data, force boundaries: [data.police.uk](<https://data.police.uk>)
@@ -57,19 +51,27 @@ The mapping dataset is in [data/policeuk-ons-code-join.csv](./data/policeuk-ons-
 
 ## Usage
 
-First install dependencies
+First install dependencies, either
 
 ```bash
 pip install -r requirements.txt
 ```
 
-The script `run_model.py` can be used to run the model on a single force area and plot some output. Change the force area by editing the script. Run it like so:
+or for conda environments:
 
 ```bash
-python run_model.py "West Yorkshire" 2020 2022
+conda env create -f conda-env.yml
 ```
 
-which will simulate crime occurrences for West Yorkshire Police for 3 years, from 1/1/2020 to 31/12/2022. Note that some the crime locations may not be within the force area.
+(NB the above file is created using `conda env export > conda-env.yml`)
+
+The script `run-model.py` can be used to run the model on a single force area and plot some output. Change the force area by editing the script. Run it like so:
+
+```bash
+python run_model.py "West Yorkshire" 2020 1 2021 1
+```
+
+which will simulate crime occurrences for West Yorkshire Police for the calendar year 2020. Note that not all the crime locations will be within the force area.
 
 ## Output
 
@@ -81,7 +83,13 @@ The model produces simulated crime data in four variables:
   - the type of the crime
   - whether a suspect has been identified
 
+## Model Stack
+
+Interoperation of Police supply-demand ABM and crime microsimulation: see [stack](doc/stack.md)
+
 ## App Service
+
+NB this has dependencies (e.g. Flask) not specified in requirements.txt/conda-env.yml. If running outside docker, you will need to install manually.
 
 ### Building
 

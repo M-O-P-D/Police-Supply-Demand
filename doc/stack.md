@@ -1,17 +1,23 @@
-# Model Stack 1
+# Model Stacks
 
-Single process:
-NetLogo must run in neworder's (virtual)env.
+## Model Stack 1
 
-*neworder* requires an enhancement (to enable halt/resume) for this approach to work efficiently
+The simplest implementation: a single process: NetLogo must run in the crims (virtual/conda)env in order to have the crims dependencies available.
 
-# Model Stack 2
+The models interact in a lock-step manner with feedback: the microsimulation supplies crime data, and the ABM can alter the microsimulation parameters after each timestep to reflect it's own internal state. (e.g. alter the prevalence of certain crime types).
+
+The NetLogo ABM, via the python plugin, initialises and runs the microsimulation model, which is set to halt after each timestep. Once the ABM has consumed the simulated crime data for that timestep, NetLogo signals to the model to resume execution (possibly providing altered sampling parameters).
+
+TODO: At the moment the two models are in seaprate github repos, better integration would make life easier.
+
+## Model Stack 2
+
+(deprecated for now)
 
 Separate processes:
 
-- Netlogo police suppy ABM 
+- Netlogo police suppy ABM
 - *neworder* crime microsimulation model
-
 
 Each run as a standalone process. This allows them to run more efficiently as they can (in practice not?) each continue running while the other model is busy, but means that exchanging data is slightly more difficult.
 
@@ -23,10 +29,10 @@ Once received, it is consumed by the ABM until fully processed. The ABM can then
 
 Communication between the two models is brokered by [*redis*](https://redis.io/), using its *pubsub* (publish-subscribe) functionality.
 
-## Prerequisites
+### Prerequisites
 
 Assumes python 3 on system
-### Redis
+#### Redis
 
 See e.g. [https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04](https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04)
 
@@ -34,7 +40,7 @@ See e.g. [https://www.digitalocean.com/community/tutorials/how-to-install-and-se
 sudo apt install redis-server
 ```
 
-### NetLogo
+#### NetLogo
 
 Download netlogo from [here](https://ccl.northwestern.edu/netlogo/6.1.1/)
 
@@ -46,7 +52,7 @@ e.g. for linux use the script [get_netlogo.sh](../get_netlogo.sh)
 pip install neworder
 ```
 
-## Run
+### Run
 
 ```
 ./NetLogo\ 6.1.1/NetLogo
