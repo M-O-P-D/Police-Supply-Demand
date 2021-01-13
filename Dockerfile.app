@@ -11,7 +11,8 @@ COPY LICENSE /app
 
 # ensure pip is up to date and install deps
 RUN python -m pip install -U pip \
- && python -m pip install -r requirements.txt
+ && python -m pip install -r requirements.txt \
+ && python -m pip install flask
 
 # default flask port
 EXPOSE 5000
