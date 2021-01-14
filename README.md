@@ -167,6 +167,28 @@ which runs it locally, listening for requests on the default http port. You can 
 
 ##### Integrated Models Container
 
+> Police-Supply-Demand (crims-integration branch) is a submodule, added like so
+>
+> ```bash
+> git submodule add -b crims-integration git@github.com:danbirks/Police-Supply-Demand
+> ```
+>
+> to update,
+>
+> ```bash
+> git submodule update [--init]
+> ```
+>
+> using the `--init` flag if the content of the submodule is empty.
+>
+> Better still,
+>
+> ```bash
+> git config --global submodule.recurse true
+> ```
+>
+> then git pull will update the submodule too
+
 An interactive GUI-based demo of the model integration between the *crims* microsimulation and an agent-based *netlogo* model can be found in the `mopd/crims-int` container. The ABM currently performs the Schelling segregation model whilst also sampling crimes from *crims* and feeding back a (random) loading factor that increases or decreases the overall crime rate.
 
 This is built with
