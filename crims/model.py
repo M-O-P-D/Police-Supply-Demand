@@ -9,9 +9,12 @@ from .crime import Crime
 from .utils import get_periodicity
 
 class CrimeMicrosim(no.Model):
-  def __init__(self, start_year, start_month, end_year, end_month, force_area, agg_mode=True):
+  def __init__(self, force_area, start, end=None, agg_mode=True):
     # timeline with monthly steps and annual checkpoints
-    timeline = no.CalendarTimeline(date(start_year, start_month, 1), date(end_year, end_month, 1), 1, "m", 1)
+    if end is not None:
+      timeline = no.CalendarTimeline(date(start[0], start[1], 1), date(end[0], end[1], 1), 1, "m")
+    else:
+      timeline = no.CalendarTimeline(date(start[0], start[1], 1), 1, "m")
     super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
 
     # this controls whether the model yields to the caller after each timestep, or runs to the end (aggregrating all the data)

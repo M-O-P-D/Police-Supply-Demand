@@ -21,8 +21,8 @@ def run_sim(force_name, month):
   end_year = 2020 if month < 12 else 2021
   end_month = month + 1 if month < 12 else 1
 
-  # construct and run the model
-  microsim = model.CrimeMicrosim(year, month, end_year, end_month, force_name)
+  # construct and run the model for one month only
+  microsim = model.CrimeMicrosim(force_name, (year, month), (end_year, end_month))
   model.no.run(microsim)
   return microsim.crimes
 

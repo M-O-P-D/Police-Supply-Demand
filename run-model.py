@@ -11,7 +11,7 @@ from crims import visualisation
 def main(force_name, start_year, start_month, end_year, end_month):
 
   # construct and run the model
-  microsim = model.CrimeMicrosim(start_year, start_month, end_year, end_month, force_name)
+  microsim = model.CrimeMicrosim(force_name, (start_year, start_month), (end_year, end_month))
   no.run(microsim)
 
   plt = visualisation.density_map(microsim.crimes, force_name)

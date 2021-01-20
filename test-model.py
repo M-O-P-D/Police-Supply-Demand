@@ -12,7 +12,7 @@ end_year = 2021
 #force = "West Yorkshire"
 force = "City of London"
 
-model = model.CrimeMicrosim(start_year, 1, end_year, 1, force)
+model = model.CrimeMicrosim(force, (start_year, 1)) #, (end_year, 1))
 
 #no.log(model.crime_rates.loc[("E02001109", "Anti-social behaviour")])
 

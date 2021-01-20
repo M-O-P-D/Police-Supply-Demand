@@ -8,29 +8,29 @@ import neworder as no
 from crims.model import CrimeMicrosim
 
 
-class RandModel(no.Model):
-  def __init__(self):
-    super().__init__(no.NoTimeline(), no.MonteCarlo.deterministic_identical_stream)
+# class RandModel(no.Model):
+#   def __init__(self):
+#     super().__init__(no.NoTimeline(), no.MonteCarlo.deterministic_identical_stream)
 
-  def step(self):
-    pass
+#   def step(self):
+#     pass
 
-  def checkpoint(self):
-    pass
+#   def finalise(self):
+#     pass
 
-rand_model = RandModel()
+# rand_model = RandModel()
 
-# test function
-def rand(maxval):
-  return rand_model.mc().ustream(1)[0] * maxval
+# # test function
+# def rand(maxval):
+#   return rand_model.mc().ustream(1)[0] * maxval
 
 # init_model must be called to instantiate model
 model = None
 
 def init_model(force_area, month):
   global model
-  # 1y monthly timeline TODO open-ended...
-  model = CrimeMicrosim(2020, month, 2021, month, force_area, agg_mode=False)
+  # monthly open-ended timeline
+  model = CrimeMicrosim(force_area, (2020, month), agg_mode=False)
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
 
 
