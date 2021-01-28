@@ -2,6 +2,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+dpi=80
+xsize = 320
+ysize = 240
+
 intraday_mapping = {
   "Daytime": 1,
   "Evening": 2,
@@ -26,6 +30,10 @@ def fix_code(c):
 def dow_map(dow):
   weekdays = ["M","T","W","Th","F","S","Su"]
   return weekdays[dow]
+
+def tod_map(t):
+  tod = ["Night", "Day", "Evening"]
+  return tod[t]
 
 crimes = pd.read_csv("./data/Playing_Periodicity.csv").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
 
@@ -58,9 +66,8 @@ assert crimes["count"].sum() == total
 
 print(crimes.head())
 
-# print(crimes.xcor_code.unique())
+# Weekly periodicity
 
-# #[crimes.YearCreated==2020]
 weekly = crimes.drop(["year", "month", "time"], axis=1) \
                .groupby(["xcor_code", "xcor_lkhoccodename", "dow"]).sum() \
                .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"])
@@ -68,19 +75,16 @@ print(weekly.head())
 
 assert weekly["count"].sum() == total
 
-# weekly.to_csv("./data/weekly.csv")
-
-# w = weekly.loc[("04-1", "Manslaughter")]
-# print(w)
-# plt.plot(w.period.values/3, w["count"].values, "o")
+weekly.to_csv("./data/weekly.csv")
 
 weekly.dow = weekly.dow.apply(dow_map)
 
 totals = weekly.reset_index().groupby(["xcor_code", "xcor_lkhoccodename"]).sum()
 totals = totals[totals["count"] > 49]
+print(totals.head())
 
-ngraphs = len(totals)
-print(len(totals))
+# ngraphs = len(totals)
+# print(len(totals))
 
 for i in totals.index:
   print(i[1])
@@ -89,7 +93,41 @@ for i in totals.index:
   plt.bar(w.dow, w["count"].values)
   plt.ylabel("Count (2y period)")
   plt.title("%s (%s)" % (i[1], i[0]))
+  plt.gcf().set_size_inches(xsize/dpi, ysize/dpi) # not working, get 400x300 not 320x240
   plt.savefig("doc/weekly-%s.png" % i[0].replace("/", "-"))
 
 
+# Daily periodicity
+
+daily = crimes.drop(["year", "month", "dow"], axis=1) \
+               .groupby(["xcor_code", "xcor_lkhoccodename", "time"]).sum() \
+               .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"])
+print(daily.head())
+
+assert daily["count"].sum() == total
+
+daily.to_csv("./data/daily.csv")
+
+daily.time = daily.time.apply(tod_map)
+
+totals = daily.reset_index().groupby(["xcor_code", "xcor_lkhoccodename"]).sum()
+totals = totals[totals["count"] > 49]
+
+print(totals.head())
+
+ngraphs = len(totals)
+print(len(totals))
+
+for i in totals.index:
+  print(i[1])
+  d = daily.loc[i]
+  plt.cla()
+  plt.bar(d.time, d["count"].values)
+  plt.ylabel("Count (2y period)")
+  plt.title("%s (%s)" % (i[1], i[0]))
+  plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
+  plt.savefig("doc/daily-%s.png" % i[0].replace("/", "-"), dpi=dpi)
+  #break
+
 #plt.show()
+
