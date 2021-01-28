@@ -1,10 +1,13 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
-dpi=80
-xsize = 320
-ysize = 240
+sns.set_theme(style="whitegrid")
+
+dpi = 100
+xsize = 640
+ysize = 480
 
 intraday_mapping = {
   "Daytime": 1,
@@ -27,12 +30,12 @@ def fix_code(c):
   # adjust or return input
   return code_adjustments.get(c, c)
 
+weekdays = ["M","T","W","Th","F","S","Su"]
 def dow_map(dow):
-  weekdays = ["M","T","W","Th","F","S","Su"]
   return weekdays[dow]
 
+tod = ["Night", "Day", "Evening"]
 def tod_map(t):
-  tod = ["Night", "Day", "Evening"]
   return tod[t]
 
 crimes = pd.read_csv("./data/Playing_Periodicity.csv").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
@@ -64,44 +67,46 @@ crimes = crimes.groupby(["YearCreated", "MonthNumber", "DayNumber", "TimeWindow"
 
 assert crimes["count"].sum() == total
 
-print(crimes.head())
+#print(crimes.head())
 
 # Weekly periodicity
 
-weekly = crimes.drop(["year", "month", "time"], axis=1) \
-               .groupby(["xcor_code", "xcor_lkhoccodename", "dow"]).sum() \
-               .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"])
-print(weekly.head())
+weekly = crimes.drop(["time"], axis=1) \
+               .groupby(["xcor_code", "xcor_lkhoccodename", "year", "month", "dow"]).sum() \
+               .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"]) \
+               .drop(["year", "month"], axis=1)
+#print(weekly.head())
 
 assert weekly["count"].sum() == total
 
-weekly.to_csv("./data/weekly.csv")
+# weekly.to_csv("./data/weekly.csv")
 
 weekly.dow = weekly.dow.apply(dow_map)
 
-totals = weekly.reset_index().groupby(["xcor_code", "xcor_lkhoccodename"]).sum()
+totals = weekly.reset_index().groupby(["xcor_code", "xcor_lkhoccodename"]).sum("count")
 totals = totals[totals["count"] > 49]
-print(totals.head())
-
-# ngraphs = len(totals)
-# print(len(totals))
+#print(totals.head())
 
 for i in totals.index:
   print(i[1])
   w = weekly.loc[i]
   plt.cla()
-  plt.bar(w.dow, w["count"].values)
-  plt.ylabel("Count (2y period)")
+  sns.violinplot(x="dow", y="count", data=w, order=weekdays)
+  #plt.bar(w.dow, w["count"].values)
+  plt.ylabel("Weekly frequency")
+  plt.ylim(0)
   plt.title("%s (%s)" % (i[1], i[0]))
-  plt.gcf().set_size_inches(xsize/dpi, ysize/dpi) # not working, get 400x300 not 320x240
-  plt.savefig("doc/weekly-%s.png" % i[0].replace("/", "-"))
+  plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
+  plt.savefig("doc/weekly-%s.png" % i[0].replace("/", "-"), dpi=dpi)
 
+#plt.show()
 
 # Daily periodicity
 
-daily = crimes.drop(["year", "month", "dow"], axis=1) \
-               .groupby(["xcor_code", "xcor_lkhoccodename", "time"]).sum() \
-               .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"])
+daily = crimes.drop(["dow"], axis=1) \
+               .groupby(["xcor_code", "xcor_lkhoccodename", "year", "month", "time"]).sum() \
+               .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"]) \
+               .drop(["year", "month"], axis=1)
 print(daily.head())
 
 assert daily["count"].sum() == total
@@ -115,19 +120,18 @@ totals = totals[totals["count"] > 49]
 
 print(totals.head())
 
-ngraphs = len(totals)
-print(len(totals))
 
 for i in totals.index:
   print(i[1])
   d = daily.loc[i]
   plt.cla()
-  plt.bar(d.time, d["count"].values)
-  plt.ylabel("Count (2y period)")
+  sns.violinplot(x="time", y="count", data=d, order=tod)
+  plt.ylabel("Weekly frequency")
+  plt.ylim(0)
   plt.title("%s (%s)" % (i[1], i[0]))
   plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
   plt.savefig("doc/daily-%s.png" % i[0].replace("/", "-"), dpi=dpi)
   #break
 
-#plt.show()
+# #plt.show()
 
