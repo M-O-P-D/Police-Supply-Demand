@@ -2,6 +2,8 @@
 .vscode/
 __pycache__
 data/*.zip
+doc/weekly*.png
+doc/daily*.png
 local/
 cache/
 

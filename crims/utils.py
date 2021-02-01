@@ -22,6 +22,8 @@ def month_range(start_year, start_month, end_year, end_month):
 
 def get_periodicity(dow_adj, days_in_month, _category):
 
+  # TODO sample from data/weekly_weights.csv
+
   # NB Mo=0, Su=6
   # 1 week of days split into 3 8 hour periods
   cycle = np.ones((7,3))
