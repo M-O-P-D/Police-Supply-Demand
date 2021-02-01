@@ -30,7 +30,7 @@ def fix_code(c):
   # adjust or return input
   return code_adjustments.get(c, c)
 
-weekdays = ["M","T","W","Th","F","S","Su"]
+weekdays = ["M","Tu","W","Th","F","Sa","Su"]
 def dow_map(dow):
   return weekdays[dow]
 
@@ -40,98 +40,124 @@ def tod_map(t):
 
 crimes = pd.read_csv("./data/Playing_Periodicity.csv").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
 
-print(crimes.head())
-
-# expand out counts
-total = crimes.TotalCreated.sum()
-crimes = crimes.reindex(crimes.index.repeat(crimes.TotalCreated)).drop("TotalCreated", axis=1)
-assert len(crimes) == total
-
+#print(crimes.head())
 # fix codes that have turned into dates
 crimes.xcor_code = crimes.xcor_code.apply(fix_code)
 
-# drop subcode detail
-crimes.drop(["xcor_code.1", "xcor_lkhocsubcodename"], axis=1, inplace=True)
+# create crime description lookup
+#codes = crimes.xcor_code.unique()
+
+code_lookup = crimes[["xcor_code", "xcor_lkhoccodename"]].set_index("xcor_code").drop_duplicates()
+
+print(code_lookup.head())
+print(len(code_lookup))
+
+
+# drop descriptions and expand out counts
+total = crimes.TotalCreated.sum()
+crimes = crimes.drop(["xcor_lkhoccodename", "xcor_code.1", "xcor_lkhocsubcodename"], axis=1) \
+  .reindex(crimes.index.repeat(crimes.TotalCreated)).drop("TotalCreated", axis=1)
+assert len(crimes) == total
+
+
 # adjust day number so that 0 is monday, 6 is sunday
 crimes.DayNumber = crimes.DayNumber.apply(lambda d: d-1)
 crimes.TimeWindow = crimes.TimeWindow.apply(intraday_enum)
+# crimes["crime"] = list(zip(crimes.xcor_code, crimes.xcor_lkhoccodename))
+# crimes.drop(["xcor_code", "xcor_lkhoccodename"], axis=1, inplace=True)
 
 #crimes.set_index(["xcor_code", "xcor_lkhoccodename"], inplace=True)
 #crimes.set_index(["YearCreated", "MonthNumber", "DayNumber", "TimeWindow"], inplace=True)
 
 # YearCreated  MonthNumber  DayNumber  TimeWindow xcor_code      xcor_lkhoccodename
-crimes = crimes.groupby(["YearCreated", "MonthNumber", "DayNumber", "TimeWindow", "xcor_code", "xcor_lkhoccodename"], as_index=False).size() \
+crimes = crimes.groupby(["YearCreated", "MonthNumber", "DayNumber", "TimeWindow", "xcor_code"], as_index=False).size() \
   .rename({"YearCreated": "year", "MonthNumber": "month", "DayNumber": "dow", "TimeWindow": "time", "size": "count"}, axis=1)
+crimes.dow = crimes.dow.apply(dow_map)
+crimes.time = crimes.time.apply(tod_map)
+
 # crimes = crimes.groupby(["DayNumber", "TimeWindow", "xcor_code", "xcor_lkhoccodename"], as_index=False).size() \
 #   .rename({"DayNumber": "dow", "TimeWindow": "time", "size": "count"}, axis=1)
 
 assert crimes["count"].sum() == total
 
-#print(crimes.head())
+print(crimes.head())
 
-# Weekly periodicity
-
-weekly = crimes.drop(["time"], axis=1) \
-               .groupby(["xcor_code", "xcor_lkhoccodename", "year", "month", "dow"]).sum() \
-               .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"]) \
+# Weekly periodicity (aggregrating intraday), with empties
+weekly = crimes.drop("time", axis=1).groupby(["xcor_code", "dow", "year", "month"]).sum()
+idx = [level.unique() for level in weekly.index.levels]
+weekly = weekly.reindex(pd.MultiIndex.from_product(idx)).fillna(0) \
+               .reset_index().set_index(["xcor_code", "dow"]) \
                .drop(["year", "month"], axis=1)
-#print(weekly.head())
+print(weekly.head(20))
+print(len(weekly))
 
+# insert zeros where no counts
 assert weekly["count"].sum() == total
 
-# weekly.to_csv("./data/weekly.csv")
+weekly.to_csv("./data/weekly.csv")
 
-weekly.dow = weekly.dow.apply(dow_map)
-
-totals = weekly.reset_index().groupby(["xcor_code", "xcor_lkhoccodename"]).sum("count")
+totals = weekly.reset_index().groupby(["xcor_code"]).sum("count")
 totals = totals[totals["count"] > 49]
-#print(totals.head())
+print(totals.head())
 
-for i in totals.index:
-  print(i[1])
-  w = weekly.loc[i]
-  plt.cla()
-  sns.violinplot(x="dow", y="count", data=w, order=weekdays)
-  #plt.bar(w.dow, w["count"].values)
-  plt.ylabel("Weekly frequency")
-  plt.ylim(0)
-  plt.title("%s (%s)" % (i[1], i[0]))
-  plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
-  plt.savefig("doc/weekly-%s.png" % i[0].replace("/", "-"), dpi=dpi)
+# for i in totals.index:
+#   desc = code_lookup.loc[i, "xcor_lkhoccodename"]
+#   print(i, desc)
+#   w = weekly.loc[i].reset_index()
+#   plt.cla()
+#   ax = sns.boxplot(x="dow", y="count", data=w, order=weekdays, showfliers = False)#, boxprops=dict(alpha=.3))
+#   for patch in ax.artists:
+#     r, g, b, a = patch.get_facecolor()
+#     patch.set_facecolor((r, g, b, .3))
+#   sns.stripplot(x="dow", y="count", data=w, order=weekdays)
+#   #plt.bar(w.dow, w["count"].values)
+#   plt.ylabel("Weekly frequency")
+#   plt.ylim(0)
+#   plt.title("%s (%s)" % (desc, i))
+#   plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
+#   plt.savefig("doc/weekly-%s.png" % i.replace("/", "-"), dpi=dpi)
 
 #plt.show()
 
 # Daily periodicity
 
-daily = crimes.drop(["dow"], axis=1) \
-               .groupby(["xcor_code", "xcor_lkhoccodename", "year", "month", "time"]).sum() \
-               .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"]) \
-               .drop(["year", "month"], axis=1)
-print(daily.head())
+# daily = crimes.drop(["dow"], axis=1) \
+#                .groupby(["xcor_code", "xcor_lkhoccodename", "year", "month", "time"]).sum() \
+#                .reset_index().set_index(["xcor_code", "xcor_lkhoccodename"]) \
+#                .drop(["year", "month"], axis=1)
+# print(daily.head())
+
+# Daily periodicity (aggregrating weekday), with empties
+daily = crimes.drop("dow", axis=1).groupby(["xcor_code", "time", "year", "month"]).sum()
+idx = [level.unique() for level in daily.index.levels]
+daily = daily.reindex(pd.MultiIndex.from_product(idx)).fillna(0) \
+             .reset_index().set_index(["xcor_code", "time"]) \
+             .drop(["year", "month"], axis=1)
+print(daily.head(20))
+print(len(daily))
 
 assert daily["count"].sum() == total
 
 daily.to_csv("./data/daily.csv")
 
-daily.time = daily.time.apply(tod_map)
-
-totals = daily.reset_index().groupby(["xcor_code", "xcor_lkhoccodename"]).sum()
+totals = daily.reset_index().groupby(["xcor_code"]).sum("count")
 totals = totals[totals["count"] > 49]
-
 print(totals.head())
 
-
 for i in totals.index:
-  print(i[1])
-  d = daily.loc[i]
+  desc = code_lookup.loc[i, "xcor_lkhoccodename"]
+  print(i, desc)
+  w = daily.loc[i].reset_index()
   plt.cla()
-  sns.violinplot(x="time", y="count", data=d, order=tod)
-  plt.ylabel("Weekly frequency")
+  ax = sns.boxplot(x="time", y="count", data=w, order=tod, showfliers = False)
+  for patch in ax.artists:
+    r, g, b, a = patch.get_facecolor()
+    patch.set_facecolor((r, g, b, .3))
+  sns.stripplot(x="time", y="count", data=w, order=tod)
+  plt.ylabel("Daily frequency")
   plt.ylim(0)
-  plt.title("%s (%s)" % (i[1], i[0]))
+  plt.title("%s (%s)" % (desc, i))
   plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
-  plt.savefig("doc/daily-%s.png" % i[0].replace("/", "-"), dpi=dpi)
-  #break
+  plt.savefig("doc/daily-%s.png" % i.replace("/", "-"), dpi=dpi)
 
-# #plt.show()
 
