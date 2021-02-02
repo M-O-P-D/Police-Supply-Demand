@@ -4,9 +4,13 @@ from io import BytesIO
 from pathlib import Path
 import pandas as pd
 from cryptography.fernet import Fernet
+from dotenv import load_dotenv
 
 # based loosely on https://devqa.io/encrypt-decrypt-data-python/
 # and https://towardsdatascience.com/encrypting-your-data-9eac85364cb
+
+# get key from .env file, if present
+load_dotenv()
 
 def _get_key():
   key = os.getenv("CRIMS_ENCRYPTION_KEY")

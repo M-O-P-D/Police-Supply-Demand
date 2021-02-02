@@ -1,3 +1,4 @@
+.env
 .venv*
 .vscode/
 __pycache__
@@ -12,4 +13,3 @@ NetLogo-*.tgz
 
 data/Playing_Periodicity.csv
 
-encryption.key
