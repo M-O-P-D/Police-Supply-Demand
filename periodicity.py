@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from crims.encryption import encrypt_csv
+from crims.encryption import encrypt_csv, decrypt_csv
 
 sns.set_theme(style="whitegrid")
 
@@ -42,7 +42,7 @@ tod = ["Night", "Day", "Evening"]
 def tod_map(t):
   return tod[t]
 
-crimes = pd.read_csv("./data/Playing_Periodicity.csv").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
+crimes = decrypt_csv("./data/Playing_Periodicity.csv.enc").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
 
 # fix codes that have turned into dates
 crimes.xcor_code = crimes.xcor_code.apply(fix_code)

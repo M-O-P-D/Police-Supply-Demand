@@ -29,6 +29,14 @@ Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to
 - [Detailed crime counts by ONS classification](https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods)
 - [Crime severity scores](https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics)
 
+NB Although none of the data here contains any personally identifiable information, some is encrypted as a precaution and the encryption key is **NOT** provided in the repo, but may be provided on request.
+
+In order to run the model, you will need to set an environment variable with the contents of the encryption key:
+
+```bash
+export CRIMS_ENCRYPTION_KEY=$(cat encryption.key)
+```
+
 ### Mapping crime types to counts and severity weights
 
 Crimes are sampled only by the 14 broad Police.UK categories, since this is the only categorisation in the bulk data. Police.UK also provide a breakdown of finer crime types by category.
