@@ -12,4 +12,4 @@ NetLogo-*.tgz
 
 data/Playing_Periodicity.csv
 
-./encryption.key
+encryption.key
