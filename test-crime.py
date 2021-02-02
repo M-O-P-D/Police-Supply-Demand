@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import neworder as no
 from crims.crime import Crime
 
-crime = Crime('West Yorkshire', 2017, 10, 2020, 9)
+crime = Crime('West Yorkshire', 2017, 12, 2020, 11)
 
 gdf = crime.get_neighbourhoods()
 

@@ -3,9 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from crims.encryption import encrypt_csv
+
 sns.set_theme(style="whitegrid")
 
-DO_GRAPHS = True
+DO_GRAPHS = False
 
 dpi = 100
 xsize = 640
@@ -86,7 +88,8 @@ crime_weights["weight"] = crime_weights["count"] / crime_weights["total"] * 21 #
 print(crime_weights.head(45))
 assert crime_weights["count"].sum() == total
 
-crime_weights.to_csv("data/weekly_weights.csv")
+#crime_weights.to_csv("data/weekly-weights.csv", index=False)
+encrypt_csv(crime_weights, "data/weekly-weights.csv.enc", with_index=False)
 
 if DO_GRAPHS:
 
@@ -112,7 +115,7 @@ if DO_GRAPHS:
   # insert zeros where no counts
   assert weekly["count"].sum() == total
 
-  weekly.to_csv("./data/weekly.csv")
+  #weekly.to_csv("./data/weekly.csv")
 
   totals = weekly.reset_index().groupby(["xcor_code"]).sum("count")
   totals = totals[totals["count"] > 49]
@@ -147,7 +150,7 @@ if DO_GRAPHS:
 
   assert daily["count"].sum() == total
 
-  daily.to_csv("./data/daily.csv")
+  #daily.to_csv("./data/daily.csv")
 
   totals = daily.reset_index().groupby(["xcor_code"]).sum("count")
   totals = totals[totals["count"] > 49]
