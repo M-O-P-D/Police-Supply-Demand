@@ -20,7 +20,6 @@ def _get_key():
 
 def encrypt_csv(dataframe, filename, with_index=True):
   """ Encrypts a dataframe and saves to filesystem in csv format """
-
   data = BytesIO()
   dataframe.to_csv(data, index=with_index)
 
@@ -33,7 +32,6 @@ def encrypt_csv(dataframe, filename, with_index=True):
 
 def decrypt_csv(data_file):
   """ Loads a dataframe from an encrypted csv file """
-
   with open(data_file, 'rb') as f:
     encrypted = f.read()
 

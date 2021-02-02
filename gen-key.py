@@ -3,18 +3,10 @@
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-def generate_key(filename):
-  """
-  Generates a key and save it into a file
-  """
+def generate_key(envvar):
   key = Fernet.generate_key()
-  with open(filename, "wb") as key_file:
-    key_file.write(key)
+  print("%s=%s" % (envvar, key.decode("utf-8")))
 
 if __name__ == "__main__":
-  filename="encryption.key"
-
-  if Path(filename).is_file():
-    print("File exists, not generating new key")
-  else:
-    generate_key(filename)
+  envvar="CRIMS_ENCRYPTION_KEY"
+  generate_key(envvar)

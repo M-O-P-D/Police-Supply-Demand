@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
+from .encryption import decrypt_csv
+
 # inclusive range of months
 def month_range(start_year, start_month, end_year, end_month):
 
@@ -20,10 +22,21 @@ def month_range(start_year, start_month, end_year, end_month):
       break
   return d
 
-def get_periodicity(dow_adj, days_in_month, _category):
+# decorator for creating static function variables
+def static_vars(**kwargs):
+  def decorate(func):
+    for k in kwargs:
+      setattr(func, k, kwargs[k])
+    return func
+  return decorate
+
+@static_vars(weekly_weights=decrypt_csv("./data/weekly-weights.csv.enc"))
+def get_periodicity(dow_adj, days_in_month, category):
 
   # TODO sample from data/weekly_weights.csv
 
+  cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code==category][["period","weight"]]
+  print(category, cycle)
   # NB Mo=0, Su=6
   # 1 week of days split into 3 8 hour periods
   cycle = np.ones((7,3))

@@ -21,6 +21,8 @@ if __name__ == "__main__":
   print(decrypted_df.head())
 
   # have to check columns separately due to float rounding errors
+  assert decrypted_df["xcor_code"].equals(df["xcor_code"])
+  assert decrypted_df["period"].equals(df["period"])
   assert decrypted_df["count"].equals(df["count"])
   assert decrypted_df["total"].equals(df["total"])
   assert (decrypted_df["weight"] - df["weight"]).abs().max() < 1e-15

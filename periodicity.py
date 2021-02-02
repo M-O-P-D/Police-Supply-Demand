@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from crims.encryption import encrypt_csv, decrypt_csv
+from crims.utils import get_category_subtypes
 
 sns.set_theme(style="whitegrid")
 
@@ -52,8 +53,8 @@ crimes.xcor_code = crimes.xcor_code.apply(fix_code)
 
 code_lookup = crimes[["xcor_code", "xcor_lkhoccodename"]].set_index("xcor_code").drop_duplicates()
 
-print(code_lookup.head())
-print(len(code_lookup))
+# print(code_lookup.head())
+# print(len(code_lookup))
 
 # drop descriptions and expand out counts
 total = crimes.TotalCreated.sum()
@@ -80,7 +81,7 @@ assert totals["total"].sum() == total
 idx = [level.unique() for level in crime_weights.index.levels]
 crime_weights = crime_weights.reindex(pd.MultiIndex.from_product(idx)).fillna(0)
 
-print(crime_weights.head(25))
+#print(crime_weights.head(25))
 
 # join with totals
 crime_weights = crime_weights.join(totals) # set_index("xcor_code").
@@ -88,8 +89,15 @@ crime_weights["weight"] = crime_weights["count"] / crime_weights["total"] * 21 #
 print(crime_weights.head(45))
 assert crime_weights["count"].sum() == total
 
-#crime_weights.to_csv("data/weekly-weights.csv", index=False)
-encrypt_csv(crime_weights, "data/weekly-weights.csv.enc", with_index=False)
+# compare codes in datsets
+# annual_trend_codes = get_category_subtypes()[["description", "code_original"]].reset_index(drop=True).set_index("code_original").drop_duplicates().reset_index()
+# print(annual_trend_codes.head())
+# compare = pd.concat([annual_trend_codes, code_lookup.reset_index()])
+# print(compare.head())
+# compare.to_csv("code_compare.csv")
+
+#crime_weights.to_csv("data/weekly-weights.csv")
+encrypt_csv(crime_weights, "data/weekly-weights.csv.enc")
 
 if DO_GRAPHS:
 
