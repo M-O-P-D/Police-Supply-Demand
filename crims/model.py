@@ -80,6 +80,8 @@ class CrimeMicrosim(no.Model):
     # force column ordering
     crimes = pd.DataFrame(columns=[])
 
+    # TODO we need to sample subcategories first, in order to then apply any weekly periodicity
+    # TODO might be better to rethink the sampling entirely
     for ct in self.__crime_types:
       # cd = subcats.index.values
       # p = subcats.proportion.values

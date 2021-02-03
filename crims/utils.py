@@ -166,6 +166,7 @@ def standardise_category_name(typestr):
 
 def map_code(original_code):
 
+  # TODO (low importance) seems like corporate manslaughter "4.10" is being truncated to 4.1 (manslaughter)
   mapping = {
     "30A": "30C",
     "28A": "28C",
@@ -215,7 +216,7 @@ def get_category_subtypes():
   asb = pd.DataFrame({"force": raw.force.unique(),
                       "POLICE_UK_CAT_MAP_category": "anti-social behaviour",
                       "description": "Anti-social behaviour",
-                      "code_original": "",
+                      "code_original": "(asb)",
                       "ONS_SEVERITY_weight": 1.0,
                       "count": 1}) \
     .set_index(["force", "POLICE_UK_CAT_MAP_category"])

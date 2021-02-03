@@ -1,5 +1,6 @@
 
 import pandas as pd
+import csv
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -21,11 +22,11 @@ intraday_mapping = {
 }
 
 code_adjustments = {
-  "04-Jan": "04-1",
-  "04-Apr": "04-4",
-  "04-Aug": "04-8",
-  "04-Jul": "04-7",
-  "04-Oct": "04-8"
+  "04-Jan": "4.1",
+  "04-Apr": "4.4",
+  "04-Aug": "4.8",
+  "04-Jul": "4.7",
+  "04-Oct": "4.10" # TODO this ends up as 4.1 when save to csv
 }
 
 def intraday_enum(t):
@@ -45,7 +46,7 @@ def tod_map(t):
 
 crimes = decrypt_csv("./data/Playing_Periodicity.csv.enc").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
 
-# fix codes that have turned into dates
+# # fix codes that have turned into dates
 crimes.xcor_code = crimes.xcor_code.apply(fix_code)
 
 # create crime description lookup
@@ -89,12 +90,12 @@ crime_weights["weight"] = crime_weights["count"] / crime_weights["total"] * 21 #
 print(crime_weights.head(45))
 assert crime_weights["count"].sum() == total
 
-# compare codes in datsets
+# # compare codes in datsets
 # annual_trend_codes = get_category_subtypes()[["description", "code_original"]].reset_index(drop=True).set_index("code_original").drop_duplicates().reset_index()
 # print(annual_trend_codes.head())
-# compare = pd.concat([annual_trend_codes, code_lookup.reset_index()])
+# compare = pd.merge(annual_trend_codes, code_lookup.reset_index(), left_on="code_original", right_on="xcor_code", how="outer")
 # print(compare.head())
-# compare.to_csv("code_compare.csv")
+# compare.to_csv("code_compare.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 #crime_weights.to_csv("data/weekly-weights.csv")
 encrypt_csv(crime_weights, "data/weekly-weights.csv.enc")
