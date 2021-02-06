@@ -7,6 +7,8 @@ import seaborn as sns
 from crims.encryption import encrypt_csv, decrypt_csv
 from crims.utils import get_category_subtypes
 
+from crims.crime import Crime
+
 sns.set_theme(style="whitegrid")
 
 DO_GRAPHS = False
@@ -99,6 +101,32 @@ assert crime_weights["count"].sum() == total
 
 #crime_weights.to_csv("data/weekly-weights.csv")
 encrypt_csv(crime_weights, "data/weekly-weights.csv.enc")
+
+# check monthly aggregations have some consistency
+
+crime = Crime("Durham", 2017, 12, 2020, 11)
+crime_categories = crime.get_category_breakdown()
+
+# check cats match up
+my_cats = crimes.xcor_code.unique()
+their_cats = crime_categories["code_original"].unique()
+
+import numpy as np
+print("codes not in bulk data:", np.setdiff1d(my_cats, their_cats))
+print("codes not in local data:", np.setdiff1d(their_cats, my_cats))
+
+crime_categories = crime_categories.reset_index()[["code_original", "POLICE_UK_CAT_MAP_category"]]
+print(crime_categories.head())
+crimes = crimes.merge(crime_categories, left_on="xcor_code", right_on="code_original")
+print(crimes.head())
+print(crimes.POLICE_UK_CAT_MAP_category.unique())
+print(len(crimes), total)
+assert len(crimes) == total
+
+# for i in crime_categories.index.unique():
+#   print(crime_categories.loc[i, "proportion"])
+
+stop
 
 if DO_GRAPHS:
 
