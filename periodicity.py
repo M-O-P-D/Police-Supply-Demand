@@ -115,18 +115,30 @@ import numpy as np
 print("codes not in bulk data:", np.setdiff1d(my_cats, their_cats))
 print("codes not in local data:", np.setdiff1d(their_cats, my_cats))
 
-crime_categories = crime_categories.reset_index()[["code_original", "POLICE_UK_CAT_MAP_category"]]
 print(crime_categories.head())
-crimes = crimes.merge(crime_categories, left_on="xcor_code", right_on="code_original")
-print(crimes.head())
-print(crimes.POLICE_UK_CAT_MAP_category.unique())
-print(len(crimes), total)
-assert len(crimes) == total
+crime_categories = crime_categories.reset_index()[["code_original", "description", "POLICE_UK_CAT_MAP_category"]]
+print(crime_categories.head())
+crimes_monthly = crimes.merge(crime_categories, left_on="xcor_code", right_on="code_original") \
+                       .drop(["DayNumber", "TimeWindow", "code_original"], axis=1) \
+                       .groupby(["YearCreated", "xcor_code", "description", "POLICE_UK_CAT_MAP_category"], as_index=False).count() \
+                       .set_index(["YearCreated", "POLICE_UK_CAT_MAP_category"])
+print(crimes_monthly.MonthNumber.sum(), total)
+#assert len(crimes) == total
+print(crimes_monthly.head())
+crimes_monthly.to_csv("main-cats.csv", index=False)
 
-# for i in crime_categories.index.unique():
-#   print(crime_categories.loc[i, "proportion"])
 
-stop
+for i in crimes_monthly.index.levels[1].unique():
+  counts19 = crimes_monthly.loc[(2019, i)]
+  counts20 = crimes_monthly.loc[(2020, i)]
+  print(counts19)
+  print(counts20)
+  print(len(counts19), len(counts20))
+  plt.cla()
+  plt.bar(counts19.xcor_code, counts19.MonthNumber.values, alpha=0.5)
+  plt.bar(counts20.xcor_code, counts20.MonthNumber.values, alpha=0.5)
+  plt.show()
+
 
 if DO_GRAPHS:
 
