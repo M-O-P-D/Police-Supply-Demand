@@ -3,6 +3,8 @@
 .vscode/
 __pycache__
 data/*.zip
+doc/annual*.png
+doc/monthly*.png
 doc/weekly*.png
 doc/daily*.png
 local/

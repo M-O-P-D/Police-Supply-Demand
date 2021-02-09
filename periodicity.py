@@ -11,7 +11,7 @@ from crims.crime import Crime
 
 sns.set_theme(style="whitegrid")
 
-DO_GRAPHS = False
+DO_GRAPHS = True
 
 dpi = 100
 xsize = 640
@@ -115,32 +115,41 @@ import numpy as np
 print("codes not in bulk data:", np.setdiff1d(my_cats, their_cats))
 print("codes not in local data:", np.setdiff1d(their_cats, my_cats))
 
-print(crime_categories.head())
 crime_categories = crime_categories.reset_index()[["code_original", "description", "POLICE_UK_CAT_MAP_category"]]
-print(crime_categories.head())
-crimes_monthly = crimes.merge(crime_categories, left_on="xcor_code", right_on="code_original") \
-                       .drop(["DayNumber", "TimeWindow", "code_original"], axis=1) \
-                       .groupby(["YearCreated", "xcor_code", "description", "POLICE_UK_CAT_MAP_category"], as_index=False).count() \
-                       .set_index(["YearCreated", "POLICE_UK_CAT_MAP_category"])
-print(crimes_monthly.MonthNumber.sum(), total)
-#assert len(crimes) == total
-print(crimes_monthly.head())
-crimes_monthly.to_csv("main-cats.csv", index=False)
-
-
-for i in crimes_monthly.index.levels[1].unique():
-  counts19 = crimes_monthly.loc[(2019, i)]
-  counts20 = crimes_monthly.loc[(2020, i)]
-  print(counts19)
-  print(counts20)
-  print(len(counts19), len(counts20))
-  plt.cla()
-  plt.bar(counts19.xcor_code, counts19.MonthNumber.values, alpha=0.5)
-  plt.bar(counts20.xcor_code, counts20.MonthNumber.values, alpha=0.5)
-  plt.show()
-
 
 if DO_GRAPHS:
+
+  crimes_annual = crimes.merge(crime_categories, left_on="xcor_code", right_on="code_original") \
+                        .drop(["DayNumber", "TimeWindow", "code_original", "description"], axis=1) \
+                        .groupby(["YearCreated", "xcor_code", "POLICE_UK_CAT_MAP_category"], as_index=False).count() \
+                        .set_index(["YearCreated", "POLICE_UK_CAT_MAP_category", "xcor_code"]) \
+                        .unstack(0, 0)
+  crimes_annual.columns = crimes_annual.columns.droplevel()
+  print(crimes_annual)
+
+  for i in crimes_annual.index.levels[0].unique():
+    print(i)
+    crimes_annual.loc[[i]].plot.bar(title=i, ylabel="crimes reported")
+    plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
+    plt.savefig("doc/annual-%s.png" % i.replace(" ", "_"), dpi=dpi)
+    plt.close()
+
+  crimes_monthly = crimes.merge(crime_categories, left_on="xcor_code", right_on="code_original") \
+                        .drop(["DayNumber", "TimeWindow", "code_original", "description"], axis=1) \
+                        .groupby(["MonthNumber", "xcor_code", "POLICE_UK_CAT_MAP_category"], as_index=False).count() \
+                        .set_index(["MonthNumber", "POLICE_UK_CAT_MAP_category", "xcor_code"]) \
+                        .unstack(0, 0)
+  crimes_monthly.columns = crimes_monthly.columns.droplevel()
+  print(crimes_monthly)
+  # assert crimes_monthly.sum().values.sum() == total
+  plt.rcParams["figure.figsize"] = [10, 5]
+  for i in crimes_monthly.index.levels[0].unique():
+    print(i)
+    ax = crimes_monthly.loc[[i]].T.plot.bar(title=i, ylabel="crimes reported", stacked=True)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
+    plt.savefig("doc/monthly-%s.png" % i.replace(" ", "_"), dpi=dpi)
+    plt.close()
 
   # YearCreated  MonthNumber  DayNumber  TimeWindow xcor_code      xcor_lkhoccodename
   crimes = crimes.groupby(["YearCreated", "MonthNumber", "DayNumber", "TimeWindow", "xcor_code"], as_index=False).size() \
