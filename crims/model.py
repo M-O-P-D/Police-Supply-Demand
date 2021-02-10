@@ -89,7 +89,7 @@ class CrimeMicrosim(no.Model):
           for _, subcat in subcats.iterrows():
             time_weights = get_periodicity(start_weekday, days_in_month, subcat.code_original)
             # impose daily/weekly periodicity of the subtype to the scaled intensity for the type, and adjust by loading factor
-            lambdas = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)] * subcat.proportion * time_weights * self.__loading
+            lambdas = intensity * subcat.proportion * time_weights * self.__loading
             lambdas = np.append(lambdas, 0.0)
             times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
             if len(times) > 0:
@@ -103,24 +103,6 @@ class CrimeMicrosim(no.Model):
                                                           "suspect": s,
                                                           "severity": subcat.ONS_SEVERITY_weight })
               crimes = crimes.append(df, ignore_index=True)
-
-
-          continue
-          # append extra zero element at end so don't sample into next timestep
-          #no.log(times)
-          #print(p_suspect)
-          if len(times) > 0:
-            d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
-            s = self.mc().hazard(p_suspect, len(times)).astype(bool)
-            c = self.mc().sample(len(times), subcats.proportion.values)
-            df = pd.DataFrame(index=range(len(d)), data={"MSOA": g,
-                                                         "crime_type": ct,
-                                                         "code": subcats.iloc[c]["code_original"].values,
-                                                         "description": subcats.iloc[c]["description"].values,
-                                                         "time": d,
-                                                         "suspect": s,
-                                                         "severity": subcats.iloc[c]["ONS_SEVERITY_weight"].values })
-            crimes = crimes.append(df, ignore_index=True)
 
     # round to nearest minute
     crimes["time"] = crimes["time"].round("min")
