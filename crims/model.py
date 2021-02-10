@@ -47,18 +47,6 @@ class CrimeMicrosim(no.Model):
       # yield to calling process
       self.halt()
 
-    # # TODO *assumes* monthly but timeline might not be
-    # start_date = self.timeline().time()
-    # end_date = start_date + relativedelta(months=1)
-
-    # # send monthly data to upstream model - if its listening
-    # adjustments = self.datastream.send_recv(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)])
-
-    # no.log("%s-%s: %d crimes. posted: %s" % (start_date, end_date, len(self.crimes[(self.crimes.time >= start_date) & (self.crimes.time < end_date)]), adjustments is not None))
-
-    # if adjustments is not None:
-    #   no.log("received %d adjustments" % len(adjustments))
-
   def set_loading(self, f):
     self.__loading = f
 
@@ -83,11 +71,8 @@ class CrimeMicrosim(no.Model):
     # TODO we need to sample subcategories first, in order to then apply any weekly periodicity
     # TODO might be better to rethink the sampling entirely
     for ct in self.__crime_types:
-      # cd = subcats.index.values
-      # p = subcats.proportion.values
-      # s = self.mc().sample(100, p)
-      # print([d[i] for i in s])
-      # extra [] to sure result is always a dataframe (even if 1 row)
+
+      # extra [] to ensure result is always a dataframe (even if 1 row)
       # see https://stackoverflow.com/questions/20383647/pandas-selecting-by-label-sometimes-return-series-sometimes-returns-dataframe
       subcats = self.__crime_categories.loc[[ct]]
 
@@ -97,13 +82,32 @@ class CrimeMicrosim(no.Model):
 
       for g in self.__geogs:
         if self.__crime_rates.index.isin([(g, ct)]).any():
-          # impose daily/weekly periodicity to the monthly frequency and adjust by loading factor
-          lambdas = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)] * time_weights * self.__loading
-          # append extra zero element at end so don't sample into next timestep
-          lambdas = np.append(lambdas, 0.0)
-          times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
-          #no.log(times)
+          intensity = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)]
+          # only have suspect likelihood for broad category
           p_suspect = self.__crime_outcomes.loc[(g,ct), "pSuspect"]
+
+          for _, subcat in subcats.iterrows():
+            time_weights = get_periodicity(start_weekday, days_in_month, subcat.code_original)
+            # impose daily/weekly periodicity of the subtype to the scaled intensity for the type, and adjust by loading factor
+            lambdas = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)] * subcat.proportion * time_weights * self.__loading
+            lambdas = np.append(lambdas, 0.0)
+            times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
+            if len(times) > 0:
+              d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
+              s = self.mc().hazard(p_suspect, len(times)).astype(bool)
+              df = pd.DataFrame(index=range(len(d)), data={"MSOA": g,
+                                                          "crime_type": ct,
+                                                          "code": subcat.code_original,
+                                                          "description": subcat.description,
+                                                          "time": d,
+                                                          "suspect": s,
+                                                          "severity": subcat.ONS_SEVERITY_weight })
+              crimes = crimes.append(df, ignore_index=True)
+
+
+          continue
+          # append extra zero element at end so don't sample into next timestep
+          #no.log(times)
           #print(p_suspect)
           if len(times) > 0:
             d = [t + relativedelta(seconds=time*secs_per_year) for time in times]

@@ -33,32 +33,19 @@ def static_vars(**kwargs):
 @static_vars(weekly_weights=decrypt_csv("./data/weekly-weights.csv.enc"))
 def get_periodicity(dow_adj, days_in_month, category):
 
-  # TODO sample from data/weekly_weights.csv
-
   cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code==category][["period","weight"]]
-  print(category, cycle)
-  # NB Mo=0, Su=6
-  # 1 week of days split into 3 8 hour periods
-  cycle = np.ones((7,3))
 
-  # TODO category-dependent periodicities
-  # for now fake some data
-  # make weekends more likely
-  cycle[5,:] *= 1.1
-  cycle[6,:] *= 1.1
-  # make evening and night more likely
-  cycle[:,1] *= 1.1
-  cycle[:,2] *= 1.21
+  # if no data assume no daily/weekly periodicity
+  if cycle.empty:
+    return np.ones(3 * days_in_month)
 
-  cycle = cycle.reshape(21)
+  # align and repeat week to the current month. NB Mo=0, Su=6
+  weights = np.tile(np.roll(cycle.weight, -3*dow_adj), 5)[:3*days_in_month]
 
-  # repeat and trim to no. of days in month
-  weights = np.tile(np.roll(cycle, -3*dow_adj), 5)[:3*days_in_month]
-
-  # normalise to mean weight of zero
+  # renormalise to mean weight of 1
   weights *= len(weights) / weights.sum()
-  return weights
 
+  return weights
 
 
 def lad_lookup(lads, subgeog_name):
