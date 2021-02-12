@@ -68,28 +68,22 @@ class CrimeMicrosim(no.Model):
     # force column ordering
     crimes = pd.DataFrame(columns=[])
 
-    # TODO we need to sample subcategories first, in order to then apply any weekly periodicity
-    # TODO might be better to rethink the sampling entirely
     for ct in self.__crime_types:
 
       # extra [] to ensure result is always a dataframe (even if 1 row)
       # see https://stackoverflow.com/questions/20383647/pandas-selecting-by-label-sometimes-return-series-sometimes-returns-dataframe
       subcats = self.__crime_categories.loc[[ct]]
 
-      # print(subcats.proportion)
-      # continue
-      time_weights = get_periodicity(start_weekday, days_in_month, ct)
+      for _, subcat in subcats.iterrows():
+        time_weights = get_periodicity(start_weekday, days_in_month, subcat.code_original) * subcat.proportion
+        for g in self.__geogs:
+          if self.__crime_rates.index.isin([(g, ct)]).any():
+            intensity = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)]
+            # only have suspect likelihood for broad category
+            p_suspect = self.__crime_outcomes.loc[(g,ct), "pSuspect"]
 
-      for g in self.__geogs:
-        if self.__crime_rates.index.isin([(g, ct)]).any():
-          intensity = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)]
-          # only have suspect likelihood for broad category
-          p_suspect = self.__crime_outcomes.loc[(g,ct), "pSuspect"]
-
-          for _, subcat in subcats.iterrows():
-            time_weights = get_periodicity(start_weekday, days_in_month, subcat.code_original)
             # impose daily/weekly periodicity of the subtype to the scaled intensity for the type, and adjust by loading factor
-            lambdas = intensity * subcat.proportion * time_weights * self.__loading
+            lambdas = intensity * time_weights * self.__loading
             lambdas = np.append(lambdas, 0.0)
             times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
             if len(times) > 0:
