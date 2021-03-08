@@ -1,6 +1,5 @@
 # from https://devqa.io/encrypt-decrypt-data-python/
 
-from pathlib import Path
 from cryptography.fernet import Fernet
 
 def generate_key(envvar):

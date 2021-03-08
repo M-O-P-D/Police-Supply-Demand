@@ -1,7 +1,6 @@
 
 import os
 from io import BytesIO
-from pathlib import Path
 import pandas as pd
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv

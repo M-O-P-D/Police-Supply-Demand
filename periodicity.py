@@ -1,6 +1,5 @@
 
 import pandas as pd
-import csv
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -97,6 +96,7 @@ assert crime_weights["count"].sum() == total
 # print(annual_trend_codes.head())
 # compare = pd.merge(annual_trend_codes, code_lookup.reset_index(), left_on="code_original", right_on="xcor_code", how="outer")
 # print(compare.head())
+# import csv
 # compare.to_csv("code_compare.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 #crime_weights.to_csv("data/weekly-weights.csv")

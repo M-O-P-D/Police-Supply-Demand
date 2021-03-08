@@ -31,11 +31,7 @@ Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to
 
 NB Although none of the data here contains any personally identifiable information, some is encrypted as a precaution and the encryption key is **NOT** provided in the repo, but may be provided on request.
 
-In order to run the model, you will need to define an environment variable `CRIMS_ENCRYPTION_KEY` with the key. The best way to achieve this is to create a `.env` file that does it (which will be loaded automatically):
-
-```bash
-CRIMS_ENCRYPTION_KEY=<insert key here>
-```
+In order to run the model, you will need to be able to access encrypted data. See below for further instructions
 
 ### Mapping crime types to counts and severity weights
 
@@ -59,6 +55,8 @@ The mapping dataset is in [data/policeuk-ons-code-join.csv](./data/policeuk-ons-
 
 ## Usage
 
+### Dependencies
+
 First install dependencies, either
 
 ```bash
@@ -72,6 +70,17 @@ conda env create -f conda-env.yml
 ```
 
 (NB the above file is created using `conda env export > conda-env.yml`)
+
+### Encryption
+
+Some of the input data is encrypted and the model requires a key to decrypt it. The key should be stored in the environment variable `CRIMS_ENCRYPTION_KEY`.
+The best practice for managing this is to create a `.env` file that does it (which will be loaded by python automatically), containing the following:
+
+```bash
+CRIMS_ENCRYPTION_KEY=<insert key here>
+```
+
+## Standalone Run
 
 The script `run-model.py` can be used to run the model on a single force area and plot some output. Change the force area by editing the script. Run it like so:
 
