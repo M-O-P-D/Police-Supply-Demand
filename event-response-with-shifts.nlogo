@@ -1041,13 +1041,13 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-185
-15
-298
-512
+205
+10
+378
+786
 -1
 -1
-5.25
+8.25
 1
 10
 1
@@ -1085,9 +1085,9 @@ NIL
 1
 
 SLIDER
-305
+395
 120
-445
+535
 153
 number-resources
 number-resources
@@ -1117,9 +1117,9 @@ NIL
 1
 
 MONITOR
-304
+394
 219
-444
+534
 264
 Resources Free
 count resources with [resource-status = 1]
@@ -1128,9 +1128,9 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-305
+395
 365
-445
+535
 410
 Events - Awaiting
 count events with [event-status = 1]
@@ -1139,9 +1139,9 @@ count events with [event-status = 1]
 11
 
 MONITOR
-305
+395
 412
-442
+532
 457
 Events - Ongoing
 count events with [event-status = 2]
@@ -1150,9 +1150,9 @@ count events with [event-status = 2]
 11
 
 MONITOR
-305
+395
 462
-443
+533
 507
 Events - Completed
 count-completed-events
@@ -1161,9 +1161,9 @@ count-completed-events
 11
 
 PLOT
-815
+905
 15
-1195
+1285
 135
 Total Resource Usage
 time
@@ -1179,9 +1179,9 @@ PENS
 "Supply" 1.0 0 -16777216 true "" ""
 
 PLOT
-450
+540
 262
-1195
+1285
 521
 active-events
 time
@@ -1237,9 +1237,9 @@ Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 1
 
 MONITOR
-304
+394
 15
-443
+533
 60
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
@@ -1248,9 +1248,9 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1200
+1290
 262
-1634
+1724
 782
 scatter
 count events
@@ -1279,9 +1279,9 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-451
+541
 526
-1196
+1286
 783
 resources
 time
@@ -1321,9 +1321,9 @@ VERBOSE
 -1000
 
 MONITOR
-304
+394
 267
-444
+534
 312
 Resources Responding
 count resources with [resource-status = 2]
@@ -1354,9 +1354,9 @@ length event-data
 11
 
 PLOT
-1201
+1291
 15
-1630
+1720
 135
 Events Waiting
 NIL
@@ -1407,9 +1407,9 @@ triage-events
 -1000
 
 MONITOR
-306
+396
 529
-440
+530
 574
 priority 1 waiting
 count events with [event-status = 1 and event-priority = 1]
@@ -1418,9 +1418,9 @@ count events with [event-status = 1 and event-priority = 1]
 11
 
 MONITOR
-306
+396
 577
-440
+530
 622
 priority 2 waiting
 count events with [event-status = 1 and event-priority = 2]
@@ -1429,9 +1429,9 @@ count events with [event-status = 1 and event-priority = 2]
 11
 
 MONITOR
-306
+396
 629
-441
+531
 674
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
@@ -1440,9 +1440,9 @@ count events with [event-status = 1 and event-priority = 3]
 11
 
 PLOT
-450
+540
 15
-810
+900
 135
 Crime
 NIL
@@ -1490,9 +1490,9 @@ NIL
 HORIZONTAL
 
 MONITOR
-304
+394
 64
-443
+533
 109
 Shift1-Shift2-Shift3
 (word Shift-1 \"-\" Shift-2 \"-\" Shift-3)
@@ -1501,9 +1501,9 @@ Shift1-Shift2-Shift3
 11
 
 PLOT
-1201
+1291
 137
-1631
+1721
 257
 paused events
 NIL
@@ -1519,9 +1519,9 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count events with [event-paused = true]"
 
 PLOT
-815
+905
 135
-1195
+1285
 255
 Count Active Resources
 NIL
@@ -1537,9 +1537,9 @@ PENS
 "count-active-resources" 1.0 0 -16777216 true "" ""
 
 PLOT
-451
+541
 137
-811
+901
 257
 Count Available Resources
 NIL
@@ -1572,8 +1572,8 @@ CHOOSER
 245
 Force
 Force
-"Avon & Somerset" "Bedfordshire" "British Transport Police" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon & Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "London, City of" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
-10
+"Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
+9
 
 INPUTBOX
 15
