@@ -205,10 +205,10 @@ to setup
 
 
   ;read in the event data
-  print "Reading Event Data from file ......"
 
-  if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/07/01 7:00" print event-data]
-  if demand-events = "Flat-file" [ set event-data csv:from-file "input-data/CriMS-Sample.csv" set dt time:create "2020/01/01 7:00" ]
+
+  if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/06/30 22:00" print event-data]
+  if demand-events = "Flat-file" [ print "Reading Event Data from flat-file ......" set event-data csv:from-file "input-data/CriMS-Sample.csv" set dt time:create "2020/01/01 7:00" ]
 
   set event-data remove-item 0 event-data ;remove top (header) row
 
