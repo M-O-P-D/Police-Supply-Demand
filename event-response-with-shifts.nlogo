@@ -151,8 +151,8 @@ to setup
 
   set force-area Force
   set loading-factor 1.0
-  ; TODO month is hard-coded below
-  py:run (word "init_model('" force-area "', "7")")
+  ; TODO year/month is hard-coded below
+  py:run (word "init_model('" force-area "', "2020", "7")")
   ]
 
   ;create folder path to store results based on settings
