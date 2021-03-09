@@ -1,6 +1,9 @@
-#gitignore file 
+#gitignore file
+.venv*
+crims/
+data
 
-# folders 
+# folders
 relevant-data/*
 model-output/*
 
