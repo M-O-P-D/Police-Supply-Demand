@@ -350,7 +350,7 @@ to read-events
       print temp
 
       ;construct a date
-      let temp-dt time:create-with-format (item 4 temp) "dd/MM/yyyy HH:mm"
+      let temp-dt time:create-with-format (item 4 temp) "yyyy-MM-dd HH:mm:ss"
 
       ;user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
 
