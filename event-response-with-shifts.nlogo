@@ -68,7 +68,7 @@ events-own
   event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
   event-type ;event type in this model - crime type - i.e. aggravated burglary
   event-class ;event broad class - i.e. burglary
-  event-LSOA
+  event-MSOA
   event-start-dt ;datetime event came in
   event-response-start-dt ;datetime response to event started
   event-response-end-dt ;when the event will be reconciled calculated once an event is assigned a resource.
@@ -79,6 +79,10 @@ events-own
   event-resource-req-amount ;number of resource units required to repsond to event - drawn from event-reference
   event-resource-req-total
   event-priority ; placeholder for variable that allows events to be triaged in terms of importance of response
+
+  event-severity ; ONS CSS associated with offence - as passed by crims
+  event-suspect ; bool for presence of suspect - as passed by crims
+
 ]
 
 
@@ -139,14 +143,17 @@ to setup
   ca
   reset-ticks
 
+  if demand-events = "CriMS-Interface"
+  [
   ; init python session
   py:setup py:python
   py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes"
 
-  set force-area "Durham"
+  set force-area Force
   set loading-factor 1.0
   ; TODO month is hard-coded below
-  py:run (word "init_model('" force-area "', " 7")")
+  py:run (word "init_model('" force-area "', "7")")
+  ]
 
   ;create folder path to store results based on settings
   let path (word "model-output/" demand-events "/resources" number-resources "/rep" replication "/")
@@ -200,37 +207,10 @@ to setup
   ;read in the event data
   print "Reading Event Data from file ......"
 
-  if demand-events = "Synthetic" [ set event-data csv:from-file "input-data/fine-categories/WYP_synthetic_day_reports.csv" set dt time:create "2019/01/01 7:00" ]
-  if demand-events = "#Testing" [ set event-data csv:from-file "input-data/fine-categories/test-events.csv" set dt time:create "2016/03/01 7:00" ]
-  if demand-events = "Actual" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_BASELINE.csv" set dt time:create "2019/01/01 7:00" ]
-  if demand-events = "Burg-10per-increase" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_increase_10per.csv" set dt time:create "2019/01/01 7:00" ]
-  if demand-events = "Burg-10per-decrease" [ set event-data csv:from-file "input-data/fine-categories/Demand_Scenarios_Test_1/synthetic_events_burglary_decrease_10per.csv" set dt time:create "2019/01/01 7:00" ]
+  if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/07/01 7:00" print event-data]
+  if demand-events = "Flat-file" [ set event-data csv:from-file "input-data/CriMS-Sample.csv" set dt time:create "2020/01/01 7:00" ]
 
-  ;if demand-events = "API-Test" [ print "Reading Event Data from API ......" set event-data csv:from-string (fetch:url ("http://localhost/data?force=Durham&month=7&format=csv")) set dt time:create "2020/07/01 0:00" print event-data]
-  ; TODO get time from CriMS
-  if demand-events = "API-Test" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/07/01 0:00" print event-data]
-
-  set event-data remove-item 0 event-data ;remove top row
-
-  ;read in the event reference table to assign resource charactersitics by offence
-  print "Importing Event Resourcing Profiles from file ......"
-  set event-reference table:make
-
-  ;Build the dictionary from event ref file - thsi allows us to update the resourcing weighst associate with offences by editing the CSV
-  if event-characteristics = "Uniform"
-  [
-    let event-ref-file csv:from-file "input-data/fine-categories/Activity_Times_Uniform.csv"
-    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x) ]
-    ;print event-ref-file
-  ]
-  if event-characteristics = "Experimental"
-  [
-    let event-ref-file csv:from-file "input-data/fine-categories/Activity_Times_Crime_Severity_Score_v1.csv"
-    foreach event-ref-file [ x -> table:put event-reference item 0 x (list item 1 x item 2 x item 3 x item 4 x item 5 x) ]
-    ;print event-ref-file
-  ]
-
-  ;print event-ref-file
+  set event-data remove-item 0 event-data ;remove top (header) row
 
 end
 
@@ -265,7 +245,7 @@ to go-step
     ;then jobs that have no one
     ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources]
     ;then jobs that are ongoing but under staffed
-    ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources ]
+    ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
 
     ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources]
     ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources]
@@ -366,10 +346,11 @@ to read-events
       ;pull the top row from the data
       let temp item 0 event-data
 
+
       print temp
 
       ;construct a date
-      let temp-dt time:create-with-format (item 4 temp) "yyyy-MM-dd HH:mm:ss"
+      let temp-dt time:create-with-format (item 4 temp) "dd/MM/yyyy HH:mm"
 
       ;user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
 
@@ -386,21 +367,28 @@ to read-events
           set hidden? true
 
           ;fill in relevant details for event from data
-          set eventID item 1 temp
+          ;set eventID item 1 temp
 
           set event-type item 3 temp
           set event-class item 1 temp
-          set event-LSOA item 0 temp
+          set event-MSOA item 0 temp
+
+          set event-severity item 6 temp
+          set event-suspect item 5 temp
+
           set event-start-dt dt
           set event-status 1 ;awaiting resource
           set event-paused false
 
           ;get the amount of units/time required to respond to resource from event info
-          set event-resource-req-amount get-event-resource-amount event-type
-          set event-resource-req-time get-event-resource-time event-type
+
+          set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
+          set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
+          set event-priority convert-severity-to-event-priority event-severity
+
           set event-resource-req-total event-resource-req-amount * event-resource-req-time
           set event-resource-counter event-resource-req-total
-          set event-priority get-event-priority event-type
+
         ]
 
         ;once the event agent has been created delete it from the data file
@@ -449,55 +437,45 @@ end
 
 
 
-; procedure that takes an event type and probabilistically returns how many hours it will require
-to-report get-event-resource-time [ eventType ]
 
 
-  ; pull the time require to adress an offence from the event-reference dictionary -
-  let event-info  table:get event-reference eventType
 
-  let mean-time item 0 event-info
-  let sd-time item 1 event-info
 
+; Function that calculates number of officers a case will need based on amount of hours required.
+to-report convert-severity-to-resource-amount  [ resource-time ]
+  ;derive amount of staff required from amount of time required - if more than 8 hours divide up into additional officers
+  let mean-amount ceiling (resource-time / 8)
+  ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
+  let amount (ceiling random-poisson mean-amount)
+  show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
+  report amount
+end
+
+; Function that calculates number of hours a case will need based on severity of offence, presence or absense of a suspect (NOT USED), and a weight which allows mainpulation of how much resouce is allocated to particular offences (NOT USED)
+to-report convert-severity-to-resource-time [ severity suspect weight ]
+  ;divide severity by 50 and round up to int to get mean hours
+  let mean-time ceiling (severity / 50)
+  let sd-time (severity / 500)
   ;in this 'stupid' case just apply a random normal to that time to get the actual time to return - and make sure it's a positive number with ABS - HACK
   let time abs round random-normal mean-time sd-time
-
-
-  ;show (word eventType " - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
-
- report time
-
+  show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
+  report time
 end
 
 
-; procedure that takes an event type and probabilistically returns how many resource agents it will require
-to-report get-event-resource-amount [ eventType ]
-
-  ; pull the mean amount of resource required to adress an event from the event-reference dictionary -
-  let event-info  table:get event-reference eventType
-
-  let mean-amount item 2 event-info
-  let sd-amount item 3 event-info
-
-  ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
-  let amount (round random-poisson mean-amount) + 1
-
-  ;show (word eventType " - mean-amount=" mean-amount " ,sd-amount=" sd-amount " -- Actual=" amount)
-
-  report amount
-
-end
-
-
-to-report get-event-priority [ eventType ]
-
-  let event-info  table:get event-reference eventType
-  let priority item 4 event-info
+; return priority 1,2, or 3 based on severity - should implement THRIVE here
+to-report convert-severity-to-event-priority [ severity ]
+  let priority 0
+  ;if ONS Severity greater than 1000 - Priority 1; 1000 > x > 500 - Priority 2; x < 500 - Priority 3
+  ifelse severity >= 1000
+  [ set priority 1 ]
+  [ ifelse severity >= 500
+    [ set priority 2 ]
+    [ set priority 3 ]
+  ]
+  show (word severity " ONS CSS - priority=" priority)
   report priority
-
 end
-
-
 
 
 
@@ -602,7 +580,7 @@ to check-event-status
         event-status ",\""
         event-type "\",\""
         event-class "\","
-        event-LSOA ","
+        event-MSOA ","
         (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
         (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
         (time:show dt "dd-MM-yyyy HH:mm") ","
@@ -1250,9 +1228,9 @@ NIL
 
 TEXTBOX
 15
-498
-140
 575
+140
+652
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1333,9 +1311,9 @@ PENS
 
 SWITCH
 10
-423
+500
 175
-456
+533
 VERBOSE
 VERBOSE
 1
@@ -1355,9 +1333,9 @@ count resources with [resource-status = 2]
 
 SWITCH
 10
-343
+420
 175
-376
+453
 Shifts
 Shifts
 0
@@ -1398,9 +1376,9 @@ PENS
 
 SWITCH
 10
-458
+535
 175
-491
+568
 event-file-out
 event-file-out
 0
@@ -1414,24 +1392,14 @@ CHOOSER
 143
 demand-events
 demand-events
-"API-Test" "Actual" "Synthetic" "#Testing" "Burg-10per-increase" "Burg-10per-decrease"
-0
-
-CHOOSER
-10
-195
-175
-240
-event-characteristics
-event-characteristics
-"Uniform" "Experimental"
+"CriMS-Interface" "Flat-file"
 1
 
 SWITCH
 10
-378
+455
 175
-411
+488
 triage-events
 triage-events
 0
@@ -1491,9 +1459,9 @@ PENS
 
 BUTTON
 10
-590
+667
 170
-625
+702
 close files
 close-files
 NIL
@@ -1507,15 +1475,15 @@ NIL
 1
 
 SLIDER
-9
-255
-177
-288
+10
+370
+175
+403
 replication
 replication
 1
 100
-9.0
+1.0
 1
 1
 NIL
@@ -1588,14 +1556,35 @@ PENS
 
 SWITCH
 10
-635
+712
 172
-668
+745
 color-by-priority
 color-by-priority
 1
 1
 -1000
+
+CHOOSER
+15
+200
+175
+245
+Force
+Force
+"Avon & Somerset" "Bedfordshire" "British Transport Police" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon & Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "London, City of" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
+10
+
+INPUTBOX
+15
+250
+175
+310
+StartDate
+2020/1/1
+1
+0
+String
 
 @#$#@#$#@
 ## WHAT IS IT?
