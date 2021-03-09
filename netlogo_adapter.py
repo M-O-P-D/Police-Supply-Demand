@@ -7,30 +7,13 @@ import neworder as no
 
 from crims.model import CrimeMicrosim
 
-
-# class RandModel(no.Model):
-#   def __init__(self):
-#     super().__init__(no.NoTimeline(), no.MonteCarlo.deterministic_identical_stream)
-
-#   def step(self):
-#     pass
-
-#   def finalise(self):
-#     pass
-
-# rand_model = RandModel()
-
-# # test function
-# def rand(maxval):
-#   return rand_model.mc().ustream(1)[0] * maxval
-
 # init_model must be called to instantiate model
 model = None
 
-def init_model(force_area, month):
+def init_model(force_area, year, month):
   global model
   # monthly open-ended timeline
-  model = CrimeMicrosim(force_area, (2020, month), agg_mode=False)
+  model = CrimeMicrosim(force_area, (year, month), agg_mode=False)
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
 
 
@@ -60,7 +43,7 @@ if __name__ == "__main__":
 
   import pandas as pd
 
-  init_model("City of London", 1)
+  init_model("City of London", 2020, 1)
 
   print(get_time())
   crimes = pd.read_csv(StringIO(get_crimes(1.0)))

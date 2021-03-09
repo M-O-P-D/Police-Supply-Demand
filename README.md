@@ -74,7 +74,7 @@ conda env create -f conda-env.yml
 ### Encryption
 
 Some of the input data is encrypted and the model requires a key to decrypt it. The key should be stored in the environment variable `CRIMS_ENCRYPTION_KEY`.
-The best practice for managing this is to create a `.env` file that does it (which will be loaded by python automatically), containing the following:
+The best practice for managing this is to store the key in a local `.env` file (which will be loaded by python automatically), with the following content:
 
 ```bash
 CRIMS_ENCRYPTION_KEY=<insert key here>

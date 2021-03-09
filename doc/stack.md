@@ -27,7 +27,7 @@ PYTHONPATH=$(pwd) ~/NetLogo\ 6.2.0/NetLogo
 
 Separate processes:
 
-- Netlogo police suppy ABM
+- Netlogo police supply ABM
 - *neworder* crime microsimulation model
 
 Each run as a standalone process. This allows them to run more efficiently as they can (in practice not?) each continue running while the other model is busy, but means that exchanging data is slightly more difficult.
