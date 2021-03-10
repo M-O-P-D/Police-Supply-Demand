@@ -169,9 +169,9 @@ to setup
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
-  let y-dim-resource-temp (number-resources / 20) - 1
+  let y-dim-resource-temp (number-resources / 10) - 1
 
-  resize-world 0 19 0 y-dim-resource-temp
+  resize-world 0 9 0 y-dim-resource-temp
 
 
   ;initialize shift bools
@@ -1044,10 +1044,10 @@ GRAPHICS-WINDOW
 205
 10
 378
-217
+316
 -1
 -1
-8.25
+16.5
 1
 10
 1
@@ -1058,9 +1058,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-19
+9
 0
-23
+17
 0
 0
 1
@@ -1093,7 +1093,7 @@ number-resources
 number-resources
 60
 5000
-480.0
+180.0
 60
 1
 NIL
@@ -1393,7 +1393,7 @@ CHOOSER
 demand-events
 demand-events
 "CriMS-Interface" "Flat-file"
-0
+1
 
 SWITCH
 10
