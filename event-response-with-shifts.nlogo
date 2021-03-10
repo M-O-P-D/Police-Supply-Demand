@@ -839,72 +839,72 @@ to update-all-plots
   set out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
 
   set-current-plot-pen "Anti-social behaviour"
-  set x count resources with [current-event-class = "Anti-social behaviour"]
+  set x count resources with [current-event-class = "anti-social behaviour"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Bicycle theft"
-  set x count resources with [current-event-class = "Bicycle theft"]
+  set x count resources with [current-event-class = "bicycle theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Burglary"
-  set x count resources with [current-event-class = "Burglary"]
+  set x count resources with [current-event-class = "burglary"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Criminal damage and arson"
-  set x count resources with [current-event-class = "Criminal damage and arson"]
+  set x count resources with [current-event-class = "criminal damage and arson"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Drugs"
-  set x count resources with [current-event-class = "Drugs"]
+  set x count resources with [current-event-class = "drugs"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other crime"
-  set x count resources with [current-event-class = "Other crime"]
+  set x count resources with [current-event-class = "other crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other theft"
-  set x count resources with [current-event-class = "Other theft"]
+  set x count resources with [current-event-class = "other theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Possession of weapons"
-  set x count resources with [current-event-class = "Possession of weapons"]
+  set x count resources with [current-event-class = "possession of weapons"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Public order"
-  set x count resources with [current-event-class = "Public order"]
+  set x count resources with [current-event-class = "public order"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Robbery"
-  set x count resources with [current-event-class = "Robbery"]
+  set x count resources with [current-event-class = "robbery"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Shoplifting"
-  set x count resources with [current-event-class = "Shoplifting"]
+  set x count resources with [current-event-class = "shoplifting"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Theft from the person"
-  set x count resources with [current-event-class = "Theft from the person"]
+  set x count resources with [current-event-class = "theft from the person"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Vehicle crime"
-  set x count resources with [current-event-class = "Vehicle crime"]
+  set x count resources with [current-event-class = "vehicle crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Violence and sexual offences"
-  set x count resources with [current-event-class = "Violence and sexual offences"]
+  set x count resources with [current-event-class = "violence and sexual offences"]
   plot x
   set out-string (word out-string x)
 
@@ -915,33 +915,33 @@ to update-all-plots
   set-current-plot "scatter"
   ;clear-plot
   set-current-plot-pen "Anti-social behaviour"
-  plotxy (count events with [event-class = "Anti-social behaviour" and event-status = 2]) (count resources with [current-event-class = "Anti-social behaviour"])
+  plotxy (count events with [event-class = "anti-social behaviour" and event-status = 2]) (count resources with [current-event-class = "anti-social behaviour"])
   set-current-plot-pen "Bicycle theft"
-  plotxy (count events with [event-class = "Bicycle theft" and event-status = 2]) (count resources with [current-event-class = "Bicycle theft"])
+  plotxy (count events with [event-class = "bicycle theft" and event-status = 2]) (count resources with [current-event-class = "bicycle theft"])
   set-current-plot-pen "Burglary"
-  plotxy (count events with [event-class = "Burglary" and event-status = 2]) (count resources with [current-event-class = "Burglary"])
+  plotxy (count events with [event-class = "burglary" and event-status = 2]) (count resources with [current-event-class = "burglary"])
   set-current-plot-pen "Criminal damage and arson"
-  plotxy (count events with [event-class = "Criminal damage and arson" and event-status = 2]) (count resources with [current-event-class = "Criminal damage and arson"])
+  plotxy (count events with [event-class = "criminal damage and arson" and event-status = 2]) (count resources with [current-event-class = "criminal damage and arson"])
   set-current-plot-pen "Drugs"
-  plotxy (count events with [event-class = "Drugs" and event-status = 2]) (count resources with [current-event-class = "Drugs"])
+  plotxy (count events with [event-class = "drugs" and event-status = 2]) (count resources with [current-event-class = "drugs"])
   set-current-plot-pen "Other crime"
-  plotxy (count events with [event-class = "Other crime" and event-status = 2]) (count resources with [current-event-class = "Other crime"])
+  plotxy (count events with [event-class = "other crime" and event-status = 2]) (count resources with [current-event-class = "other crime"])
   set-current-plot-pen "Other theft"
-  plotxy (count events with [event-class = "Other theft" and event-status = 2]) (count resources with [current-event-class = "Other theft"])
+  plotxy (count events with [event-class = "other theft" and event-status = 2]) (count resources with [current-event-class = "other theft"])
   set-current-plot-pen "Possession of weapons"
-  plotxy (count events with [event-class = "Possession of weapons" and event-status = 2]) (count resources with [current-event-class = "Possession of weapons"])
+  plotxy (count events with [event-class = "possession of weapons" and event-status = 2]) (count resources with [current-event-class = "possession of weapons"])
   set-current-plot-pen "Public order"
-  plotxy (count events with [event-class = "Public order" and event-status = 2]) (count resources with [current-event-class = "Public order"])
+  plotxy (count events with [event-class = "public order" and event-status = 2]) (count resources with [current-event-class = "public order"])
   set-current-plot-pen "Robbery"
-  plotxy (count events with [event-class = "Robbery" and event-status = 2]) (count resources with [current-event-class = "Robbery"])
+  plotxy (count events with [event-class = "robbery" and event-status = 2]) (count resources with [current-event-class = "robbery"])
   set-current-plot-pen "Shoplifting"
-  plotxy (count events with [event-class = "Shoplifting" and event-status = 2]) (count resources with [current-event-class = "Shoplifting"])
+  plotxy (count events with [event-class = "shoplifting" and event-status = 2]) (count resources with [current-event-class = "shoplifting"])
   set-current-plot-pen "Theft from the person"
-  plotxy (count events with [event-class = "Theft from the person" and event-status = 2]) (count resources with [current-event-class = "Theft from the person"])
+  plotxy (count events with [event-class = "theft from the person" and event-status = 2]) (count resources with [current-event-class = "theft from the person"])
   set-current-plot-pen "Vehicle crime"
-  plotxy (count events with [event-class = "Vehicle crime" and event-status = 2]) (count resources with [current-event-class = "Vehicle crime"])
+  plotxy (count events with [event-class = "vehicle crime" and event-status = 2]) (count resources with [current-event-class = "vehicle crime"])
   set-current-plot-pen "Violence and sexual offences"
-  plotxy (count events with [event-class = "Violence and sexual offences" and event-status = 2]) (count resources with [current-event-class = "Violence and sexual offences"])
+  plotxy (count events with [event-class = "violence and sexual offences" and event-status = 2]) (count resources with [current-event-class = "violence and sexual offences"])
 
 end
 
@@ -1044,7 +1044,7 @@ GRAPHICS-WINDOW
 205
 10
 378
-786
+217
 -1
 -1
 8.25
@@ -1060,7 +1060,7 @@ GRAPHICS-WINDOW
 0
 19
 0
-92
+23
 0
 0
 1
@@ -1093,7 +1093,7 @@ number-resources
 number-resources
 60
 5000
-1860.0
+480.0
 60
 1
 NIL
@@ -1316,7 +1316,7 @@ SWITCH
 533
 VERBOSE
 VERBOSE
-1
+0
 1
 -1000
 
@@ -1393,7 +1393,7 @@ CHOOSER
 demand-events
 demand-events
 "CriMS-Interface" "Flat-file"
-1
+0
 
 SWITCH
 10
