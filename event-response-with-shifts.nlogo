@@ -759,72 +759,72 @@ to update-all-plots
   let out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
 
   set-current-plot-pen "Anti-social behaviour"
-  let x count current-events with [event-class = "Anti-social behaviour"]
+  let x count current-events with [event-class = "anti-social behaviour"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Bicycle theft"
-  set x count current-events with [event-class = "Bicycle theft"]
+  set x count current-events with [event-class = "bicycle theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Burglary"
-  set x count current-events with [event-class = "Burglary"]
+  set x count current-events with [event-class = "burglary"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Criminal damage and arson"
-  set x count current-events with [event-class = "Criminal damage and arson"]
+  set x count current-events with [event-class = "criminal damage and arson"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Drugs"
-  set x count current-events with [event-class = "Drugs"]
+  set x count current-events with [event-class = "drugs"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other crime"
-  set x count current-events with [event-class = "Other crime"]
+  set x count current-events with [event-class = "other crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other theft"
-  set x count current-events with [event-class = "Other theft"]
+  set x count current-events with [event-class = "other theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Possession of weapons"
-  set x count current-events with [event-class = "Possession of weapons"]
+  set x count current-events with [event-class = "possession of weapons"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Public order"
-  set x count current-events with [event-class = "Public order"]
+  set x count current-events with [event-class = "public order"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Robbery"
-  set x count current-events with [event-class = "Robbery"]
+  set x count current-events with [event-class = "robbery"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Shoplifting"
-  set x count current-events with [event-class = "Shoplifting"]
+  set x count current-events with [event-class = "shoplifting"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Theft from the person"
-  set x count current-events with [event-class = "Theft from the person"]
+  set x count current-events with [event-class = "theft from the person"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Vehicle crime"
-  set x count current-events with [event-class = "Vehicle crime"]
+  set x count current-events with [event-class = "vehicle crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Violence and sexual offences"
-  set x count current-events with [event-class = "Violence and sexual offences"]
+  set x count current-events with [event-class = "violence and sexual offences"]
   plot x
   set out-string (word out-string x)
 
