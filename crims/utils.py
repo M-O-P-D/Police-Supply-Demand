@@ -1,8 +1,15 @@
+import os
 import numpy as np
 import pandas as pd
 from pathlib import Path
 
 from .encryption import decrypt_csv
+
+# this needs to be overridden if run from a directory other than the project root (e.g. if running inside netlogo)
+DEFAULT_DATA_PATH="./data"
+
+def get_data_path(filename=""):
+  return Path(os.getenv("CRIMS_DATA_PATH", DEFAULT_DATA_PATH)) / filename
 
 # inclusive range of months
 def month_range(start_year, start_month, end_year, end_month):
@@ -30,10 +37,10 @@ def static_vars(**kwargs):
     return func
   return decorate
 
-@static_vars(weekly_weights=decrypt_csv("./data/weekly-weights.csv.enc"))
+@static_vars(weekly_weights=decrypt_csv(get_data_path("weekly-weights.csv.enc")))
 def get_periodicity(dow_adj, days_in_month, category):
 
-  cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code==category][["period","weight"]]
+  cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code==category][["period", "weight"]]
 
   # if no data assume no daily/weekly periodicity
   if cycle.empty:
@@ -49,14 +56,14 @@ def get_periodicity(dow_adj, days_in_month, category):
 
 
 def lad_lookup(lads, subgeog_name):
-  lookup = pd.read_csv("./data/gb_geog_lookup.csv.gz", dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
+  lookup = pd.read_csv(get_data_path("gb_geog_lookup.csv.gz"), dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
      "LAD_NOMIS": int, "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
   lad_lookup = lookup[lookup.LAD.isin(lads)][[subgeog_name, "LAD"]].drop_duplicates().set_index(subgeog_name, drop=True)
   return lad_lookup
 
 
 def msoa_from_lsoa(lsoas):
-  lookup = pd.read_csv("./data/gb_geog_lookup.csv.gz", dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
+  lookup = pd.read_csv(get_data_path("gb_geog_lookup.csv.gz"), dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
      "LAD_NOMIS": int, "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
   msoa_lookup = lookup[lookup.LSOA.isin(lsoas)][["LSOA", "MSOA"]].drop_duplicates().set_index("LSOA", drop=True)
   return msoa_lookup
@@ -168,7 +175,7 @@ def map_code(original_code):
 # Using the lastest ONS data, when it works
 def get_category_subtypes():
 
-  cached_data = Path("./data/detailed-offence-counts.csv")
+  cached_data = get_data_path("detailed-offence-counts.csv")
 
   if not cached_data.is_file():
     raw = pd.read_excel("https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods", sheet_name="2019-20")
@@ -188,7 +195,7 @@ def get_category_subtypes():
   raw.force = raw.force.apply(standardise_force_name)
 
   # manual match of police.uk to ONS crime descriptions -> codes
-  cat_mapping = pd.read_csv("./data/policeuk-ons-code-join.csv")[["POLICE_UK_CAT_MAP_category", "ONS_COUNTS_code", "ONS_SEVERITY_weight"]]
+  cat_mapping = pd.read_csv(get_data_path("policeuk-ons-code-join.csv"))[["POLICE_UK_CAT_MAP_category", "ONS_COUNTS_code", "ONS_SEVERITY_weight"]]
   cat_mapping.POLICE_UK_CAT_MAP_category = cat_mapping.POLICE_UK_CAT_MAP_category.apply(standardise_category_name)
 
   #print(cat_mapping.head())

@@ -5,6 +5,7 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 from zipfile import ZipFile
+from .utils import get_data_path
 
 def _kml2polygon(kml_file):
   polystring = parser.fromstring(kml_file).Document.Placemark.MultiGeometry.Polygon.outerBoundaryIs.LinearRing.coordinates.text
@@ -15,7 +16,7 @@ def _kml2polygon(kml_file):
 
 def create_forces_gdf():
 
-  kml_file = "./data/force_kmls.zip"
+  kml_file = get_data_path("force_kmls.zip")
   z = ZipFile(kml_file)
 
   # this approach is much faster than appending a dataframe (apparently)

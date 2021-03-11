@@ -9,8 +9,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 from police_api import PoliceAPI
 
-from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, smooth, get_category_subtypes
-
+from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, smooth, get_category_subtypes, get_data_path
 
 class Crime:
 
@@ -85,7 +84,7 @@ class Crime:
 
     file = "%d-%02d.zip" % (end_year, end_month)
 
-    cache = Path("./data")
+    cache = get_data_path()
     cache.mkdir(parents=True, exist_ok=True) # create if it doesnt already exist
 
     local_file = cache / file
