@@ -1,0 +1,501 @@
+id,MSOA,crime_type,code,description,time,suspect,severity
+255,E02000001,other theft,49,Other theft,2020-01-01 14:28:00,False,36.80988326
+547,E02000001,vehicle crime,45,Theft from vehicle,2020-01-03 02:59:00,False,32.92067737
+227,E02000001,other crime,99,Other notifiable offences,2020-01-04 03:57:00,False,179.2494716
+458,E02000001,shoplifting,46,Shoplifting,2020-01-04 16:39:00,False,11.85553905
+501,E02000001,theft from the person,39,Theft from the person,2020-01-04 17:42:00,False,80.4051597
+459,E02000001,shoplifting,46,Shoplifting,2020-01-04 19:21:00,True,11.85553905
+597,E02000001,violence and sexual offences,8N,Assault with injury,2020-01-04 19:25:00,False,189.1538871
+204,E02000001,drugs,92A,Trafficking in controlled drugs,2020-01-06 20:59:00,True,512.9573594
+410,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-01-07 05:49:00,True,12.76338434
+239,E02000877,other crime,99,Other notifiable offences,2020-01-07 14:31:00,True,179.2494716
+621,E02000001,violence and sexual offences,105A,Assault without injury,2020-01-07 23:21:00,True,13.51054152
+87,E02000001,burglary,30D,Attempted Burglary Business and Community,2020-01-08 09:45:00,False,123.0183965
+100,E02000001,burglary,30C,Burglary Business and Community,2020-01-08 14:52:00,True,123.0183965
+352,E02000890,possession of weapons,10D,Possession of article with blade or point,2020-01-09 06:30:00,False,53.0382391
+552,E02000001,vehicle crime,45,Theft from vehicle,2020-01-09 11:32:00,False,32.92067737
+332,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-01-10 20:55:00,False,53.0382391
+164,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-01-10 21:59:00,False,1.770623478
+195,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-01-11 13:41:00,True,8.082043408
+333,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-01-12 21:56:00,True,53.0382391
+420,E02000001,robbery,34A,Robbery of business property,2020-01-13 05:42:00,False,799.6288702
+131,E02000001,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-01-13 15:55:00,True,5.39670789
+179,E02000189,drugs,92E,Possession of controlled drugs (Cannabis),2020-01-13 18:34:00,True,1.770623478
+378,E02000808,public order,66,Other offences against the State or public order,2020-01-14 08:18:00,False,72.50873282
+168,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-01-16 05:30:00,False,1.770623478
+577,E02000001,vehicle crime,48,Theft or unauthorised taking of motor vehicle,2020-01-16 18:06:00,False,128.4294318
+521,E02000001,theft from the person,39,Theft from the person,2020-01-17 18:00:00,False,80.4051597
+281,E02000001,other theft,49,Other theft,2020-01-18 12:09:00,False,36.80988326
+282,E02000001,other theft,49,Other theft,2020-01-18 13:03:00,False,36.80988326
+285,E02000001,other theft,49,Other theft,2020-01-20 04:49:00,True,36.80988326
+286,E02000001,other theft,49,Other theft,2020-01-20 21:58:00,False,36.80988326
+480,E02000001,shoplifting,46,Shoplifting,2020-01-21 08:21:00,False,11.85553905
+206,E02000001,drugs,92A,Trafficking in controlled drugs,2020-01-21 08:25:00,True,512.9573594
+644,E02000183,violence and sexual offences,105A,Assault without injury,2020-01-22 12:39:00,False,13.51054152
+38,E02000878,anti-social behaviour,(asb),Anti-social behaviour,2020-01-23 15:11:00,False,1.0
+139,E02000001,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-01-27 12:31:00,True,5.39670789
+186,E02006924,drugs,92E,Possession of controlled drugs (Cannabis),2020-01-27 14:48:00,True,1.770623478
+357,E02000001,possession of weapons,10B,Possession of firearms offences,2020-01-27 15:37:00,True,412.2023946
+575,E02000576,vehicle crime,45,Theft from vehicle,2020-01-30 07:59:00,False,32.92067737
+309,E02000001,other theft,49,Other theft,2020-01-30 20:56:00,False,36.80988326
+249,E02000001,other crime,61A,Possession of false documents,2020-01-31 12:01:00,False,193.6861178
+807,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-02-02 16:47:00,True,8.082043408
+808,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-02-02 18:36:00,False,8.082043408
+1047,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-02-02 21:17:00,True,12.76338434
+673,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-02-05 00:14:00,False,1.0
+1243,E02000001,violence and sexual offences,105A,Assault without injury,2020-02-05 03:03:00,True,13.51054152
+770,E02000001,criminal damage and arson,58D,Other criminal damage,2020-02-05 17:12:00,False,5.39670789
+1138,E02000001,theft from the person,39,Theft from the person,2020-02-07 19:12:00,False,80.4051597
+831,E02000001,other crime,33,"Going equipped for stealing, etc",2020-02-08 13:29:00,False,31.25076655
+1285,E02000001,violence and sexual offences,8L,Harassment,2020-02-08 18:42:00,True,36.09753014
+1102,E02000001,shoplifting,46,Shoplifting,2020-02-09 01:22:00,True,11.85553905
+874,E02000890,other crime,99,Other notifiable offences,2020-02-09 21:56:00,False,179.2494716
+973,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-02-11 01:32:00,True,53.0382391
+1142,E02000001,theft from the person,39,Theft from the person,2020-02-11 07:57:00,False,80.4051597
+787,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-02-13 09:20:00,False,1.770623478
+1035,E02000001,public order,9A,"Public fear, alarm or distress",2020-02-13 23:57:00,False,6.81175759
+1078,E02000001,robbery,34B,Robbery of personal property,2020-02-14 02:50:00,False,799.6288702
+736,E02000001,burglary,30C,Burglary Business and Community,2020-02-15 14:21:00,False,123.0183965
+923,E02000001,other theft,49,Other theft,2020-02-15 16:40:00,False,36.80988326
+957,E02000187,other theft,49,Other theft,2020-02-17 10:19:00,False,36.80988326
+790,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-02-17 20:08:00,True,1.770623478
+1238,E02006924,violence and sexual offences,5D,Assault with intent to cause serious harm,2020-02-18 19:10:00,False,2034.74186
+931,E02000001,other theft,49,Other theft,2020-02-19 15:14:00,False,36.80988326
+1233,E02000183,violence and sexual offences,8N,Assault with injury,2020-02-20 09:31:00,False,189.1538871
+935,E02000001,other theft,49,Other theft,2020-02-21 08:45:00,False,36.80988326
+936,E02000001,other theft,49,Other theft,2020-02-21 10:59:00,False,36.80988326
+892,E02000001,other crime,38,Profiting from or concealing knowledge of the proceeds of crime,2020-02-21 11:00:00,False,248.1816914
+884,E02000001,other crime,61A,Possession of false documents,2020-02-21 12:28:00,True,193.6861178
+717,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-02-22 09:13:00,False,15.17572799
+1192,E02000001,vehicle crime,45,Theft from vehicle,2020-02-22 10:11:00,False,32.92067737
+938,E02000001,other theft,49,Other theft,2020-02-22 19:09:00,False,36.80988326
+1197,E02000001,vehicle crime,45,Theft from vehicle,2020-02-24 13:01:00,False,32.92067737
+772,E02000001,criminal damage and arson,58D,Other criminal damage,2020-02-24 13:46:00,False,5.39670789
+1024,E02000001,public order,66,Other offences against the State or public order,2020-02-25 00:04:00,False,72.50873282
+694,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-02-25 00:29:00,False,1.0
+695,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-02-25 02:28:00,False,1.0
+1041,E02000001,public order,9A,"Public fear, alarm or distress",2020-02-25 21:39:00,False,6.81175759
+720,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-02-26 17:02:00,False,15.17572799
+962,E02000187,other theft,49,Other theft,2020-02-28 04:05:00,False,36.80988326
+1167,E02000001,theft from the person,39,Theft from the person,2020-02-29 08:55:00,False,80.4051597
+1295,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-03-01 08:15:00,False,1.0
+1954,E02000183,violence and sexual offences,105A,Assault without injury,2020-03-01 11:57:00,False,13.51054152
+1296,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-03-02 03:25:00,False,1.0
+1704,E02000001,public order,9A,"Public fear, alarm or distress",2020-03-02 21:33:00,True,6.81175759
+1749,E02000001,robbery,34B,Robbery of personal property,2020-03-03 01:27:00,False,799.6288702
+1750,E02000001,robbery,34B,Robbery of personal property,2020-03-03 07:26:00,False,799.6288702
+1580,E02000001,other theft,49,Other theft,2020-03-03 11:58:00,False,36.80988326
+1347,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-03-03 13:03:00,False,15.17572799
+1669,E02000001,possession of weapons,10B,Possession of firearms offences,2020-03-04 00:00:00,False,412.2023946
+1299,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-03-04 17:37:00,False,1.0
+1796,E02000001,shoplifting,46,Shoplifting,2020-03-05 12:50:00,False,11.85553905
+1626,E02000187,other theft,49,Other theft,2020-03-06 08:43:00,False,36.80988326
+1569,E02000001,other crime,38,Profiting from or concealing knowledge of the proceeds of crime,2020-03-06 13:48:00,False,248.1816914
+1799,E02000001,shoplifting,46,Shoplifting,2020-03-07 12:45:00,True,11.85553905
+1489,E02000001,drugs,92A,Trafficking in controlled drugs,2020-03-07 16:27:00,False,512.9573594
+1458,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-03-09 13:03:00,False,1.770623478
+1647,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-03-10 18:40:00,False,53.0382391
+1428,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-03-11 23:22:00,True,5.39670789
+1930,E02000886,violence and sexual offences,8N,Assault with injury,2020-03-13 17:47:00,False,189.1538871
+1515,E02000001,other crime,54,Handling stolen goods,2020-03-13 18:42:00,True,55.13528999
+1429,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-03-14 23:31:00,False,5.39670789
+1673,E02000001,possession of weapons,10B,Possession of firearms offences,2020-03-15 05:05:00,False,412.2023946
+1602,E02000001,other theft,49,Other theft,2020-03-15 18:36:00,False,36.80988326
+1769,E02000001,robbery,34B,Robbery of personal property,2020-03-15 21:54:00,False,799.6288702
+1846,E02000001,theft from the person,39,Theft from the person,2020-03-15 22:55:00,False,80.4051597
+1719,E02000001,public order,9A,"Public fear, alarm or distress",2020-03-16 20:33:00,True,6.81175759
+1365,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-03-20 04:55:00,False,15.17572799
+1401,E02000001,burglary,30C,Burglary Business and Community,2020-03-21 04:12:00,False,123.0183965
+1402,E02000001,burglary,30C,Burglary Business and Community,2020-03-23 08:43:00,False,123.0183965
+1561,E02000001,other crime,61A,Possession of false documents,2020-03-24 11:10:00,True,193.6861178
+1372,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-03-24 21:20:00,False,15.17572799
+1564,E02000001,other crime,61A,Possession of false documents,2020-03-25 13:32:00,True,193.6861178
+1333,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-03-25 16:45:00,False,1.0
+1574,E02000001,other crime,38,Profiting from or concealing knowledge of the proceeds of crime,2020-03-27 04:27:00,False,248.1816914
+1618,E02000001,other theft,49,Other theft,2020-03-27 20:07:00,False,36.80988326
+1406,E02000001,burglary,30C,Burglary Business and Community,2020-03-28 08:12:00,False,123.0183965
+1664,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-03-28 09:06:00,True,53.0382391
+1814,E02000001,shoplifting,46,Shoplifting,2020-03-29 12:02:00,True,11.85553905
+1666,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-03-29 18:04:00,True,53.0382391
+1818,E02000001,shoplifting,46,Shoplifting,2020-03-30 17:18:00,True,11.85553905
+2405,E02000001,theft from the person,39,Theft from the person,2020-04-01 08:09:00,False,80.4051597
+2258,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-04-01 11:13:00,False,53.0382391
+1986,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-04-02 20:47:00,False,1.0
+2216,E02000001,other theft,49,Other theft,2020-04-06 08:21:00,False,36.80988326
+2503,E02006924,violence and sexual offences,105A,Assault without injury,2020-04-06 17:05:00,False,13.51054152
+2100,E02000809,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-04-07 13:26:00,False,5.39670789
+2353,E02000001,robbery,34B,Robbery of personal property,2020-04-08 17:10:00,False,799.6288702
+2217,E02000001,other theft,49,Other theft,2020-04-09 21:06:00,False,36.80988326
+2268,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-04-13 07:19:00,False,53.0382391
+2029,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-04-13 11:20:00,False,15.17572799
+2486,E02000001,violence and sexual offences,105A,Assault without injury,2020-04-14 08:18:00,False,13.51054152
+2379,E02000001,shoplifting,46,Shoplifting,2020-04-15 08:46:00,True,11.85553905
+2463,E02000001,violence and sexual offences,8N,Assault with injury,2020-04-17 20:33:00,False,189.1538871
+1999,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-04-18 06:02:00,False,1.0
+2464,E02000001,violence and sexual offences,8N,Assault with injury,2020-04-19 01:33:00,False,189.1538871
+2389,E02000001,shoplifting,46,Shoplifting,2020-04-19 17:39:00,True,11.85553905
+2390,E02000001,shoplifting,46,Shoplifting,2020-04-20 08:54:00,True,11.85553905
+2238,E02000001,other theft,49,Other theft,2020-04-20 22:15:00,False,36.80988326
+2176,E02000001,other crime,33A,"Making, supplying or possessing articles for use in fraud",2020-04-20 23:24:00,False,135.274869
+2278,E02000001,possession of weapons,10B,Possession of firearms offences,2020-04-21 03:22:00,False,412.2023946
+2456,E02000001,violence and sexual offences,19C,Rape of a female aged 16 and over,2020-04-21 23:43:00,True,2952.940993
+2197,E02000890,other crime,99,Other notifiable offences,2020-04-21 23:47:00,False,179.2494716
+2360,E02000001,robbery,34B,Robbery of personal property,2020-04-22 16:22:00,False,799.6288702
+2273,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-04-22 19:16:00,True,53.0382391
+2334,E02000890,public order,9A,"Public fear, alarm or distress",2020-04-23 06:59:00,True,6.81175759
+2363,E02000001,robbery,34B,Robbery of personal property,2020-04-24 17:01:00,False,799.6288702
+2009,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-04-25 13:46:00,False,1.0
+2076,E02000001,burglary,30C,Burglary Business and Community,2020-04-26 00:22:00,False,123.0183965
+2147,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-04-27 20:56:00,True,8.082043408
+2364,E02000001,robbery,34B,Robbery of personal property,2020-04-28 03:13:00,False,799.6288702
+2500,E02000183,violence and sexual offences,105A,Assault without injury,2020-04-30 10:07:00,False,13.51054152
+2731,E02000001,other theft,49,Other theft,2020-05-01 08:12:00,False,36.80988326
+2814,E02000001,possession of weapons,10B,Possession of firearms offences,2020-05-03 15:54:00,False,412.2023946
+2858,E02000001,robbery,34A,Robbery of business property,2020-05-06 23:38:00,False,799.6288702
+2570,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-05-07 15:05:00,False,15.17572799
+2936,E02000001,vehicle crime,45,Theft from vehicle,2020-05-07 16:57:00,False,32.92067737
+2704,E02000001,other crime,33A,"Making, supplying or possessing articles for use in fraud",2020-05-07 22:10:00,True,135.274869
+2745,E02000001,other theft,49,Other theft,2020-05-08 11:08:00,False,36.80988326
+2906,E02000977,shoplifting,46,Shoplifting,2020-05-08 18:24:00,True,11.85553905
+2663,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-05-08 23:00:00,True,1.770623478
+2915,E02000001,theft from the person,39,Theft from the person,2020-05-11 22:41:00,False,80.4051597
+2680,E02006924,drugs,92E,Possession of controlled drugs (Cannabis),2020-05-12 03:53:00,True,1.770623478
+2651,E02000001,criminal damage and arson,58D,Other criminal damage,2020-05-14 18:34:00,False,5.39670789
+2839,E02000001,public order,9A,"Public fear, alarm or distress",2020-05-14 23:20:00,True,6.81175759
+2826,E02000001,possession of weapons,10C,Possession of other weapons,2020-05-19 01:22:00,True,52.12609711
+2652,E02000001,criminal damage and arson,58D,Other criminal damage,2020-05-19 05:31:00,True,5.39670789
+2549,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-05-19 06:28:00,False,1.0
+2590,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-05-20 10:23:00,False,15.17572799
+2932,E02000001,vehicle crime,126,Interfering with a motor vehicle,2020-05-20 18:12:00,False,9.314706802
+2668,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-05-21 07:20:00,True,1.770623478
+2555,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-05-23 14:44:00,False,1.0
+2948,E02000001,vehicle crime,45,Theft from vehicle,2020-05-23 19:35:00,False,32.92067737
+2976,E02006924,violence and sexual offences,8N,Assault with injury,2020-05-25 09:32:00,False,189.1538871
+2766,E02000001,other theft,49,Other theft,2020-05-26 08:01:00,False,36.80988326
+2637,E02000001,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-05-27 15:41:00,False,5.39670789
+2854,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-05-27 19:59:00,False,12.76338434
+2956,E02000001,vehicle crime,45,Theft from vehicle,2020-05-29 13:12:00,False,32.92067737
+2701,E02000001,other crime,33,"Going equipped for stealing, etc",2020-05-31 16:39:00,False,31.25076655
+3633,E02006924,violence and sexual offences,105A,Assault without injury,2020-06-01 16:41:00,False,13.51054152
+3634,E02006924,violence and sexual offences,105A,Assault without injury,2020-06-02 18:45:00,False,13.51054152
+3446,E02000890,robbery,34B,Robbery of personal property,2020-06-02 23:43:00,False,799.6288702
+3450,E02000001,shoplifting,46,Shoplifting,2020-06-03 10:37:00,False,11.85553905
+3545,E02000001,vehicle crime,45,Theft from vehicle,2020-06-03 14:40:00,False,32.92067737
+3156,E02000001,burglary,28E,Burglary Residential,2020-06-06 00:01:00,True,465.3814732
+3549,E02000001,vehicle crime,45,Theft from vehicle,2020-06-07 11:26:00,False,32.92067737
+3179,E02000001,criminal damage and arson,58D,Other criminal damage,2020-06-08 15:00:00,False,5.39670789
+3086,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-06-10 21:19:00,False,15.17572799
+3337,E02000187,other theft,49,Other theft,2020-06-11 13:07:00,False,36.80988326
+3090,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-06-12 20:48:00,False,15.17572799
+3091,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-06-12 21:31:00,False,15.17572799
+3216,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-06-12 22:12:00,False,8.082043408
+3283,E02000890,other crime,99,Other notifiable offences,2020-06-13 09:52:00,False,179.2494716
+3183,E02000001,criminal damage and arson,58D,Other criminal damage,2020-06-15 05:23:00,False,5.39670789
+3097,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-06-15 07:39:00,False,15.17572799
+3232,E02000001,drugs,92A,Trafficking in controlled drugs,2020-06-15 17:53:00,False,512.9573594
+3098,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-06-15 18:48:00,True,15.17572799
+3265,E02000001,other crime,61,Other forgery,2020-06-15 19:35:00,True,145.800704
+3470,E02000001,shoplifting,46,Shoplifting,2020-06-16 08:05:00,False,11.85553905
+3655,E02000001,violence and sexual offences,8R,Malicious Communications,2020-06-16 21:18:00,False,15.13892861
+3173,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-06-17 09:18:00,False,5.39670789
+3321,E02000001,other theft,49,Other theft,2020-06-17 12:46:00,False,36.80988326
+3642,E02006924,violence and sexual offences,105A,Assault without injury,2020-06-17 19:50:00,False,13.51054152
+3197,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-06-18 12:11:00,True,1.770623478
+3268,E02000001,other crime,61,Other forgery,2020-06-20 10:09:00,False,145.800704
+3413,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-06-21 20:34:00,False,12.76338434
+3051,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-06-21 22:19:00,False,1.0
+3658,E02000001,violence and sexual offences,8P,Racially or religiously aggravated assault with injury,2020-06-21 22:26:00,True,312.906712
+3645,E02006924,violence and sexual offences,105A,Assault without injury,2020-06-23 08:52:00,False,13.51054152
+3107,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-06-23 10:55:00,False,15.17572799
+3151,E02000193,burglary,30C,Burglary Business and Community,2020-06-24 17:18:00,True,123.0183965
+3566,E02000001,vehicle crime,45,Theft from vehicle,2020-06-25 13:19:00,False,32.92067737
+3112,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-06-26 18:32:00,False,15.17572799
+3441,E02000001,robbery,34B,Robbery of personal property,2020-06-28 00:16:00,False,799.6288702
+3200,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-06-28 08:55:00,True,1.770623478
+3364,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-06-29 16:49:00,True,53.0382391
+3365,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-06-30 05:34:00,True,53.0382391
+3186,E02000001,criminal damage and arson,58D,Other criminal damage,2020-06-30 22:24:00,False,5.39670789
+3408,E02000001,public order,9A,"Public fear, alarm or distress",2020-06-30 23:23:00,False,6.81175759
+3742,E02000576,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-07-02 06:33:00,False,15.17572799
+4117,E02000001,shoplifting,46,Shoplifting,2020-07-02 12:07:00,False,11.85553905
+4057,E02000001,public order,9A,"Public fear, alarm or distress",2020-07-02 22:48:00,False,6.81175759
+3912,E02006801,other crime,99,Other notifiable offences,2020-07-03 11:17:00,False,179.2494716
+3919,E02000001,other crime,38,Profiting from or concealing knowledge of the proceeds of crime,2020-07-05 15:50:00,True,248.1816914
+4030,E02000001,possession of weapons,10C,Possession of other weapons,2020-07-06 13:39:00,False,52.12609711
+4278,E02000880,violence and sexual offences,5D,Assault with intent to cause serious harm,2020-07-07 09:20:00,False,2034.74186
+3705,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-07-07 13:02:00,False,15.17572799
+3934,E02000001,other theft,49,Other theft,2020-07-08 08:07:00,False,36.80988326
+4034,E02000001,possession of weapons,10C,Possession of other weapons,2020-07-10 04:42:00,False,52.12609711
+3816,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-07-10 13:37:00,False,1.770623478
+3669,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-07-10 18:55:00,False,1.0
+3854,E02006924,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-07-11 20:57:00,True,8.082043408
+3757,E02000001,burglary,30C,Burglary Business and Community,2020-07-12 16:05:00,True,123.0183965
+4169,E02000001,theft from the person,39,Theft from the person,2020-07-12 23:11:00,False,80.4051597
+4241,E02000001,vehicle crime,48,Theft or unauthorised taking of motor vehicle,2020-07-16 17:25:00,True,128.4294318
+3949,E02000001,other theft,49,Other theft,2020-07-16 19:04:00,False,36.80988326
+3951,E02000001,other theft,49,Other theft,2020-07-17 11:36:00,False,36.80988326
+3821,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-07-17 13:34:00,False,1.770623478
+3842,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-07-18 01:22:00,False,8.082043408
+4179,E02000001,theft from the person,39,Theft from the person,2020-07-18 09:11:00,False,80.4051597
+3761,E02000001,burglary,30C,Burglary Business and Community,2020-07-20 10:04:00,False,123.0183965
+3908,E02000193,other crime,99,Other notifiable offences,2020-07-20 13:44:00,True,179.2494716
+3679,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-07-21 06:07:00,False,1.0
+4013,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-07-21 09:32:00,True,53.0382391
+3960,E02000001,other theft,49,Other theft,2020-07-22 17:35:00,False,36.80988326
+4320,E02006924,violence and sexual offences,8P,Racially or religiously aggravated assault with injury,2020-07-23 06:04:00,False,312.906712
+3732,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-07-23 08:38:00,False,15.17572799
+4073,E02000001,public order,9A,"Public fear, alarm or distress",2020-07-23 10:21:00,True,6.81175759
+3777,E02000001,burglary,28E,Burglary Residential,2020-07-24 16:21:00,False,465.3814732
+4226,E02000001,vehicle crime,45,Theft from vehicle,2020-07-24 19:02:00,False,32.92067737
+3881,E02000001,other crime,33A,"Making, supplying or possessing articles for use in fraud",2020-07-24 22:24:00,False,135.274869
+4288,E02000001,violence and sexual offences,105A,Assault without injury,2020-07-25 09:13:00,True,13.51054152
+3733,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-07-25 10:43:00,False,15.17572799
+4075,E02000001,public order,9A,"Public fear, alarm or distress",2020-07-25 18:23:00,True,6.81175759
+4188,E02000001,theft from the person,39,Theft from the person,2020-07-26 11:14:00,False,80.4051597
+4145,E02000001,shoplifting,46,Shoplifting,2020-07-26 12:26:00,True,11.85553905
+3770,E02000001,burglary,30C,Burglary Business and Community,2020-07-26 19:19:00,False,123.0183965
+3735,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-07-26 23:03:00,False,15.17572799
+4190,E02000001,theft from the person,39,Theft from the person,2020-07-27 05:52:00,False,80.4051597
+4191,E02000001,theft from the person,39,Theft from the person,2020-07-27 15:49:00,False,80.4051597
+4024,E02000001,possession of weapons,10B,Possession of firearms offences,2020-07-28 12:58:00,False,412.2023946
+4148,E02000001,shoplifting,46,Shoplifting,2020-07-28 21:39:00,True,11.85553905
+3773,E02000001,burglary,30C,Burglary Business and Community,2020-07-29 08:39:00,False,123.0183965
+4084,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-07-29 08:42:00,True,12.76338434
+4256,E02000001,violence and sexual offences,8N,Assault with injury,2020-07-29 17:56:00,False,189.1538871
+3850,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-07-30 05:58:00,True,8.082043408
+4300,E02000183,violence and sexual offences,105A,Assault without injury,2020-07-31 01:53:00,False,13.51054152
+4361,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-08-01 09:26:00,False,15.17572799
+4751,E02000001,shoplifting,46,Shoplifting,2020-08-01 14:43:00,True,11.85553905
+4364,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-08-02 15:10:00,False,15.17572799
+4853,E02000001,vehicle crime,45,Theft from vehicle,2020-08-04 11:14:00,False,32.92067737
+4625,E02000187,other theft,49,Other theft,2020-08-04 17:09:00,False,36.80988326
+4683,E02000001,public order,9A,"Public fear, alarm or distress",2020-08-08 14:39:00,False,6.81175759
+4761,E02000001,shoplifting,46,Shoplifting,2020-08-08 18:07:00,True,11.85553905
+4375,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-08-09 15:54:00,False,15.17572799
+4699,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-08-11 08:06:00,True,12.76338434
+4543,E02000001,other crime,33A,"Making, supplying or possessing articles for use in fraud",2020-08-12 08:57:00,True,135.274869
+4862,E02000001,vehicle crime,45,Theft from vehicle,2020-08-12 09:25:00,False,32.92067737
+4863,E02000001,vehicle crime,45,Theft from vehicle,2020-08-12 10:51:00,False,32.92067737
+4380,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-08-13 14:34:00,False,15.17572799
+4817,E02000001,theft from the person,39,Theft from the person,2020-08-13 21:24:00,False,80.4051597
+4384,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-08-15 14:28:00,False,15.17572799
+4605,E02000001,other theft,49,Other theft,2020-08-16 17:45:00,True,36.80988326
+4776,E02000001,shoplifting,46,Shoplifting,2020-08-16 17:55:00,False,11.85553905
+4470,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-08-17 00:57:00,False,5.39670789
+4779,E02000001,shoplifting,46,Shoplifting,2020-08-17 10:57:00,False,11.85553905
+4951,E02006924,violence and sexual offences,105A,Assault without injury,2020-08-19 16:12:00,False,13.51054152
+4824,E02000001,theft from the person,39,Theft from the person,2020-08-20 10:47:00,False,80.4051597
+4395,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-08-20 20:51:00,False,15.17572799
+4396,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-08-20 22:45:00,False,15.17572799
+4965,E02000001,violence and sexual offences,8R,Malicious Communications,2020-08-23 03:02:00,True,15.13892861
+4500,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-08-23 19:15:00,False,1.770623478
+4575,E02000001,other crime,38,Profiting from or concealing knowledge of the proceeds of crime,2020-08-24 14:31:00,False,248.1816914
+4830,E02000001,theft from the person,39,Theft from the person,2020-08-24 18:21:00,False,80.4051597
+4788,E02000001,shoplifting,46,Shoplifting,2020-08-24 22:56:00,True,11.85553905
+4937,E02000001,violence and sexual offences,105A,Assault without injury,2020-08-26 08:52:00,False,13.51054152
+4665,E02000001,possession of weapons,10C,Possession of other weapons,2020-08-27 07:07:00,False,52.12609711
+4792,E02000001,shoplifting,46,Shoplifting,2020-08-28 09:45:00,False,11.85553905
+4525,E02000808,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-08-28 20:34:00,False,8.082043408
+4353,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-08-28 22:19:00,False,1.0
+4445,E02000001,burglary,30C,Burglary Business and Community,2020-08-29 08:17:00,False,123.0183965
+4466,E02000001,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-08-29 20:05:00,True,5.39670789
+4535,E02000001,drugs,92A,Trafficking in controlled drugs,2020-08-30 09:22:00,True,512.9573594
+5074,E02000001,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-09-01 12:01:00,False,5.39670789
+5277,E02000890,other theft,49,Other theft,2020-09-02 11:36:00,False,36.80988326
+5219,E02000001,other theft,49,Other theft,2020-09-03 10:54:00,False,36.80988326
+5131,E02000189,drugs,92E,Possession of controlled drugs (Cannabis),2020-09-03 18:21:00,True,1.770623478
+5221,E02000001,other theft,49,Other theft,2020-09-04 20:58:00,False,36.80988326
+5607,E02000183,violence and sexual offences,105B,Racially or religiously aggravated assault without injury,2020-09-05 10:49:00,False,30.76323605
+5528,E02000183,violence and sexual offences,19C,Rape of a female aged 16 and over,2020-09-05 16:12:00,False,2952.940993
+5148,E02000189,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-09-06 01:17:00,True,8.082043408
+5492,E02000001,vehicle crime,45,Theft from vehicle,2020-09-06 14:27:00,False,32.92067737
+5310,E02000001,possession of weapons,10C,Possession of other weapons,2020-09-07 01:19:00,False,52.12609711
+5475,E02000574,theft from the person,39,Theft from the person,2020-09-07 11:15:00,False,80.4051597
+5438,E02000001,theft from the person,39,Theft from the person,2020-09-08 10:18:00,False,80.4051597
+5224,E02000001,other theft,49,Other theft,2020-09-08 11:48:00,False,36.80988326
+5227,E02000001,other theft,49,Other theft,2020-09-09 11:20:00,False,36.80988326
+5346,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-09-09 19:30:00,False,12.76338434
+5347,E02000001,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-09-10 00:29:00,False,12.76338434
+5267,E02000187,other theft,49,Other theft,2020-09-10 08:30:00,False,36.80988326
+5283,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-09-10 08:37:00,True,53.0382391
+5017,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-09-10 10:39:00,True,15.17572799
+5188,E02000001,other crime,99,Other notifiable offences,2020-09-10 12:16:00,True,179.2494716
+4985,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-09-10 15:37:00,False,1.0
+5441,E02000001,theft from the person,39,Theft from the person,2020-09-10 19:04:00,False,80.4051597
+5609,E02006924,violence and sexual offences,8Q,Stalking,2020-09-10 22:41:00,False,56.34970967
+5343,E02000809,public order,9A,"Public fear, alarm or distress",2020-09-11 18:40:00,False,6.81175759
+5589,E02006924,violence and sexual offences,105A,Assault without injury,2020-09-12 00:16:00,False,13.51054152
+5268,E02000187,other theft,49,Other theft,2020-09-12 18:44:00,False,36.80988326
+5050,E02000001,burglary,30D,Attempted Burglary Business and Community,2020-09-14 06:53:00,True,123.0183965
+5091,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-09-14 13:11:00,False,5.39670789
+5445,E02000001,theft from the person,39,Theft from the person,2020-09-14 17:33:00,False,80.4051597
+5302,E02000001,possession of weapons,10B,Possession of firearms offences,2020-09-15 10:00:00,True,412.2023946
+5169,E02000871,other crime,33,"Going equipped for stealing, etc",2020-09-18 04:38:00,True,31.25076655
+5373,E02000001,robbery,34B,Robbery of personal property,2020-09-19 09:37:00,False,799.6288702
+5504,E02000001,vehicle crime,45,Theft from vehicle,2020-09-20 04:56:00,False,32.92067737
+5293,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-09-21 16:27:00,False,53.0382391
+5252,E02000001,other theft,49,Other theft,2020-09-22 07:47:00,False,36.80988326
+5213,E02000001,other crime,38,Profiting from or concealing knowledge of the proceeds of crime,2020-09-22 15:59:00,True,248.1816914
+5108,E02000878,criminal damage and arson,58D,Other criminal damage,2020-09-22 17:59:00,True,5.39670789
+5065,E02000001,burglary,30C,Burglary Business and Community,2020-09-23 02:16:00,True,123.0183965
+5417,E02000001,shoplifting,46,Shoplifting,2020-09-23 13:55:00,False,11.85553905
+5505,E02000001,vehicle crime,45,Theft from vehicle,2020-09-23 14:32:00,False,32.92067737
+5177,E02000001,other crime,61,Other forgery,2020-09-23 20:01:00,False,145.800704
+5207,E02000001,other crime,61A,Possession of false documents,2020-09-25 14:37:00,True,193.6861178
+5208,E02000001,other crime,61A,Possession of false documents,2020-09-25 14:45:00,False,193.6861178
+5468,E02000001,theft from the person,39,Theft from the person,2020-09-26 08:30:00,False,80.4051597
+5572,E02000001,violence and sexual offences,105A,Assault without injury,2020-09-26 17:22:00,True,13.51054152
+5260,E02000001,other theft,49,Other theft,2020-09-28 00:08:00,False,36.80988326
+5096,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-09-28 06:51:00,True,5.39670789
+5473,E02000001,theft from the person,39,Theft from the person,2020-09-28 16:18:00,False,80.4051597
+5354,E02000890,public order,9B,"Racially or religiously aggravated public fear, alarm or distress",2020-09-28 18:31:00,False,12.76338434
+5043,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-09-30 12:53:00,False,15.17572799
+5342,E02000001,public order,9A,"Public fear, alarm or distress",2020-09-30 22:21:00,False,6.81175759
+5826,E02000001,other crime,33,"Going equipped for stealing, etc",2020-10-01 01:42:00,False,31.25076655
+5801,E02006924,drugs,92E,Possession of controlled drugs (Cannabis),2020-10-01 17:33:00,True,1.770623478
+5833,E02000001,other crime,54,Handling stolen goods,2020-10-02 22:23:00,True,55.13528999
+5662,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-10-03 13:04:00,False,15.17572799
+6148,E02000576,shoplifting,46,Shoplifting,2020-10-04 15:02:00,False,11.85553905
+6302,E02006924,violence and sexual offences,105A,Assault without injury,2020-10-05 00:58:00,False,13.51054152
+5864,E02000001,other crime,61A,Possession of false documents,2020-10-06 10:58:00,False,193.6861178
+5882,E02000001,other theft,49,Other theft,2020-10-06 14:05:00,False,36.80988326
+5883,E02000001,other theft,49,Other theft,2020-10-06 14:41:00,False,36.80988326
+5755,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-10-06 22:48:00,False,5.39670789
+5616,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-10-07 02:27:00,False,1.0
+6280,E02000001,violence and sexual offences,105A,Assault without injury,2020-10-07 10:12:00,True,13.51054152
+6251,E02000001,violence and sexual offences,8N,Assault with injury,2020-10-08 10:25:00,False,189.1538871
+5621,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-10-09 04:07:00,False,1.0
+5862,E02006801,other crime,79,Perverting the course of justice,2020-10-09 08:36:00,False,168.73846
+6205,E02000001,vehicle crime,45,Theft from vehicle,2020-10-10 09:43:00,False,32.92067737
+5816,E02000001,drugs,92A,Trafficking in controlled drugs,2020-10-10 14:30:00,True,512.9573594
+5955,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-10-10 22:23:00,False,53.0382391
+5624,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-10-11 05:40:00,False,1.0
+6100,E02000001,shoplifting,46,Shoplifting,2020-10-12 08:44:00,False,11.85553905
+6295,E02000183,violence and sexual offences,105A,Assault without injury,2020-10-14 09:12:00,False,13.51054152
+6040,E02000001,public order,62A,Violent disorder,2020-10-16 15:46:00,True,362.8964537
+5717,E02000001,burglary,30C,Burglary Business and Community,2020-10-17 22:57:00,False,123.0183965
+5765,E02000001,criminal damage and arson,58D,Other criminal damage,2020-10-18 03:47:00,False,5.39670789
+5902,E02000001,other theft,49,Other theft,2020-10-18 10:31:00,False,36.80988326
+6111,E02000001,shoplifting,46,Shoplifting,2020-10-18 15:33:00,False,11.85553905
+6311,E02006924,violence and sexual offences,105A,Assault without injury,2020-10-18 19:19:00,False,13.51054152
+5906,E02000001,other theft,49,Other theft,2020-10-19 00:01:00,False,36.80988326
+5962,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-10-19 12:31:00,True,53.0382391
+6255,E02000001,violence and sexual offences,8N,Assault with injury,2020-10-19 19:10:00,False,189.1538871
+5720,E02000001,burglary,30C,Burglary Business and Community,2020-10-21 09:43:00,False,123.0183965
+6241,E02000183,violence and sexual offences,88E,Exposure and voyeurism,2020-10-22 12:00:00,False,39.92200196
+5921,E02000001,other theft,49,Other theft,2020-10-24 08:47:00,False,36.80988326
+6313,E02006924,violence and sexual offences,105A,Assault without injury,2020-10-24 09:18:00,False,13.51054152
+5846,E02000001,other crime,61,Other forgery,2020-10-24 14:13:00,True,145.800704
+5646,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-10-24 19:06:00,False,1.0
+6080,E02000001,robbery,34B,Robbery of personal property,2020-10-25 22:47:00,False,799.6288702
+5769,E02000001,criminal damage and arson,58D,Other criminal damage,2020-10-26 01:21:00,False,5.39670789
+5944,E02000187,other theft,49,Other theft,2020-10-26 10:35:00,False,36.80988326
+6178,E02000001,theft from the person,39,Theft from the person,2020-10-26 13:38:00,False,80.4051597
+6180,E02000001,theft from the person,39,Theft from the person,2020-10-27 01:23:00,False,80.4051597
+6183,E02000001,theft from the person,39,Theft from the person,2020-10-27 23:37:00,False,80.4051597
+5724,E02000001,burglary,30C,Burglary Business and Community,2020-10-28 14:47:00,False,123.0183965
+6137,E02000001,shoplifting,46,Shoplifting,2020-10-28 21:32:00,True,11.85553905
+6337,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-11-01 01:27:00,False,1.0
+6595,E02000001,other theft,49,Other theft,2020-11-02 17:16:00,False,36.80988326
+6942,E02000001,violence and sexual offences,105A,Assault without injury,2020-11-02 20:33:00,True,13.51054152
+6988,E02000001,violence and sexual offences,8P,Racially or religiously aggravated assault with injury,2020-11-03 12:10:00,False,312.906712
+6597,E02000001,other theft,49,Other theft,2020-11-04 12:54:00,False,36.80988326
+6823,E02000001,theft from the person,39,Theft from the person,2020-11-04 15:23:00,False,80.4051597
+6433,E02000878,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-11-04 22:44:00,False,15.17572799
+6485,E02000001,criminal damage and arson,58D,Other criminal damage,2020-11-05 10:15:00,True,5.39670789
+6496,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-11-05 21:36:00,True,1.770623478
+6602,E02000001,other theft,49,Other theft,2020-11-06 16:17:00,False,36.80988326
+6498,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-11-06 19:23:00,False,1.770623478
+6468,E02000001,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-11-07 10:35:00,False,5.39670789
+6480,E02000001,criminal damage and arson,58C,Criminal damage to a vehicle,2020-11-09 12:06:00,False,5.39670789
+6949,E02000001,violence and sexual offences,105A,Assault without injury,2020-11-09 13:31:00,True,13.51054152
+6401,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-11-10 16:22:00,False,15.17572799
+6982,E02000183,violence and sexual offences,104,Assault without injury on a constable,2020-11-11 19:01:00,False,7.54380645
+6502,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-11-11 22:59:00,True,1.770623478
+6985,E02000001,violence and sexual offences,8R,Malicious Communications,2020-11-12 11:00:00,False,15.13892861
+6796,E02000001,shoplifting,46,Shoplifting,2020-11-12 13:24:00,False,11.85553905
+6662,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-11-12 20:39:00,True,53.0382391
+6952,E02000001,violence and sexual offences,105A,Assault without injury,2020-11-12 22:58:00,True,13.51054152
+6717,E02000001,public order,9A,"Public fear, alarm or distress",2020-11-13 15:07:00,False,6.81175759
+6719,E02000001,public order,9A,"Public fear, alarm or distress",2020-11-14 12:37:00,False,6.81175759
+6955,E02000001,violence and sexual offences,105A,Assault without injury,2020-11-14 18:03:00,False,13.51054152
+6940,E02006924,violence and sexual offences,8S,Assault with injury on a constable,2020-11-14 19:08:00,False,401.4243971
+6884,E02000001,vehicle crime,45,Theft from vehicle,2020-11-15 12:36:00,False,32.92067737
+6504,E02000001,drugs,92E,Possession of controlled drugs (Cannabis),2020-11-15 20:11:00,False,1.770623478
+6688,E02000001,possession of weapons,10C,Possession of other weapons,2020-11-16 15:23:00,True,52.12609711
+6369,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-11-17 22:38:00,False,1.0
+6483,E02000890,criminal damage and arson,58C,Criminal damage to a vehicle,2020-11-18 11:05:00,False,5.39670789
+6921,E02000001,violence and sexual offences,8N,Assault with injury,2020-11-18 22:28:00,False,189.1538871
+6692,E02000001,possession of weapons,10C,Possession of other weapons,2020-11-19 10:41:00,True,52.12609711
+6803,E02000001,shoplifting,46,Shoplifting,2020-11-19 13:45:00,True,11.85553905
+6914,E02000001,violence and sexual offences,88E,Exposure and voyeurism,2020-11-20 16:41:00,True,39.92200196
+6460,E02000001,burglary,30C,Burglary Business and Community,2020-11-21 11:08:00,True,123.0183965
+6375,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-11-23 06:40:00,False,1.0
+6984,E02006924,violence and sexual offences,36,Kidnapping,2020-11-23 14:27:00,False,1216.814993
+6725,E02000001,public order,9A,"Public fear, alarm or distress",2020-11-23 19:17:00,False,6.81175759
+6738,E02000001,robbery,34A,Robbery of business property,2020-11-23 19:56:00,False,799.6288702
+6693,E02000001,possession of weapons,10C,Possession of other weapons,2020-11-24 10:00:00,True,52.12609711
+6626,E02000001,other theft,49,Other theft,2020-11-25 10:04:00,False,36.80988326
+6630,E02000001,other theft,49,Other theft,2020-11-26 21:42:00,False,36.80988326
+6584,E02000001,other crime,61A,Possession of false documents,2020-11-27 09:38:00,False,193.6861178
+6895,E02000001,vehicle crime,45,Theft from vehicle,2020-11-27 11:33:00,False,32.92067737
+6776,E02000001,robbery,34B,Robbery of personal property,2020-11-28 03:44:00,False,799.6288702
+6941,E02000001,violence and sexual offences,5D,Assault with intent to cause serious harm,2020-11-28 13:51:00,True,2034.74186
+6897,E02000001,vehicle crime,45,Theft from vehicle,2020-11-28 16:19:00,False,32.92067737
+6591,E02000001,other theft,49A,Making off without payment,2020-11-28 18:04:00,False,7.005610687
+6490,E02000001,criminal damage and arson,58D,Other criminal damage,2020-11-29 03:48:00,False,5.39670789
+6548,E02000001,other crime,33,"Going equipped for stealing, etc",2020-11-29 04:56:00,False,31.25076655
+6816,E02000001,shoplifting,46,Shoplifting,2020-11-29 08:34:00,False,11.85553905
+6899,E02000001,vehicle crime,45,Theft from vehicle,2020-11-29 12:11:00,False,32.92067737
+6638,E02000001,other theft,49,Other theft,2020-11-29 13:31:00,False,36.80988326
+6695,E02000001,possession of weapons,10C,Possession of other weapons,2020-11-30 05:55:00,False,52.12609711
+7581,E02000001,vehicle crime,45,Theft from vehicle,2020-12-02 09:25:00,False,32.92067737
+7691,E02006924,violence and sexual offences,105A,Assault without injury,2020-12-04 23:17:00,False,13.51054152
+7526,E02000001,theft from the person,39,Theft from the person,2020-12-06 07:16:00,False,80.4051597
+7260,E02000001,other theft,49,Other theft,2020-12-06 23:36:00,False,36.80988326
+7474,E02000001,shoplifting,46,Shoplifting,2020-12-07 08:41:00,True,11.85553905
+7262,E02000001,other theft,49,Other theft,2020-12-07 14:08:00,False,36.80988326
+7586,E02000001,vehicle crime,45,Theft from vehicle,2020-12-07 16:02:00,False,32.92067737
+7678,E02000183,violence and sexual offences,105A,Assault without injury,2020-12-07 23:51:00,False,13.51054152
+7587,E02000001,vehicle crime,45,Theft from vehicle,2020-12-08 12:07:00,False,32.92067737
+7529,E02000001,theft from the person,39,Theft from the person,2020-12-08 22:10:00,False,80.4051597
+7328,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-12-08 23:14:00,True,53.0382391
+7090,E02000001,burglary,30C,Burglary Business and Community,2020-12-08 23:41:00,True,123.0183965
+7011,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-12-08 23:51:00,False,1.0
+7386,E02000001,public order,66,Other offences against the State or public order,2020-12-09 11:05:00,False,72.50873282
+7531,E02000001,theft from the person,39,Theft from the person,2020-12-10 06:17:00,False,80.4051597
+7273,E02000001,other theft,49,Other theft,2020-12-12 18:39:00,False,36.80988326
+7648,E02000183,violence and sexual offences,8N,Assault with injury,2020-12-12 20:14:00,False,189.1538871
+7216,E02000001,other crime,61,Other forgery,2020-12-14 11:13:00,True,145.800704
+7099,E02000001,burglary,30C,Burglary Business and Community,2020-12-14 23:37:00,True,123.0183965
+7207,E02000001,other crime,54,Handling stolen goods,2020-12-16 11:21:00,False,55.13528999
+7719,E02006924,violence and sexual offences,8Q,Stalking,2020-12-17 18:55:00,False,56.34970967
+7627,E02000001,vehicle crime,48,Theft or unauthorised taking of motor vehicle,2020-12-18 16:52:00,False,128.4294318
+7018,E02000001,anti-social behaviour,(asb),Anti-social behaviour,2020-12-19 13:39:00,False,1.0
+7120,E02000001,criminal damage and arson,58B,Criminal damage to a building other than a dwelling,2020-12-19 14:14:00,True,5.39670789
+7455,E02000001,robbery,34B,Robbery of personal property,2020-12-20 18:43:00,False,799.6288702
+7201,E02000001,other crime,33,"Going equipped for stealing, etc",2020-12-21 01:57:00,False,31.25076655
+7656,E02006924,violence and sexual offences,8N,Assault with injury,2020-12-21 23:42:00,False,189.1538871
+7609,E02000001,vehicle crime,45,Theft from vehicle,2020-12-22 14:06:00,False,32.92067737
+7181,E02000001,drugs,92D,Possession of controlled drugs (excl. Cannabis),2020-12-22 21:09:00,True,8.082043408
+7413,E02000001,public order,9A,"Public fear, alarm or distress",2020-12-24 08:46:00,False,6.81175759
+7070,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-12-24 12:39:00,False,15.17572799
+7194,E02000189,drugs,92A,Trafficking in controlled drugs,2020-12-24 13:00:00,True,512.9573594
+7166,E02000812,drugs,92E,Possession of controlled drugs (Cannabis),2020-12-24 16:52:00,True,1.770623478
+7202,E02000001,other crime,33,"Going equipped for stealing, etc",2020-12-25 03:39:00,True,31.25076655
+7344,E02000001,possession of weapons,10D,Possession of article with blade or point,2020-12-25 06:12:00,False,53.0382391
+7376,E02000001,possession of weapons,10C,Possession of other weapons,2020-12-25 21:04:00,False,52.12609711
+7299,E02000001,other theft,49,Other theft,2020-12-26 02:56:00,False,36.80988326
+7394,E02000001,public order,66,Other offences against the State or public order,2020-12-27 07:47:00,False,72.50873282
+7657,E02006924,violence and sexual offences,8N,Assault with injury,2020-12-27 11:37:00,False,189.1538871
+7672,E02000001,violence and sexual offences,105A,Assault without injury,2020-12-27 14:16:00,False,13.51054152
+7509,E02000001,shoplifting,46,Shoplifting,2020-12-27 22:37:00,False,11.85553905
+7674,E02000001,violence and sexual offences,105A,Assault without injury,2020-12-28 09:48:00,True,13.51054152
+7076,E02000001,bicycle theft,44,Theft or unauthorised taking of a pedal cycle,2020-12-28 10:14:00,False,15.17572799
+7314,E02000187,other theft,49,Other theft,2020-12-28 16:58:00,False,36.80988326
+7380,E02000001,possession of weapons,10C,Possession of other weapons,2020-12-29 05:50:00,False,52.12609711
+7220,E02000001,other crime,61,Other forgery,2020-12-29 08:53:00,False,145.800704
+7576,E02000890,theft from the person,39,Theft from the person,2020-12-29 20:56:00,False,80.4051597
+7417,E02000001,public order,9A,"Public fear, alarm or distress",2020-12-29 22:15:00,False,6.81175759
+7306,E02000001,other theft,49,Other theft,2020-12-30 08:14:00,False,36.80988326
+7309,E02000001,other theft,49,Other theft,2020-12-30 17:02:00,False,36.80988326
