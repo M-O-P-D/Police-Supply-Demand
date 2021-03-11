@@ -5,12 +5,12 @@ from crims import model
 import warnings
 warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
 
-#no.verbose()
+no.verbose()
 
 start_year = 2020
 end_year = 2021
-force = "West Yorkshire"
-#force = "City of London"
+#force = "West Yorkshire"
+force = "City of London"
 
 model = model.CrimeMicrosim(force, (start_year, 1), (end_year, 1))
 
@@ -22,7 +22,7 @@ model = model.CrimeMicrosim(force, (start_year, 1), (end_year, 1))
 
 no.run(model)
 
-model.crimes.to_csv("./data/crime_sample.csv")
+model.crimes.sample(n=500).sort_values(by="time").to_csv("./data/crime_sample.csv")
 #print(model.crimes.sample(10))
 
 

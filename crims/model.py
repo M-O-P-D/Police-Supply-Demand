@@ -89,18 +89,19 @@ class CrimeMicrosim(no.Model):
             if len(times) > 0:
               d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
               s = self.mc().hazard(p_suspect, len(times)).astype(bool)
-              df = pd.DataFrame(index=range(len(d)), data={"MSOA": g,
+              df = pd.DataFrame(index=no.df.unique_index(len(d)), data={"MSOA": g,
                                                           "crime_type": ct,
                                                           "code": subcat.code_original,
                                                           "description": subcat.description,
                                                           "time": d,
                                                           "suspect": s,
                                                           "severity": subcat.ONS_SEVERITY_weight })
-              crimes = crimes.append(df, ignore_index=True)
+              crimes = crimes.append(df)
 
     # round to nearest minute
+    crimes.index.name = "id"
     crimes["time"] = crimes["time"].round("min")
-    return crimes.set_index(["MSOA", "crime_type"], drop=True)
+    return crimes
 
 
   def checkpoint(self):

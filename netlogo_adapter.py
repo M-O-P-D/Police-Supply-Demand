@@ -46,12 +46,12 @@ if __name__ == "__main__":
   init_model("City of London", 2020, 1)
 
   print(get_time())
-  crimes = pd.read_csv(StringIO(get_crimes(1.0)))
+  crimes = pd.read_csv(StringIO(get_crimes(1.0)), index_col="id")
   print(crimes.head())
   print(len(crimes))
 
   print(get_time())
-  crimes = pd.read_csv(StringIO(get_crimes(0.5)))
+  crimes = pd.read_csv(StringIO(get_crimes(0.5)), index_col="id")
   print(crimes.head())
   print(len(crimes))
 
