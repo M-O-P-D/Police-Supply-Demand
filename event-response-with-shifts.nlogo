@@ -169,9 +169,9 @@ to setup
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
-  let y-dim-resource-temp (number-resources / 20) - 1
+  let y-dim-resource-temp (number-resources / 10) - 1
 
-  resize-world 0 19 0 y-dim-resource-temp
+  resize-world 0 9 0 y-dim-resource-temp
 
 
   ;initialize shift bools
@@ -453,7 +453,7 @@ to-report convert-severity-to-resource-amount  [ resource-time ]
   let mean-amount ceiling (resource-time / 8)
   ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
   let amount (ceiling random-poisson mean-amount)
-  show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
+  ;show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
   report amount
 end
 
@@ -464,7 +464,7 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   let sd-time (severity / 500)
   ;in this 'stupid' case just apply a random normal to that time to get the actual time to return - and make sure it's a positive number with ABS - HACK
   let time abs round random-normal mean-time sd-time
-  show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
+  ;show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
   report time
 end
 
@@ -479,7 +479,7 @@ to-report convert-severity-to-event-priority [ severity ]
     [ set priority 2 ]
     [ set priority 3 ]
   ]
-  show (word severity " ONS CSS - priority=" priority)
+  ;show (word severity " ONS CSS - priority=" priority)
   report priority
 end
 
@@ -1050,10 +1050,10 @@ GRAPHICS-WINDOW
 205
 10
 378
-786
+316
 -1
 -1
-8.25
+16.5
 1
 10
 1
@@ -1064,9 +1064,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-19
+9
 0
-92
+17
 0
 0
 1
@@ -1099,7 +1099,7 @@ number-resources
 number-resources
 60
 5000
-1860.0
+180.0
 60
 1
 NIL
