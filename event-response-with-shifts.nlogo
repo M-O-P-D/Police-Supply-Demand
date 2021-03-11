@@ -346,13 +346,8 @@ to read-events
       ;pull the top row from the data
       let temp item 0 event-data
 
-
-      print temp
-
       ;construct a date
       let temp-dt time:create-with-format (item 5 temp) "yyyy-MM-dd HH:mm:ss"
-
-      ;user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
 
       ;check if the event occurs at current tick - which is one hour window
       ifelse (time:is-between? temp-dt dt (time:plus dt 59 "minutes"))
@@ -1322,7 +1317,7 @@ SWITCH
 533
 VERBOSE
 VERBOSE
-1
+0
 1
 -1000
 
@@ -1399,7 +1394,7 @@ CHOOSER
 demand-events
 demand-events
 "CriMS-Interface" "Flat-file"
-1
+0
 
 SWITCH
 10
@@ -1934,7 +1929,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
