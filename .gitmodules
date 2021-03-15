@@ -1,4 +1,0 @@
-[submodule "Police-Supply-Demand"]
-	path = Police-Supply-Demand
-	url = git@github.com:danbirks/Police-Supply-Demand
-	branch = master
