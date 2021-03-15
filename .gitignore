@@ -1,5 +1,6 @@
 #gitignore file
 .venv*
+.env
 crims/
 data
 
@@ -9,3 +10,4 @@ model-output/*
 
 
 *.tmp.nlogo
+
