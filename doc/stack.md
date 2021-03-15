@@ -8,15 +8,19 @@ The models interact in a lock-step manner with feedback: the microsimulation sup
 
 The NetLogo ABM, via the python plugin, initialises and runs the microsimulation model, which is set to halt after each timestep. Once the ABM has consumed the simulated crime data for that timestep, NetLogo signals to the model to resume execution (possibly providing altered sampling parameters).
 
-Police-Supply-Demand (crims-integration branch) is a submodule inside the crims repo (for now) but can also be run from a separate repo. Because Netlogo automatically changes its working directory to the one containing the netlogo code, you must provide a *relative path from there to the location of the `crims` data directory*, plus ensure the python code is accessible using `PYTHONPATH`.
+Police-Supply-Demand is a separate repo (for now). Because Netlogo automatically changes its working directory to the one containing the netlogo code, you must provide
 
-So, for example, to run the Netlogo model in the summodule, specifify the following environment variables:
+- a python environment (e.g. conda, virtualenv) with the `crims` dependencies installed
+- a `.env` file containing the location or the `crims` input data sets and the decryption key
+- a `PYTHONPATH` pointing to the `crims` data directory, plus ensure the python code is accessible using `PYTHONPATH`.
+
+Then, run the Netlogo model *from within your python environment*, specifying the PYTHONPATH from above:
 
 ```bash
-CRIMS_DATA_PATH=../data PYTHONPATH=$(pwd) ~/NetLogo\ 6.2.0/NetLogo
+PYTHONPATH=/mnt/data/dev/MOPD/crims:$PYTHONPATH ~/NetLogo\ 6.2.0/NetLogo
 ```
 
-(above commands should be run from the crims repo root directory)
+(this will be simpler when the repos are merged)
 
 ## Model Stack 2
 

@@ -15,7 +15,7 @@ class CrimeMicrosim(no.Model):
       timeline = no.CalendarTimeline(date(start[0], start[1], 1), date(end[0], end[1], 1), 1, "m")
     else:
       timeline = no.CalendarTimeline(date(start[0], start[1], 1), 1, "m")
-    super().__init__(timeline, no.MonteCarlo.nondeterministic_stream)
+    super().__init__(timeline, no.MonteCarlo.deterministic_identical_stream) #.nondeterministic_stream)
 
     # this controls whether the model yields to the caller after each timestep, or runs to the end (aggregating all the data)
     self.__aggregate = agg_mode
