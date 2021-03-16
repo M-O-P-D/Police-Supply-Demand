@@ -8,7 +8,7 @@
 4. start netlogo (from within your virtualenv if you're using one)
 5. run the netlogo model. Note that netlogo sets its current working directory to the one containing the netlogo code
 
-Run the netlogo model from the crims repo (where this repo is now a submodule). See [here](https://github.com/M-O-P-D/crims/blob/master/doc/stack.md) for instructions.
+See [here](https://github.com/M-O-P-D/crims/blob/master/doc/stack.md) for instructions.
 ## Docker container
 
 **DEPRECATED, now done [here](https://github.com/M-O-P-D/crims/blob/master/README.md#docker)**
