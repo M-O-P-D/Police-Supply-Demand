@@ -2,12 +2,11 @@
 
 ## CriMS integration
 
-~~1. clone the *M-O-P-D/crims* repo if you don't have it already, or ensure it's up-to-date
-2. run the script `get_crims.py` (it assumes crims and this repo have a common parent directory)
-4. initialise your python (3) environment (ideally use a virtualenv) - `pip install -r requirements.txt`
-5. ensure the python integration is working by running `python netlogo_adapter.py`. You should get some crimes displayed (and no errors)
-6. start netlogo (from within your virtualenv if you're using one)
-7. run the netlogo model~~
+1. clone the *M-O-P-D/crims* repo (e.g. alongside this one) if you don't have it already, or ensure it's up-to-date
+2. initialise your python (3) environment (ideally use a virtualenv) - `pip install -r ../crims/requirements.txt`
+3. ensure the python integration is working by running `PYTHONPATH=../crims python ../crims/netlogo_adapter.py`. You should get some crime data displayed (and no errors)
+4. start netlogo (from within your virtualenv if you're using one)
+5. run the netlogo model. Note that netlogo sets its current working directory to the one containing the netlogo code
 
 Run the netlogo model from the crims repo (where this repo is now a submodule). See [here](https://github.com/M-O-P-D/crims/blob/master/doc/stack.md) for instructions.
 ## Docker container
