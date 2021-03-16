@@ -1,11 +1,10 @@
 #gitignore file
 .venv*
-crims/
+.env
 data
 
 # folders
 relevant-data/*
 model-output/*
-
 
 *.tmp.nlogo
