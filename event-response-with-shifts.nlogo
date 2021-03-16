@@ -1,4 +1,4 @@
-extensions [csv table time pathdir py shell]
+extensions [csv table time pathdir py]
 
 globals
 [
@@ -25,7 +25,7 @@ globals
   loading-factor   ; over/undersampling of historic data
 ]
 
-;Events store demand - the things the police must respond to
+;Events store demand - the things the police muct respond to
 breed [events event]
 
 ;Resource store supply the thing police use to respond to demand - each unit nominally represents a single officer
@@ -131,8 +131,7 @@ end
 
 ; exchange data with downstream model - f is a blanket loading factor for crime intensity
 to-report pycrimes [f]
-  ; let call (word "get_crimes(" f ")")
-  let call (word "pop_crimes()")
+  let call (word "get_crimes(" f ")")
   report py:runresult call
 end
 
@@ -144,18 +143,16 @@ to setup
   ca
   reset-ticks
 
-  print (word "crims location:" shell:getenv "PYTHONPATH")
-
   if demand-events = "CriMS-Interface"
   [
-    ; init python session
-    py:setup py:python
-    py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, pop_crimes"
+  ; init python session
+  py:setup py:python
+  py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes"
 
-    set force-area Force
-    set loading-factor 1.0
-    ; TODO year/month is hard-coded below
-    py:run (word "init_model('" force-area "', "2020", "7")")
+  set force-area Force
+  set loading-factor 1.0
+  ; TODO year/month is hard-coded below
+  py:run (word "init_model('" force-area "', "2020", "7")")
   ]
 
   ;create folder path to store results based on settings
@@ -172,9 +169,9 @@ to setup
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
-  let y-dim-resource-temp (number-resources / 20) - 1
+  let y-dim-resource-temp (number-resources / 10) - 1
 
-  resize-world 0 19 0 y-dim-resource-temp
+  resize-world 0 9 0 y-dim-resource-temp
 
 
   ;initialize shift bools
@@ -194,7 +191,7 @@ to setup
     ]
   ]
 
-  ;if shifts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
+  ;if shfts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
   if Shifts
   [
     let third-split-unit ((y-dim-resource-temp + 1) / 3)
@@ -210,13 +207,10 @@ to setup
   ;read in the event data
 
 
-  ; if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/06/30 22:00" print event-data]
-  if demand-events = "Flat-file" [
-    print "Reading Event Data from flat-file ......" set event-data csv:from-file "input-data/CriMS-Sample.csv"
-    set event-data remove-item 0 event-data ;remove top (header) row
-  ]
+  if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/06/30 22:00" print event-data]
+  if demand-events = "Flat-file" [ print "Reading Event Data from flat-file ......" set event-data csv:from-file "input-data/CriMS-Sample.csv" set dt time:create "2020/01/01 7:00" ]
 
-  set dt time:create "2020/01/01 0:00"
+  set event-data remove-item 0 event-data ;remove top (header) row
 
 end
 
@@ -343,11 +337,6 @@ to read-events
   ;0    E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
   ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 
-  if demand-events = "CriMS-Interface" [
-    set event-data csv:from-string (pycrimes(loading-factor))
-    set event-data remove-item 0 event-data ;remove top (header) row
-  ]
-
   let hour-end FALSE
 
   if length event-data > 1
@@ -357,12 +346,8 @@ to read-events
       ;pull the top row from the data
       let temp item 0 event-data
 
-      print temp
-
       ;construct a date
       let temp-dt time:create-with-format (item 5 temp) "yyyy-MM-dd HH:mm:ss"
-
-      ;user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
 
       ;check if the event occurs at current tick - which is one hour window
       ifelse (time:is-between? temp-dt dt (time:plus dt 59 "minutes"))
@@ -463,7 +448,7 @@ to-report convert-severity-to-resource-amount  [ resource-time ]
   let mean-amount ceiling (resource-time / 8)
   ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
   let amount (ceiling random-poisson mean-amount)
-  show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
+  ;show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
   report amount
 end
 
@@ -474,7 +459,7 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   let sd-time (severity / 500)
   ;in this 'stupid' case just apply a random normal to that time to get the actual time to return - and make sure it's a positive number with ABS - HACK
   let time abs round random-normal mean-time sd-time
-  show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
+  ;show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
   report time
 end
 
@@ -489,7 +474,7 @@ to-report convert-severity-to-event-priority [ severity ]
     [ set priority 2 ]
     [ set priority 3 ]
   ]
-  show (word severity " ONS CSS - priority=" priority)
+  ;show (word severity " ONS CSS - priority=" priority)
   report priority
 end
 
@@ -514,10 +499,10 @@ end
 
 
 
-;to do next - how do we roster off officers - what happens to events that arecurrently underway - how are they passed on
+;to do next - howdo we roster off officers - what happens to events that arecurrently underway - how are they passed on
 ; A few  options
 ; Pass events on to specific  other resource agents
-;put the events back on the stack (this would require to count amount of time spent on event so to know remaining hours
+;put the events backon the stack (this would require to count amount of time spent on event so to know remaining hours
 ; continue working until event finishes - this would likely require agents to pick up events based on how much  time they have lefton their shift
 to roster-off [ shift ]
 
@@ -727,8 +712,14 @@ end
 ;plot update commands
 to update-all-plots
 
-  ; file-open resource-usage-trends-file
-  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
+
+
+  file-open resource-usage-trends-file
+  file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
+
+
+
+
 
   set-current-plot "Crime"
   set-current-plot-pen "total"
@@ -742,7 +733,7 @@ to update-all-plots
 
   set-current-plot "Total Resource Usage"
   set-current-plot-pen "Supply"
-  ; plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
+  plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
 
   set-current-plot "Count Active Resources"
   set-current-plot-pen "count-active-resources"
@@ -1054,10 +1045,10 @@ GRAPHICS-WINDOW
 205
 10
 378
-786
+316
 -1
 -1
-8.25
+16.5
 1
 10
 1
@@ -1068,9 +1059,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-19
+9
 0
-92
+17
 0
 0
 1
@@ -1103,7 +1094,7 @@ number-resources
 number-resources
 60
 5000
-1860.0
+180.0
 60
 1
 NIL
@@ -1326,7 +1317,7 @@ SWITCH
 533
 VERBOSE
 VERBOSE
-1
+0
 1
 -1000
 
@@ -1591,7 +1582,7 @@ INPUTBOX
 175
 310
 StartDate
-2020/1/1
+2020/7/1
 1
 0
 String
@@ -1938,7 +1929,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
