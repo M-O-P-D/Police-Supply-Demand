@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# This script is for running the NetLogo GUI inside a Docker container
+# This script is only for running the NetLogo GUI inside a Docker container
 
-BASE_DIR="/app/NetLogo 6.2.0/"
+BASE_DIR=$NETLOGO_INSTALL_DIR
 
 if [[ ${JAVA_HOME+1} ]]; then
   JAVA="${JAVA_HOME}/bin/java"

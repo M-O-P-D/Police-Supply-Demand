@@ -2,9 +2,25 @@
 .venv*
 .env
 data
+.vscode/
+__pycache__
 
 # folders
 relevant-data/*
 model-output/*
 
 *.tmp.nlogo
+
+data/Playing_Periodicity.csv
+data/*.zip
+doc/annual*.png
+doc/monthly*.png
+doc/weekly*.png
+doc/daily*.png
+local/
+cache/
+
+NetLogo*/
+NetLogo-*.tgz
+
+

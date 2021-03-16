@@ -1,0 +1,135 @@
+category_counts,description,code_severity,code_original,category_severity,offence,weight
+criminal damage and arson,Arson endangering life,56A,56A,victim based crime - criminal damage and arson,Arson endangering life,826.1900614360575
+criminal damage and arson,Arson not endangering life,56B,56B,victim based crime - criminal damage and arson,Arson not endangering life,186.66821832120084
+criminal damage and arson,Criminal damage to a building other than a dwelling,58B,58B,victim based crime - criminal damage and arson,Criminal damage to a building other than a dwelling,5.396707889970012
+criminal damage and arson,Criminal damage to a dwelling,58A,58A,victim based crime - criminal damage and arson,Criminal damage to a dwelling,5.396707889970012
+criminal damage and arson,Criminal damage to a vehicle,58C,58C,victim based crime - criminal damage and arson,Criminal damage to a vehicle,5.396707889970012
+criminal damage and arson,Other criminal damage,58D,58D,victim based crime - criminal damage and arson,Other criminal damage,5.396707889970012
+criminal damage and arson,Racially or religiously aggravated criminal damage,58J,58J,victim based crime - criminal damage and arson,Racially or religiously aggravated criminal damage,14.005598707161912
+drug offences,Other drug offences,92C,92C,other crimes against society - drug offences,Other drug offences,9.062218937211675
+drug offences,Possession of controlled drugs (Cannabis),92E,92E,other crimes against society - drug offences,Possession of cannabis,1.7706234781993522
+drug offences,Possession of controlled drugs (excl. Cannabis),92D,92D,other crimes against society - drug offences,Possession of controlled drugs (excluding cannabis),8.082043407919919
+drug offences,Trafficking in controlled drugs,92A,92A,other crimes against society - drug offences,Trafficking in controlled drugs,512.9573593857484
+miscellaneous crimes,Absconding from lawful custody,80,80,other crimes against society - miscellaneous crimes against society,Absconding from lawful custody,192.37599173422157
+miscellaneous crimes,Aiding suicide,76,76,other crimes against society - miscellaneous crimes against society,Aiding suicide,817.4375
+miscellaneous crimes,Bail offences,83,83,other crimes against society - miscellaneous crimes against society,Bail offences,3.3044013268060577
+miscellaneous crimes,Bigamy,26,26,other crimes against society - miscellaneous crimes against society,Bigamy,201.3989582010519
+miscellaneous crimes,Concealing an infant death close to birth,15,15,other crimes against society - miscellaneous crimes against society,Concealing an infant death close to birth,201.3989582010519
+miscellaneous crimes,Dangerous driving,802,802,other crimes against society - miscellaneous crimes against society,Dangerous driving,119.87731306431915
+miscellaneous crimes,"Disclosure, obstruction, false or misleading statements etc",95,95,other crimes against society - miscellaneous crimes against society,"Disclosure, obstruction, false or misleading statements etc",12.91719166837677
+miscellaneous crimes,Exploitation of prostitution,24,24,other crimes against society - miscellaneous crimes against society,Exploitation of prostitution,366.0203235979962
+miscellaneous crimes,Forgery or use of false drug prescription,60,60,other crimes against society - miscellaneous crimes against society,Forgery or use of drug prescription,31.53685296846011
+miscellaneous crimes,"Fraud, forgery etc associated with vehicle or driver records",814,814,other crimes against society - miscellaneous crimes against society,"Fraud, forgery associated with vehicle driver records",7.259604054482104
+miscellaneous crimes,"Going equipped for stealing, etc",33,33,other crimes against society - miscellaneous crimes against society,"Going equipped for stealing, etc.",31.250766550315102
+miscellaneous crimes,Handling stolen goods,54,54,other crimes against society - miscellaneous crimes against society,Handling stolen goods,55.135289990554035
+miscellaneous crimes,"Making, supplying or possessing articles for use in fraud",33A,33A,other crimes against society - miscellaneous crimes against society,"Making, supplying or possessing articles for use in fraud",135.27486896569565
+miscellaneous crimes,Obscene publications etc,86,86,other crimes against society - miscellaneous crimes against society,"Obscene publications, etc and protected sexual material",137.28254438505158
+miscellaneous crimes,Offender Management Act offences,69,69,other crimes against society - miscellaneous crimes against society,Offender Management Act offences,207.0434495377406
+miscellaneous crimes,Other forgery,61,61,other crimes against society - miscellaneous crimes against society,Other forgery,145.80070398882975
+miscellaneous crimes,Other notifiable offences,99,99,other crimes against society - miscellaneous crimes against society,Other indictable or triable-either-way offences,179.2494716280006
+miscellaneous crimes,Perjury,67,67,other crimes against society - miscellaneous crimes against society,Perjury,97.84558124802028
+miscellaneous crimes,Perverting the course of justice,79,79,other crimes against society - miscellaneous crimes against society,Perverting the course of justice,168.7384600443587
+miscellaneous crimes,Possession of false documents,61A,61A,other crimes against society - miscellaneous crimes against society,Possession of false documents,193.68611778455715
+miscellaneous crimes,Profiting from or concealing knowledge of the proceeds of crime,38,38,other crimes against society - miscellaneous crimes against society,Profiting from or concealing proceeds of crime,248.1816914498141
+miscellaneous crimes,Soliciting for the purposes of prostitution,27,27,other crimes against society - miscellaneous crimes against society,Soliciting for prostitution,3.815915300546448
+miscellaneous crimes,Threat or possession with intent to commit criminal damage,59,59,other crimes against society - miscellaneous crimes against society,Threat etc. to commit criminal damage,60.93167302503024
+miscellaneous crimes,Wildlife,96,96,other crimes against society - miscellaneous crimes against society,Wildlife crime,247.85499035558544
+possession of weapons offences,Other firearms offences,81,81,other crimes against society - possession of weapons offences,Other firearms offences,1287.5444129870136
+possession of weapons offences,Other knives offences,90,90,other crimes against society - possession of weapons offences,Other knives offences,250.25
+possession of weapons offences,Possession of article with blade or point,10D,10D,other crimes against society - possession of weapons offences,Possession of article with blade or point,53.03823910170986
+possession of weapons offences,Possession of firearms offences,10B,10B,other crimes against society - possession of weapons offences,Possession of firearms offences,412.2023946087773
+possession of weapons offences,Possession of firearms with intent,10A,10A,other crimes against society - possession of weapons offences,Possession of firearms with intent,616.5600892592785
+possession of weapons offences,Possession of other weapons,10C,10C,other crimes against society - possession of weapons offences,Possession of other weapons,52.12609711004277
+public order offences,Other offences against the State or public order,66,66,other crimes against society - public order offences,Other offences against the State or public order,72.50873282393884
+public order offences,"Public fear, alarm or distress",9A,9A,other crimes against society - public order offences,"Public fear, alarm or distress",6.811757590441752
+public order offences,"Racially or religiously aggravated public fear, alarm or distress",9B,9B,other crimes against society - public order offences,"Racially or religiously aggravated public fear, alarm or distress",12.763384338241027
+public order offences,Violent disorder,62A,62A,other crimes against society - public order offences,Violent disorder,362.8964537409493
+robbery,Robbery of business property,34A,34A,victim based crime - robbery,Robbery of business property,799.6288702314769
+robbery,Robbery of personal property,34B,34B,victim based crime - robbery,Robbery of personal property,799.6288702314769
+sexual offences,Abuse of children through sexual exploitation,71,71,victim based crime - sexual offences,Abuse of children through sexual exploitation,939.2643957798264
+sexual offences,Abuse of position of trust of a sexual nature,73,73,victim based crime - sexual offences,Abuse of position of trust of a sexual nature,240.64904487921572
+sexual offences,Causing sexual activity without consent,22A,22A,victim based crime - sexual offences,Causing sexual activity without consent,1054.7466372147494
+sexual offences,Exposure and voyeurism,88E,88E,victim based crime - sexual offences,Exposure and voyeurism,39.92200195669732
+sexual offences,Incest or familial sexual offences,23,23,victim based crime - sexual offences,Incest or familial sexual offences,1122.3692379071324
+sexual offences,Other miscellaneous sexual offences,88C,88C,victim based crime - sexual offences,Other miscellaneous sexual offences,1026.8793533414357
+sexual offences,Rape of a Female - Multiple Undefined Offenders,19J,19J,victim based crime - sexual offences,Rape of a female - multiple undefined offenders,3279.321011053002
+sexual offences,Rape of a Male - Multiple Undefined Offenders,19K,19K,victim based crime - sexual offences,Rape of a male - multiple undefined offenders,2975.388378899639
+sexual offences,Rape of a female aged 16 and over,19C,19C,victim based crime - sexual offences,Rape of a female aged 16 or over,2952.9409930950865
+sexual offences,Rape of a female child under 13,19E,19E,victim based crime - sexual offences,Rape of a female child under 13,3225.096476060009
+sexual offences,Rape of a female child under 16,19D,19D,victim based crime - sexual offences,Rape of a female child under 16,3883.1327866625147
+sexual offences,Rape of a male aged 16 and over,19F,19F,victim based crime - sexual offences,Rape of a male aged 16 or over,3191.9646240495445
+sexual offences,Rape of a male child under 13,19H,19H,victim based crime - sexual offences,Rape of a male child under 13,2397.258671505837
+sexual offences,Rape of a male child under 16,19G,19G,victim based crime - sexual offences,Rape of a male child under 16,3894.781113418561
+sexual offences,Sexual activity etc with a person with a mental disorder,70,70,victim based crime - sexual offences,Sexual activity with a person with a mental disorder,1444.9512610229278
+sexual offences,Sexual activity involving a child under 13,21,21,victim based crime - sexual offences,Unlawful sexual intercourse with a girl under 13,823.7189951468101
+sexual offences,Sexual activity involving child under 16,22B,22B,victim based crime - sexual offences,Sexual activity involving a child under 16,726.4449700181367
+sexual offences,Sexual assault on a female aged 13 and over,20A,20A,victim based crime - sexual offences,Sexual assault on a female aged 13 and over,459.06991667749804
+sexual offences,Sexual assault on a female child under 13,20B,20B,victim based crime - sexual offences,Sexual assault on a female child under 13,1211.9713640539185
+sexual offences,Sexual assault on a male aged 13 and over,17A,17A,victim based crime - sexual offences,Sexual assault on a male aged 13 and over,767.4437103316676
+sexual offences,Sexual assault on a male child under 13,17B,17B,victim based crime - sexual offences,Sexual assault on a male child under 13,862.2690865048085
+sexual offences,Sexual grooming,88A,88A,victim based crime - sexual offences,Sexual grooming,462.94931377563034
+sexual offences,Trafficking for sexual exploitation,72,72,victim based crime - sexual offences,Trafficking for sexual exploitation,1671.442957746479
+sexual offences,Unnatural sexual offences,88D,88D,victim based crime - sexual offences,Unnatural sexual offences,51.713020833562496
+theft offences,Aggravated Burglary Business and Community,31A,31A,victim based crime - theft offences,Aggravated burglary - business and community,1849.520062262193
+theft offences,Aggravated Burglary Residential,29A,29A,victim based crime - theft offences,Aggravated burglary - residential,2288.6691582043522
+theft offences,Aggravated burglary in a building other than a dwelling(outcome only),31,31,victim based crime - theft offences,Aggravated burglary in a building other than a dwelling,1849.520062262193
+theft offences,Aggravated burglary in a dwelling (outcome only),29,29,victim based crime - theft offences,Aggravated burglary in a dwelling,2288.6691582043522
+theft offences,Aggravated vehicle taking,37.2,37.2,victim based crime - theft offences,Aggravated vehicle taking,53.45003688537841
+theft offences,Attempted Burglary Business and Community,30D,30D,victim based crime - theft offences,Attempted burglary - business and community,123.01839647314505
+theft offences,Attempted Burglary Residential,28F,28F,victim based crime - theft offences,Attempted burglary - residential,465.3814732283848
+theft offences,Attempted Distraction Burglary Residential,28H,28H,victim based crime - theft offences,Attempted distraction burglary - residential,465.3814732283848
+theft offences,Attempted burglary in a building other than a dwelling (outcome only),30B,30B,victim based crime - theft offences,Attempted burglary in a building other than a dwelling,123.01839647314505
+theft offences,Attempted burglary in a dwelling (outcome only),28B,28B,victim based crime - theft offences,Attempted burglary in a dwelling,465.3814732283848
+theft offences,Attempted distraction burglary in a dwelling (outcome only),28D,28D,victim based crime - theft offences,Attempted distraction burglary in a dwelling,465.3814732283848
+theft offences,Blackmail,35,35,victim based crime - theft offences,Blackmail,785.8097197331771
+theft offences,Burglary Business and Community,30C,30C,victim based crime - theft offences,Burglary - business and community,123.01839647314505
+theft offences,Burglary in a building other than a dwelling (outcome only),30C,30A,victim based crime - theft offences,Burglary - business and community,123.01839647314505
+theft offences,Burglary Residential,28E,28E,victim based crime - theft offences,Burglary - residential,465.3814732283848
+theft offences,Burglary in a dwelling(outcome only),28C,28A,victim based crime - theft offences,Distraction burglary in a dwelling,465.3814732283848
+theft offences,Distraction burglary in a dwelling (outcome only),28C,28C,victim based crime - theft offences,Distraction burglary in a dwelling,465.3814732283848
+theft offences,Dishonest use of electricity,43,43,victim based crime - theft offences,Dishonest use of electricity,5.2902437993936084
+theft offences,Distraction Burglary Residential,28G,28G,victim based crime - theft offences,Distraction burglary - residential,465.3814732283848
+theft offences,Interfering with a motor vehicle,126,126,victim based crime - theft offences,Vehicle interference,9.314706802026224
+theft offences,Making off without payment,49A,49A,victim based crime - theft offences,Making off without payment,7.005610687022898
+theft offences,Other theft,49,49,victim based crime - theft offences,Other theft,36.80988326367078
+theft offences,Shoplifting,46,46,victim based crime - theft offences,Shoplifting,11.855539046217315
+theft offences,Theft by an employee,41,41,victim based crime - theft offences,Theft by an employee,49.299788219832145
+theft offences,Theft from automatic machine or meter,47,47,victim based crime - theft offences,Theft from automatic machine or meter,110.58080244611828
+theft offences,Theft from the person,39,39,victim based crime - theft offences,Theft from the person,80.40515969951247
+theft offences,Theft from vehicle,45,45,victim based crime - theft offences,Theft from a vehicle,32.920677373775966
+theft offences,Theft in a dwelling other than from an automatic machine or meter,40,40,victim based crime - theft offences,Theft in a dwelling other than from an automatic machine or meter,51.41640802971348
+theft offences,Theft of mail,42,42,victim based crime - theft offences,Theft of mail,84.86543762088975
+theft offences,Theft or unauthorised taking of a pedal cycle,44,44,victim based crime - theft offences,Theft or unauthorised taking of a pedal cycle,15.17572799366388
+theft offences,Theft or unauthorised taking of motor vehicle,48,48,victim based crime - theft offences,Theft or unauthorised taking of a motor vehicle,128.4294318181818
+violence against the person,Assault with injury,8N,8N,victim based crime - violence,Assault with injury,189.15388706397988
+violence against the person,Assault with injury on a constable,8S,8S,victim based crime - violence,Assault with injury on a constable,401.4243971112285
+violence against the person,Assault with intent to cause serious harm,5D,5D,victim based crime - violence,Assault with intent to cause serious harm,2034.741860198152
+violence against the person,Assault without injury,105A,105A,victim based crime - violence,Assault without Injury,13.510541522943404
+violence against the person,Assault without injury on a constable,104,104,victim based crime - violence,Assault without injury on a constable,7.543806450159483
+violence against the person,Attempted murder,2,2,victim based crime - violence,Attempted murder,4654.298133237659
+violence against the person,Causing death by aggravated vehicle taking,37.1,37.1,victim based crime - violence,Causing death by aggravated vehicle taking,532.4166666666666
+violence against the person,Causing death by careless driving under influence of drink or drugs,4.6,4.6,victim based crime - violence,Causing death by careless driving when under the influence of drink or drugs                                                                               ,1512.0027972027972
+violence against the person,Causing death by careless or inconsiderate driving,4.8,4.8,victim based crime - violence,Causing death by careless or inconsiderate driving,111.36132183920587
+violence against the person,Causing death by driving: unlicensed or disqualified or uninsured drivers,4.9,4.9,victim based crime - violence,Causing death by driving: unlicensed or disqualified or uninsured drivers ,180.0981934732704
+violence against the person,Causing death or serious injury by dangerous driving,4.4,4.4,victim based crime - violence,Causing death or serious injury by dangerous driving,1022.81445755497
+violence against the person,Causing or allowing death of child or vulnerable person,4.7,4.7,victim based crime - violence,Causing or allowing death or serious physical harm of child or vulnerable person,1005.1768617021277
+violence against the person,Child abduction,13,13,victim based crime - violence,Child abduction,289.81540199151766
+violence against the person,Conspiracy to murder,3A,3A,victim based crime - violence,Conspiracy to murder,2024.2226840990554
+violence against the person,Corporate manslaughter,"1, 4.1/2/10",4.1,victim based crime - violence,Homicide,7973.393423328133
+violence against the person,Infanticide,"1, 4.1/2/10",4.2,victim based crime - violence,Homicide,7973.393423328133
+violence against the person,Manslaughter,"1, 4.1/2/10",4.1,victim based crime - violence,Homicide,7973.393423328133
+violence against the person,Murder,"1, 4.1/2/10",1,victim based crime - violence,Homicide,7973.393423328133
+violence against the person,Homicide,"1, 4.1/2/10",1/4.1/4.10/4.2,victim based crime - violence,Homicide,7973.393423328133
+violence against the person,Cruelty to children/young persons,11A,11A,victim based crime - violence,Cruelty to children/young persons,138.7163314652777
+violence against the person,Endangering life,5E,5E,victim based crime - violence,Endangering life,1446.982552252818
+violence against the person,Harassment,8L,8L,victim based crime - violence,Harassment,36.097530142166136
+violence against the person,Intentional destruction of a viable unborn child,4.3,4.3,victim based crime - violence,Intentional destruction of viable unborn child,3775.695340501792
+violence against the person,Kidnapping,36,36,victim based crime - violence,Kidnapping,1216.81499258505
+violence against the person,Malicious Communications,8R,8R,victim based crime - violence,Malicious communications,15.13892860645288
+violence against the person,Modern slavery,106,106,victim based crime - violence,Modern Slavery,1069.0641025641023
+violence against the person,Procuring illegal abortion,14,14,victim based crime - violence,Procuring illegal abortion,1056.409090909091
+violence against the person,Racially or religiously aggravated assault with injury,8P,8P,victim based crime - violence,Racially or religiously aggravated assault with injury,312.9067119859701
+violence against the person,Racially or religiously aggravated assault without injury,105B,105B,victim based crime - violence,Racially or religiously aggravated assault without injury,30.76323604600752
+violence against the person,Racially or religiously aggravated harassment,8M,8M,victim based crime - violence,Racially or religiously aggravated harassment,37.51129786387425
+violence against the person,Stalking,8Q,8Q,victim based crime - violence,Stalking,56.349709671587924
+violence against the person,Threats to kill,3B,3B,victim based crime - violence,Threats to kill,275.30877696321687

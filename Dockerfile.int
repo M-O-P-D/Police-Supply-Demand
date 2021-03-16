@@ -1,0 +1,43 @@
+# base (python) image contains the data
+FROM mopd/crims-data:latest
+
+WORKDIR /app
+
+COPY crims /app/crims
+COPY requirements.txt /app
+COPY LICENSE /app
+COPY netlogo_adapter.py /app
+COPY Police-Supply-Demand /app/Police-Supply-Demand
+COPY netlogo-gui.sh /app
+
+RUN apt-get update -y \
+ && apt-get install -y --no-install-recommends -y tar openjdk-11-jre \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# # ensure pip is up to date and install deps
+RUN python -m pip install -U pip \
+ && python -m pip install -r requirements.txt
+
+# ENV NETLOGO_VERSION=6.2.0
+ENV NETLOGO_INSTALL_DIR="NetLogo 6.2.0"
+
+# RUN wget https://ccl.northwestern.edu/netlogo/${NETLOGO_VERSION}/NetLogo-${NETLOGO_VERSION}-64.tgz \
+#  && tar xzf NetLogo-$NETLOGO_VERSION-64.tgz \
+#  && ln -s "${NETLOGO_INSTALL_DIR}/NetLogo" \
+#  && rm NetLogo-${NETLOGO_VERSION}-64.tgz
+COPY NetLogo-6.2.0-64.tgz .
+RUN tar xzf NetLogo-6.2.0-64.tgz \
+ && ln -s "./NetLogo 6.2.0/NetLogo" \
+ && rm NetLogo-6.2.0-64.tgz
+
+# ensure crims is available from Police-Supply-Demand
+ENV PYTHONPATH=/app
+
+# ensure data is accessible from Police-Supply-Demand
+RUN ln -s ../data Police-Supply-Demand/data
+
+#CMD ["./netlogo-gui.sh", "event-response-with-shifts.nlogo"]
+CMD ["./netlogo-gui.sh", "Police-Supply-Demand/event-response-with-shifts.nlogo"]
+#CMD ["/bin/bash"]
+
