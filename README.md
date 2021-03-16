@@ -2,13 +2,8 @@
 
 ## CriMS integration
 
-1. clone the *M-O-P-D/crims* repo (e.g. alongside this one) if you don't have it already, or ensure it's up-to-date
-2. initialise your python (3) environment (ideally use a virtualenv) - `pip install -r ../crims/requirements.txt`
-3. ensure the python integration is working by running `PYTHONPATH=../crims python ../crims/netlogo_adapter.py`. You should get some crime data displayed (and no errors)
-4. start netlogo (from within your virtualenv if you're using one)
-5. run the netlogo model. Note that netlogo sets its current working directory to the one containing the netlogo code
+The microsimulation component is now integrated into this repo, simplifying execution. You just need to create a python environment. To run the integrated models, you must start netlogo from within your virtualenv/conda env if you're using one. See [here](doc/stack.md) for more detail.
 
-See [here](https://github.com/M-O-P-D/crims/blob/master/doc/stack.md) for instructions.
 ## Docker container
 
 **DEPRECATED, now done [here](https://github.com/M-O-P-D/crims/blob/master/README.md#docker)**

@@ -4,23 +4,22 @@
 
 The simplest implementation: a single process: NetLogo must run in the crims (virtual/conda)env in order to have the crims dependencies available.
 
-The models interact in a lock-step manner with feedback: the microsimulation supplies crime data, and the ABM can alter the microsimulation parameters after each timestep to reflect it's own internal state. (e.g. alter the prevalence of certain crime types).
+The models interact in a lock-step manner with feedback: the microsimulation supplies crime data, and the ABM can alter the microsimulation parameters periodically to reflect it's own internal state. (e.g. alter the prevalence of certain crime types).
 
-The NetLogo ABM, via the python plugin, initialises and runs the microsimulation model, which is set to halt after each timestep. Once the ABM has consumed the simulated crime data for that timestep, NetLogo signals to the model to resume execution (possibly providing altered sampling parameters).
+The NetLogo ABM, via the python plugin, initialises and runs the microsimulation model, which is set to halt after each (monthly) timestep. The ABM can then retrieve the simulated crime data (hourly) until it is exhausted. The microsimulation will then automatically sample another month of crims (possibly providing altered sampling parameters).
 
-Police-Supply-Demand is a separate repo (for now). Because Netlogo automatically changes its working directory to the one containing the netlogo code, you must provide
+Because Netlogo automatically changes its working directory to the one containing the netlogo code, the file `netlogo_adapter.py` must be in the same directory as the netlogo code.
 
-- a python environment (e.g. conda, virtualenv) with the `crims` dependencies installed
-- a `.env` file containing the location or the `crims` input data sets and the decryption key
-- a `PYTHONPATH` pointing to the `crims` data directory, plus ensure the python code is accessible using `PYTHONPATH`.
+The NetLogo model must be run from *from within a python environment*, containing all the crims depenedencies. To do this
 
-Then, run the Netlogo model *from within your python environment*, specifying the PYTHONPATH from above:
+1. initialise your python (3) environment (ideally use a virtualenv) - `pip install -r ../crims/requirements.txt` (or use conda-env.yaml)
+2. ensure the python integration is working by running `python netlogo_adapter.py`. You should get some crime data displayed (and no errors)
+
+You must also define the environment variable CRIMS_ENCRYPTION_KEY with a valid key. Recommendation is to create a `.env` file containing
 
 ```bash
-PYTHONPATH=/mnt/data/dev/MOPD/crims:$PYTHONPATH ~/NetLogo\ 6.2.0/NetLogo
+CRIMS_ENCRYPTION_KEY=<insert key here>
 ```
-
-(this will be simpler when the repos are merged)
 
 ## Model Stack 2
 

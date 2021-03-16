@@ -1,4 +1,4 @@
-extensions [csv table time pathdir py shell]
+extensions [csv table time pathdir py]
 
 globals
 [
@@ -143,8 +143,6 @@ to setup
   ;clear stuff
   ca
   reset-ticks
-
-  print (word "crims location:" shell:getenv "PYTHONPATH")
 
   if demand-events = "CriMS-Interface"
   [

@@ -71,7 +71,6 @@ if __name__ == "__main__":
   import pandas as pd
 
   init_model("City of London", 2020, 1)
-  get_crimes(1.0)
 
   print(model.crimes.head())
 
