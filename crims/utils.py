@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .encryption import decrypt_csv
 
-# this needs to be overridden if run from a directory other than the project root (e.g. if running inside netlogo)
+# this needs to be overridden if run from a directory other than the project root
 DEFAULT_DATA_PATH="./data"
 
 def get_data_path(filename=""):

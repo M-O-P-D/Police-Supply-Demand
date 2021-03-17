@@ -6,7 +6,8 @@ from cryptography.fernet import Fernet
 
 # based loosely on https://devqa.io/encrypt-decrypt-data-python/
 # and https://towardsdatascience.com/encrypting-your-data-9eac85364cb
-
+from dotenv import load_dotenv
+load_dotenv()
 
 # get key from environment (use .env file)
 def _get_key():

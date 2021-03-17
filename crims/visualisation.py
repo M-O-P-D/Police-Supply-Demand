@@ -9,9 +9,6 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
 import contextily as ctx
 
-from dotenv import load_dotenv
-load_dotenv()
-
 from . import geography
 from .utils import standardise_force_name
 
@@ -24,14 +21,9 @@ def density_map(crimes, force_name):
   # plot the results on a map
   crime_counts = crimes[["MSOA", "time"]].groupby("MSOA").count().rename({"time": "colour"}, axis=1)
 
-  print(crime_counts)
-
   crimes["time"] = pd.to_datetime(crimes["time"], format="%Y-%m-%d %H:%M:%S")
   start = min(crimes["time"])
   end = max(crimes["time"])
-
-  print(crimes.info())
-  print(crimes["time"].dtype)
 
   # shading of MSOAs according to crime counts on a linear scale
   amax = crime_counts["colour"].max()

@@ -5,9 +5,6 @@ from io import StringIO
 from datetime import datetime, timedelta
 import neworder as no
 
-from dotenv import load_dotenv
-load_dotenv()
-
 from crims.model import CrimeMicrosim
 
 # init_model must be called to instantiate model
