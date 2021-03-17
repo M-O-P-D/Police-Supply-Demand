@@ -6,9 +6,12 @@ WORKDIR /app
 COPY crims /app/crims
 COPY requirements.txt /app
 COPY LICENSE /app
+COPY event-response-with-shifts.nlogo /app
 COPY netlogo_adapter.py /app
-COPY Police-Supply-Demand /app/Police-Supply-Demand
+COPY crims /app/crims
 COPY netlogo-gui.sh /app
+# TODO this should be in crims-data really
+COPY data/weekly-weights.csv.enc /app/data
 
 RUN apt-get update -y \
  && apt-get install -y --no-install-recommends -y tar openjdk-11-jre \
@@ -34,10 +37,6 @@ RUN tar xzf NetLogo-6.2.0-64.tgz \
 # ensure crims is available from Police-Supply-Demand
 ENV PYTHONPATH=/app
 
-# ensure data is accessible from Police-Supply-Demand
-RUN ln -s ../data Police-Supply-Demand/data
-
-#CMD ["./netlogo-gui.sh", "event-response-with-shifts.nlogo"]
-CMD ["./netlogo-gui.sh", "Police-Supply-Demand/event-response-with-shifts.nlogo"]
+CMD ["./netlogo-gui.sh", "event-response-with-shifts.nlogo"]
 #CMD ["/bin/bash"]
 

@@ -6,20 +6,21 @@ The microsimulation component is now integrated into this repo, simplifying exec
 
 ## Docker container
 
-**DEPRECATED, now done [here](https://github.com/M-O-P-D/crims/blob/master/README.md#docker)**
-
 Get it from docker-hub:
 
 ```bash
 docker pull mopd/police-supply-demand
 ```
 
-Run it with permission to connect to the host's display manager:
+Run it with permission to connect to the host's display manager, plus an environment containing the decryption key, e.g.
 
 ```bash
 xhost +
-docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mopd/police-supply-demand
+docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY --env-file .env mopd/police-supply-demand
 ```
+
+If you're not using a `.env` file then manually set the variable and replace `--env-file .env` with `-e CRIMS_ENCRYPTION_KEY=$CRIMS_ENCRYPTION_KEY`.
+
 # CriMS
 
 Policing and Crime supply-demand modelling. *CriMS* is an evolution of **crime-sim-toolkit** <sup>[[6]](#references)</sup> and forms the microsynthesis and microsimulation components of this workflow:
@@ -206,41 +207,19 @@ which runs it locally, listening for requests on the default http port. You can 
 
 ##### Integrated Models Container
 
-> Police-Supply-Demand (crims-integration branch) is a submodule, added like so
->
-> ```bash
-> git submodule add -b crims-integration git@github.com:danbirks/Police-Supply-Demand
-> ```
->
-> to update,
->
-> ```bash
-> git submodule update [--init]
-> ```
->
-> using the `--init` flag if the content of the submodule is empty.
->
-> Better still,
->
-> ```bash
-> git config --global submodule.recurse true
-> ```
->
-> then git pull will update the submodule too
-
 An interactive GUI-based demo of the model integration between the *crims* microsimulation and an agent-based *netlogo* model can be found in the `mopd/crims-int` container. The ABM currently performs the Schelling segregation model whilst also sampling crimes from *crims* and feeding back a (random) loading factor that increases or decreases the overall crime rate.
 
 This is built with
 
 ```bash
-docker build -t mopd/crims-int -f Dockerfile.int .
+docker build -t mopd/police-supply-demand -f Dockerfile.int .
 ```
 
-and requires permission to connect to the host's graphical display when it runs. On ubuntu, this works:
+It requires permission to connect to the host's graphical display when it runs. On ubuntu, this works:
 
 ```bash
 xhost +
-docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mopd/crims-int
+docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY mopd/police-supply-demand
 ```
 
 on other platforms YMMV. Google is your friend.
