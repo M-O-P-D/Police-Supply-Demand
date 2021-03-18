@@ -22,7 +22,9 @@ globals
   resource-usage-trends-file
 
   force-area       ; force area we are sampling
+  start-year       ; which is set from StartYear, @Dan why the indirection?
   loading-factor   ; over/undersampling of historic data
+
 ]
 
 ;Events store demand - the things the police must respond to
@@ -151,9 +153,10 @@ to setup
     py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, pop_crimes"
 
     set force-area Force
+    set start-year StartYear
     set loading-factor 1.0
     ; TODO year/month is hard-coded below
-    py:run (word "init_model('" force-area "', "2020", "7")")
+    py:run (word "init_model('" force-area "', " start-year ", " start-month ")")
   ]
 
   ;create folder path to store results based on settings
@@ -1586,13 +1589,23 @@ Force
 INPUTBOX
 15
 250
-175
+172
 310
-StartDate
-2020/1/1
+StartYear
+2021.0
 1
 0
-String
+Number
+
+CHOOSER
+15
+320
+153
+365
+start-month
+start-month
+1 2 3 4 5 6 7 8 9 10 11 12
+2
 
 @#$#@#$#@
 ## WHAT IS IT?
