@@ -10,8 +10,6 @@ COPY event-response-with-shifts.nlogo /app
 COPY netlogo_adapter.py /app
 COPY crims /app/crims
 COPY netlogo-gui.sh /app
-# TODO this should be in crims-data really
-COPY data/weekly-weights.csv.enc /app/data
 
 RUN apt-get update -y \
  && apt-get install -y --no-install-recommends -y tar openjdk-11-jre \
