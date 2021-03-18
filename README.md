@@ -92,6 +92,9 @@ or for conda environments:
 conda env create -f conda-env.yml
 ```
 
+you may need to override `$PIP_REQUIRE_VIRTUALENV` if it's set to true
+
+
 (NB the above file is created using `conda env export > conda-env.yml`)
 
 ### Encryption
