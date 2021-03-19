@@ -22,7 +22,7 @@ model = model.CrimeMicrosim(force, (start_year, 1), (end_year, 1))
 
 no.run(model)
 
-model.crimes.sample(n=500).sort_values(by="time").to_csv("./data/crime_sample.csv")
+model.crimes.sample(n=500).sort_values(by="time").to_csv("./data/crime-sample.csv")
 #print(model.crimes.sample(10))
 
 

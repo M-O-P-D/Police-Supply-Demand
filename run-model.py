@@ -1,14 +1,15 @@
 #import pandas as pd
 import neworder as no
 import argparse
-from crims import model
-#from crims import geography
-#from crims import utils
-from crims import visualisation
 
 #import matplotlib.pyplot as plt
 
 def main(force_name, start_year, start_month, end_year, end_month):
+
+  from crims import model
+  #from crims import geography
+  #from crims import utils
+  from crims import visualisation
 
   # construct and run the model
   microsim = model.CrimeMicrosim(force_name, (start_year, start_month), (end_year, end_month))
