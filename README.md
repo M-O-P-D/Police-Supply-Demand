@@ -1,47 +1,65 @@
 # Police-Supply-Demand
 
-## CriMS integration
+![workflow](./doc/workflow.svg)
 
-The microsimulation component is now integrated into this repo, simplifying execution. You just need to create a python environment. To run the integrated models, you must start netlogo from within your virtualenv/conda env if you're using one. See [here](doc/stack.md) for more detail.
+Policing and Crime supply-demand modelling using an agent based model of police resourcing driven by a microsimulation of crime incidence.
+
+The agent-based model and the microsimulation components are now integrated into a single repo, simplifying execution. You just need to have netlogo and python 3 installed.
+
+## Agent-based model
+
+TODO...
+TODO screen grab of netlogo...
+
+## CriMS
+
+CriMS is the crime microsimulation component. *CriMS* is an evolution of **crime-sim-toolkit** <sup>[[6]](#references)</sup>
+
+![sample visualisation](./doc/wy2020.png)
+
+It uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and (broad) type, so can capture seasonal fluctuations in crime frequency. It then imposes further weekly and daily (8 hour) periodicity to the crime rate, enabling to sampling of crime incidences from a non-homogeneous Poisson process. Each crime occurrence is assigned a severity and whether a suspect has been identified. This synthetic crime data is fed into the agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
+
+
+### Dependencies
+
+Create a python environment with the required dependencies. To run the integrated model, you must start netlogo from within your virtualenv/conda env if you're using one. See [Usage](#usage) and [here](doc/stack.md) for more detail.
 
 ## Docker container
 
-Get it from docker-hub:
+Alternatively, you can pull a self-contained image from docker-hub:
 
 ```bash
 docker pull mopd/police-supply-demand
 ```
 
-Run it with permission to connect to the host's display manager, plus an environment containing the decryption key, e.g.
+Run it with permission to connect to the host's display manager, plus an environment variable containing the decryption key, e.g.
 
 ```bash
 xhost +
 docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY --env-file .env mopd/police-supply-demand
 ```
 
-If you're not using a `.env` file then manually set the variable and replace `--env-file .env` with `-e CRIMS_ENCRYPTION_KEY=$CRIMS_ENCRYPTION_KEY`.
+Above assumes you're using a `.env` file. If not, manually set the variable and replace `--env-file .env` with `-e CRIMS_ENCRYPTION_KEY=$CRIMS_ENCRYPTION_KEY`.
 
-# CriMS
 
-Policing and Crime supply-demand modelling. *CriMS* is an evolution of **crime-sim-toolkit** <sup>[[6]](#references)</sup> and forms the microsynthesis and microsimulation components of this workflow:
+## Data Sources
 
-![workflow](./doc/workflow.svg)
+### Agent-based model
 
-## Population Data
+TODO...
+
+### Microsimulation
+
+#### Population Data
+
 
 Uses the **ukcensusapi** <sup>[[1]](#references)</sup> and **ukpopulation** <sup>[[2]](#references)</sup> packages to generate MSOA-level population data derived from the 2011 census and scaled to 2020 subnational population projections.
 
-## Crime Data
+NB **This part of the workflow is not fully implemented yet**
+
+#### Crime Data
 
 Uses the **police-api-client** <sup>[[3]](#references)</sup> and the **police open data portal** <sup>[[4]](#references)</sup> directly to get open data on crime occurrences.
-
-## Model
-
-![sample visualisation](./doc/wy2020.png)
-
-Uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and (broad) type, so can capture seasonal fluctuations in crime frequency. It then imposes further weekly and daily periodicity to the crime rate, and this to sample crime incidences from a non-homogeneous Poisson process. More detailed crime types, and whether a suspect has been identified, are also sampled at force area resolution. This synthetic crime data can be fed into an agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
-
-## Data sources
 
 - Bulk crime and outcome data, force boundaries: [data.police.uk](<https://data.police.uk>)
 - Mapping between Home Office Offence Codes and the data.police.uk categories. : [data.police.uk](<https://www.police.uk/SysSiteAssets/police-uk/media/downloads/crime-categories/police-uk-category-mappings.csv>)
@@ -125,14 +143,14 @@ The model produces simulated crime data in four variables:
 - categorical:
   - the type of the crime
   - whether a suspect has been identified
+  - a severity score for the crime type
 
-## Model Stack
 
-Interoperation of Police supply-demand ABM and crime microsimulation: see [stack](doc/stack.md)
+## Microsimulation app service
 
-## App Service
+[not sure if we still need this capability]
 
-NB this has dependencies (e.g. Flask) not specified in requirements.txt/conda-env.yml. If running outside docker, you will need to install manually.
+The microsimulation can be run as an app service.NB this has dependencies (e.g. Flask) not specified in requirements.txt/conda-env.yml. If running outside docker, you will need to install manually.
 
 ### Building
 
