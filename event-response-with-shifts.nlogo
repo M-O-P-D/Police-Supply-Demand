@@ -157,6 +157,8 @@ to setup
     set loading-factor 1.0
     ; TODO year/month is hard-coded below
     py:run (word "init_model('" force-area "', " start-year ", " start-month ")")
+    set dt time:create (word start-year "/" start-month "/01 00:00")
+    roster-on 3
   ]
 
   ;create folder path to store results based on settings
@@ -217,7 +219,7 @@ to setup
     set event-data remove-item 0 event-data ;remove top (header) row
   ]
 
-  set dt time:create "2020/01/01 0:00"
+  ;set dt time:create "2020/01/01 0:00"
 
 end
 
@@ -346,7 +348,12 @@ to read-events
 
   if demand-events = "CriMS-Interface" [
     set event-data csv:from-string (pycrimes(loading-factor))
+        show event-data
     set event-data remove-item 0 event-data ;remove top (header) row
+        show event-data
+    show (word (length event-data) " events to process this hour")
+
+
   ]
 
   let hour-end FALSE
@@ -357,17 +364,17 @@ to read-events
     [
       ;pull the top row from the data
       let temp item 0 event-data
-
       print temp
 
       ;construct a date
       let temp-dt time:create-with-format (item 5 temp) "yyyy-MM-dd HH:mm:ss"
 
-      ;user-message (word "event actual time=" temp-dt " - time window=" dt " to " (time:plus dt 59 "minutes"))
-
+      print (word "event-dt = " temp-dt " ---- window = " dt " to " time:plus dt 59 "minutes")
       ;check if the event occurs at current tick - which is one hour window
       ifelse (time:is-between? temp-dt dt (time:plus dt 59 "minutes"))
       [
+
+        show "IN HERE"
 
         ;create an event agent
         create-events 1
@@ -393,12 +400,16 @@ to read-events
 
           ;get the amount of units/time required to respond to resource from event info
 
+          show "here 1"
+
           set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
           set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
           set event-priority convert-severity-to-event-priority event-severity
 
           set event-resource-req-total event-resource-req-amount * event-resource-req-time
           set event-resource-counter event-resource-req-total
+
+          show "here 1"
 
         ]
 
@@ -1494,7 +1505,7 @@ replication
 replication
 1
 100
-1.0
+2.0
 1
 1
 NIL
@@ -1949,7 +1960,7 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.2.0
+NetLogo 6.1.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
