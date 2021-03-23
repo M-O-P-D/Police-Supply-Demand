@@ -155,10 +155,12 @@ to setup
     set force-area Force
     set start-year StartYear
     set loading-factor 1.0
-    ; TODO year/month is hard-coded below
+
+    ;send start mnoth and year to crims
     py:run (word "init_model('" force-area "', " start-year ", " start-month ")")
+    ;adjust internal ABM date-time to match
     set dt time:create (word start-year "/" start-month "/01 00:00")
-    roster-on 3
+
   ]
 
   ;create folder path to store results based on settings
@@ -175,9 +177,9 @@ to setup
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
-  let y-dim-resource-temp (number-resources / 20) - 1
+  let y-dim-resource-temp (number-resources / 10) - 1
 
-  resize-world 0 19 0 y-dim-resource-temp
+  resize-world 0 9 0 y-dim-resource-temp
 
 
   ;initialize shift bools
@@ -219,7 +221,9 @@ to setup
     set event-data remove-item 0 event-data ;remove top (header) row
   ]
 
-  ;set dt time:create "2020/01/01 0:00"
+    ;midnight so roster shift 3 on
+    set Shift-3 TRUE
+    roster-on 3
 
 end
 
@@ -241,7 +245,7 @@ to go-step
   set count-crime-hour 0
 
   ;read in current hour's events
-  read-events
+  read-events-from-crims
 
 
   ;assign resources - right now this is written events look for resources where in reality resources should look for events
@@ -337,8 +341,13 @@ end
 
 
 
+
+
+
+
+
 ; procedure to read in the events for the given time window / tick
-to read-events
+to read-events-from-crims
 
   ;API DATA FORMAT
   ;0    1           2               3       4                                             5                     6           7
@@ -348,88 +357,51 @@ to read-events
 
   if demand-events = "CriMS-Interface" [
     set event-data csv:from-string (pycrimes(loading-factor))
-        show event-data
     set event-data remove-item 0 event-data ;remove top (header) row
-        show event-data
-    show (word (length event-data) " events to process this hour")
-
-
+    ;show (word "This hour: " length event-data " crimes to process")
+    ;show event-data
   ]
 
-  let hour-end FALSE
 
-  if length event-data > 1
+  while [length event-data > 0]
   [
-    while [not hour-end]
+    ; grab the first crime
+    let temp item 0 event-data
+    ;print temp
+    ;create an event agent
+    create-events 1
     [
-      ;pull the top row from the data
-      let temp item 0 event-data
-      print temp
-
-      ;construct a date
-      let temp-dt time:create-with-format (item 5 temp) "yyyy-MM-dd HH:mm:ss"
-
-      print (word "event-dt = " temp-dt " ---- window = " dt " to " time:plus dt 59 "minutes")
-      ;check if the event occurs at current tick - which is one hour window
-      ifelse (time:is-between? temp-dt dt (time:plus dt 59 "minutes"))
-      [
-
-        show "IN HERE"
-
-        ;create an event agent
-        create-events 1
-        [
-          set count-crime-hour count-crime-hour + 1
-
-          ;make it invisible
-          set hidden? true
-
-          ;fill in relevant details for event from data
-          ;set eventID item 0 temp
-
-          set event-type item 4 temp
-          set event-class item 2 temp
-          set event-MSOA item 1 temp
-
-          set event-severity item 7 temp
-          set event-suspect item 6 temp
-
-          set event-start-dt dt
-          set event-status 1 ;awaiting resource
-          set event-paused false
-
-          ;get the amount of units/time required to respond to resource from event info
-
-          show "here 1"
-
-          set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
-          set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
-          set event-priority convert-severity-to-event-priority event-severity
-
-          set event-resource-req-total event-resource-req-amount * event-resource-req-time
-          set event-resource-counter event-resource-req-total
-
-          show "here 1"
-
-        ]
-
-        ;once the event agent has been created delete it from the data file
-        set event-data remove-item 0 event-data
-
-        ; get more data from CriMS if we have consumed it all
-        if length event-data = 0 and demand-events = "CriMS-Interface" [
-          set event-data csv:from-string (pycrimes(loading-factor))
-          set event-data remove-item 0 event-data ;remove top (header) row
-        ]
-      ]
-      [
-        ; Event belongs to next hour - set hour-end to stop looping
-        set hour-end TRUE
-      ]
+      set count-crime-hour count-crime-hour + 1
+      ;make it invisible
+      set hidden? true
+      ;fill in relevant details for event from data
+      set eventID item 0 temp
+      set event-type item 4 temp
+      set event-class item 2 temp
+      set event-MSOA item 1 temp
+      set event-severity item 7 temp
+      set event-suspect item 6 temp
+      set event-start-dt dt
+      set event-status 1 ;awaiting resource
+      set event-paused false
+      ;get the amount of units/time required to respond to resource from event info
+      set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
+      set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
+      set event-priority convert-severity-to-event-priority event-severity
+      set event-resource-req-total event-resource-req-amount * event-resource-req-time
+      set event-resource-counter event-resource-req-total
     ]
+    ;once the event agent has been created delete it from the data file
+    set event-data remove-item 0 event-data
   ]
 
 end
+
+
+
+
+
+
 
 
 
@@ -475,7 +447,7 @@ to-report convert-severity-to-resource-amount  [ resource-time ]
   let mean-amount ceiling (resource-time / 8)
   ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
   let amount (ceiling random-poisson mean-amount)
-  show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
+  ;show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
   report amount
 end
 
@@ -486,7 +458,7 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   let sd-time (severity / 500)
   ;in this 'stupid' case just apply a random normal to that time to get the actual time to return - and make sure it's a positive number with ABS - HACK
   let time abs round random-normal mean-time sd-time
-  show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
+  ;show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
   report time
 end
 
@@ -501,7 +473,7 @@ to-report convert-severity-to-event-priority [ severity ]
     [ set priority 2 ]
     [ set priority 3 ]
   ]
-  show (word severity " ONS CSS - priority=" priority)
+  ;show (word severity " ONS CSS - priority=" priority)
   report priority
 end
 
@@ -754,7 +726,7 @@ to update-all-plots
 
   set-current-plot "Total Resource Usage"
   set-current-plot-pen "Supply"
-  ; plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
+  plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
 
   set-current-plot "Count Active Resources"
   set-current-plot-pen "count-active-resources"
@@ -781,72 +753,72 @@ to update-all-plots
   let out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
 
   set-current-plot-pen "Anti-social behaviour"
-  let x count current-events with [event-class = "Anti-social behaviour"]
+  let x count current-events with [event-class = "anti-social behaviour"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Bicycle theft"
-  set x count current-events with [event-class = "Bicycle theft"]
+  set x count current-events with [event-class = "bicycle theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Burglary"
-  set x count current-events with [event-class = "Burglary"]
+  set x count current-events with [event-class = "burglary"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Criminal damage and arson"
-  set x count current-events with [event-class = "Criminal damage and arson"]
+  set x count current-events with [event-class = "criminal damage and arson"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Drugs"
-  set x count current-events with [event-class = "Drugs"]
+  set x count current-events with [event-class = "drugs"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other crime"
-  set x count current-events with [event-class = "Other crime"]
+  set x count current-events with [event-class = "other crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other theft"
-  set x count current-events with [event-class = "Other theft"]
+  set x count current-events with [event-class = "other theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Possession of weapons"
-  set x count current-events with [event-class = "Possession of weapons"]
+  set x count current-events with [event-class = "possession of weapons"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Public order"
-  set x count current-events with [event-class = "Public order"]
+  set x count current-events with [event-class = "public order"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Robbery"
-  set x count current-events with [event-class = "Robbery"]
+  set x count current-events with [event-class = "robbery"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Shoplifting"
-  set x count current-events with [event-class = "Shoplifting"]
+  set x count current-events with [event-class = "shoplifting"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Theft from the person"
-  set x count current-events with [event-class = "Theft from the person"]
+  set x count current-events with [event-class = "theft from the person"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Vehicle crime"
-  set x count current-events with [event-class = "Vehicle crime"]
+  set x count current-events with [event-class = "vehicle crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Violence and sexual offences"
-  set x count current-events with [event-class = "Violence and sexual offences"]
+  set x count current-events with [event-class = "violence and sexual offences"]
   plot x
   set out-string (word out-string x)
 
@@ -861,72 +833,72 @@ to update-all-plots
   set out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
 
   set-current-plot-pen "Anti-social behaviour"
-  set x count resources with [current-event-class = "Anti-social behaviour"]
+  set x count resources with [current-event-class = "anti-social behaviour"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Bicycle theft"
-  set x count resources with [current-event-class = "Bicycle theft"]
+  set x count resources with [current-event-class = "bicycle theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Burglary"
-  set x count resources with [current-event-class = "Burglary"]
+  set x count resources with [current-event-class = "burglary"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Criminal damage and arson"
-  set x count resources with [current-event-class = "Criminal damage and arson"]
+  set x count resources with [current-event-class = "criminal damage and arson"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Drugs"
-  set x count resources with [current-event-class = "Drugs"]
+  set x count resources with [current-event-class = "drugs"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other crime"
-  set x count resources with [current-event-class = "Other crime"]
+  set x count resources with [current-event-class = "other crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other theft"
-  set x count resources with [current-event-class = "Other theft"]
+  set x count resources with [current-event-class = "other theft"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Possession of weapons"
-  set x count resources with [current-event-class = "Possession of weapons"]
+  set x count resources with [current-event-class = "possession of weapons"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Public order"
-  set x count resources with [current-event-class = "Public order"]
+  set x count resources with [current-event-class = "public order"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Robbery"
-  set x count resources with [current-event-class = "Robbery"]
+  set x count resources with [current-event-class = "robbery"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Shoplifting"
-  set x count resources with [current-event-class = "Shoplifting"]
+  set x count resources with [current-event-class = "shoplifting"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Theft from the person"
-  set x count resources with [current-event-class = "Theft from the person"]
+  set x count resources with [current-event-class = "theft from the person"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Vehicle crime"
-  set x count resources with [current-event-class = "Vehicle crime"]
+  set x count resources with [current-event-class = "vehicle crime"]
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Violence and sexual offences"
-  set x count resources with [current-event-class = "Violence and sexual offences"]
+  set x count resources with [current-event-class = "violence and sexual offences"]
   plot x
   set out-string (word out-string x)
 
@@ -937,33 +909,33 @@ to update-all-plots
   set-current-plot "scatter"
   ;clear-plot
   set-current-plot-pen "Anti-social behaviour"
-  plotxy (count events with [event-class = "Anti-social behaviour" and event-status = 2]) (count resources with [current-event-class = "Anti-social behaviour"])
+  plotxy (count events with [event-class = "anti-social behaviour" and event-status = 2]) (count resources with [current-event-class = "anti-social behaviour"])
   set-current-plot-pen "Bicycle theft"
-  plotxy (count events with [event-class = "Bicycle theft" and event-status = 2]) (count resources with [current-event-class = "Bicycle theft"])
+  plotxy (count events with [event-class = "bicycle theft" and event-status = 2]) (count resources with [current-event-class = "bicycle theft"])
   set-current-plot-pen "Burglary"
-  plotxy (count events with [event-class = "Burglary" and event-status = 2]) (count resources with [current-event-class = "Burglary"])
+  plotxy (count events with [event-class = "burglary" and event-status = 2]) (count resources with [current-event-class = "burglary"])
   set-current-plot-pen "Criminal damage and arson"
-  plotxy (count events with [event-class = "Criminal damage and arson" and event-status = 2]) (count resources with [current-event-class = "Criminal damage and arson"])
+  plotxy (count events with [event-class = "criminal damage and arson" and event-status = 2]) (count resources with [current-event-class = "criminal damage and arson"])
   set-current-plot-pen "Drugs"
-  plotxy (count events with [event-class = "Drugs" and event-status = 2]) (count resources with [current-event-class = "Drugs"])
+  plotxy (count events with [event-class = "drugs" and event-status = 2]) (count resources with [current-event-class = "drugs"])
   set-current-plot-pen "Other crime"
-  plotxy (count events with [event-class = "Other crime" and event-status = 2]) (count resources with [current-event-class = "Other crime"])
+  plotxy (count events with [event-class = "other crime" and event-status = 2]) (count resources with [current-event-class = "other crime"])
   set-current-plot-pen "Other theft"
-  plotxy (count events with [event-class = "Other theft" and event-status = 2]) (count resources with [current-event-class = "Other theft"])
+  plotxy (count events with [event-class = "other theft" and event-status = 2]) (count resources with [current-event-class = "other theft"])
   set-current-plot-pen "Possession of weapons"
-  plotxy (count events with [event-class = "Possession of weapons" and event-status = 2]) (count resources with [current-event-class = "Possession of weapons"])
+  plotxy (count events with [event-class = "possession of weapons" and event-status = 2]) (count resources with [current-event-class = "possession of weapons"])
   set-current-plot-pen "Public order"
-  plotxy (count events with [event-class = "Public order" and event-status = 2]) (count resources with [current-event-class = "Public order"])
+  plotxy (count events with [event-class = "public order" and event-status = 2]) (count resources with [current-event-class = "public order"])
   set-current-plot-pen "Robbery"
-  plotxy (count events with [event-class = "Robbery" and event-status = 2]) (count resources with [current-event-class = "Robbery"])
+  plotxy (count events with [event-class = "robbery" and event-status = 2]) (count resources with [current-event-class = "robbery"])
   set-current-plot-pen "Shoplifting"
-  plotxy (count events with [event-class = "Shoplifting" and event-status = 2]) (count resources with [current-event-class = "Shoplifting"])
+  plotxy (count events with [event-class = "shoplifting" and event-status = 2]) (count resources with [current-event-class = "shoplifting"])
   set-current-plot-pen "Theft from the person"
-  plotxy (count events with [event-class = "Theft from the person" and event-status = 2]) (count resources with [current-event-class = "Theft from the person"])
+  plotxy (count events with [event-class = "theft from the person" and event-status = 2]) (count resources with [current-event-class = "theft from the person"])
   set-current-plot-pen "Vehicle crime"
-  plotxy (count events with [event-class = "Vehicle crime" and event-status = 2]) (count resources with [current-event-class = "Vehicle crime"])
+  plotxy (count events with [event-class = "vehicle crime" and event-status = 2]) (count resources with [current-event-class = "vehicle crime"])
   set-current-plot-pen "Violence and sexual offences"
-  plotxy (count events with [event-class = "Violence and sexual offences" and event-status = 2]) (count resources with [current-event-class = "Violence and sexual offences"])
+  plotxy (count events with [event-class = "violence and sexual offences" and event-status = 2]) (count resources with [current-event-class = "violence and sexual offences"])
 
 end
 
@@ -1061,15 +1033,112 @@ end
 ;plot count events with [event-type = "Theft from the person"]
 ;plot count events with [event-type = "Vehicle crime"]
 ;plot count events with [event-type = "Violence and sexual offences"]
+
+
+
+
+;; procedure to read in the events for the given time window / tick
+;to read-events-old
+;
+;  ;API DATA FORMAT
+;  ;0    1           2               3       4                                             5                     6           7
+;  ;id   MSOA        crime_type      code    description                                   time                  suspect     severity
+;  ;0    E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
+;  ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
+;
+;  if demand-events = "CriMS-Interface" [
+;    set event-data csv:from-string (pycrimes(loading-factor))
+;
+;    show (word "Raw data from Crims - " event-data)
+;    show ""
+;    set event-data remove-item 0 event-data ;remove top (header) row
+;
+;
+;    show (word "Data to process this hour - " event-data)
+;    show ""
+;    show (word (length event-data) " events to process this hour")
+;
+;
+;  ]
+;
+;  let hour-end FALSE
+;
+;  if length event-data > 0
+;  [
+;    while [not hour-end]
+;    [
+;      ;pull the top row from the data
+;      let temp item 0 event-data
+;      print temp
+;
+;      ;construct a date
+;      let temp-dt time:create-with-format (item 5 temp) "yyyy-MM-dd HH:mm:ss"
+;
+;      print (word "event-dt = " temp-dt " ---- window = " dt " to " time:plus dt 59 "minutes")
+;      ;check if the event occurs at current tick - which is one hour window
+;      ifelse (time:is-between? temp-dt dt (time:plus dt 59 "minutes"))
+;      [
+;
+;        show "IN HERE"
+;
+;        ;create an event agent
+;        create-events 1
+;        [
+;          set count-crime-hour count-crime-hour + 1
+;
+;          ;make it invisible
+;          set hidden? true
+;
+;          ;fill in relevant details for event from data
+;          set eventID item 0 temp
+;          set event-type item 4 temp
+;          set event-class item 2 temp
+;          set event-MSOA item 1 temp
+;          set event-severity item 7 temp
+;          set event-suspect item 6 temp
+;          set event-start-dt dt
+;          set event-status 1 ;awaiting resource
+;          set event-paused false
+;
+;          ;get the amount of units/time required to respond to resource from event info
+;          set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
+;          set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
+;          set event-priority convert-severity-to-event-priority event-severity
+;          set event-resource-req-total event-resource-req-amount * event-resource-req-time
+;          set event-resource-counter event-resource-req-total
+;
+;
+;        ]
+;
+;        ;once the event agent has been created delete it from the data file
+;        set event-data remove-item 0 event-data
+;
+;        ; get more data from CriMS if we have consumed it all
+;        if length event-data = 0 and demand-events = "CriMS-Interface"
+;        [
+;          show "call crims"
+;          set event-data csv:from-string (pycrimes(loading-factor))
+;          set event-data remove-item 0 event-data ;remove top (header) row
+;        ]
+;      ]
+;      [
+;        ; Event belongs to next hour - set hour-end to stop looping
+;        show "hour end"
+;        set hour-end TRUE
+;      ]
+;    ]
+;  ]
+;
+;end
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
 10
 378
-786
+415
 -1
 -1
-8.25
+16.5
 1
 10
 1
@@ -1080,9 +1149,9 @@ GRAPHICS-WINDOW
 1
 1
 0
-19
+9
 0
-92
+23
 0
 0
 1
@@ -1115,7 +1184,7 @@ number-resources
 number-resources
 60
 5000
-1860.0
+240.0
 60
 1
 NIL
@@ -1595,7 +1664,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
-22
+9
 
 INPUTBOX
 15
