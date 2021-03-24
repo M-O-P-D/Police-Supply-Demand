@@ -447,6 +447,7 @@ to-report convert-severity-to-resource-amount  [ resource-time ]
   let mean-amount ceiling (resource-time / 8)
   ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
   let amount (ceiling random-poisson mean-amount)
+  if amount = 0 [ set amount 1 ] ;minimum of 1
   ;show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
   report amount
 end
@@ -457,7 +458,7 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   let mean-time ceiling (severity / 50)
   let sd-time (severity / 500)
   ;in this 'stupid' case just apply a random normal to that time to get the actual time to return - and make sure it's a positive number with ABS - HACK
-  let time abs round random-normal mean-time sd-time
+  let time (abs round random-normal mean-time sd-time) + 1
   ;show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
   report time
 end
@@ -1135,7 +1136,7 @@ GRAPHICS-WINDOW
 205
 10
 378
-415
+613
 -1
 -1
 16.5
@@ -1151,7 +1152,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-23
+35
 0
 0
 1
@@ -1184,7 +1185,7 @@ number-resources
 number-resources
 60
 5000
-240.0
+360.0
 60
 1
 NIL
@@ -1574,7 +1575,7 @@ replication
 replication
 1
 100
-2.0
+3.0
 1
 1
 NIL
@@ -1652,7 +1653,7 @@ SWITCH
 745
 color-by-priority
 color-by-priority
-1
+0
 1
 -1000
 
