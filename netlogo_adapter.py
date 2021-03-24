@@ -19,7 +19,7 @@ time = None
 timestep = timedelta(hours=1)
 
 # TODO might be worth passing the ABM timestep size here
-def init_model(force_area, year, month):
+def init_model(force_area, year, month, initial_loading=1.0):
   global model
   global time
   # monthly open-ended timeline
@@ -27,7 +27,7 @@ def init_model(force_area, year, month):
   time = model.timeline().time()
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
   # simulate the first month
-  get_crimes(1.0)
+  get_crimes(initial_loading)
 
 
 def get_time():

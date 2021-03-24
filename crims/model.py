@@ -40,10 +40,12 @@ class CrimeMicrosim(no.Model):
 
   def step(self):
 
+    crimes = self.__sample_crimes().sort_values(by="time")
+    no.log("Sampled %d crimes in month beginning %s" % (len(crimes), self.timeline().time()))
     if self.__aggregate:
-      self.crimes = self.crimes.append(self.__sample_crimes().sort_values(by="time"))
+      self.crimes = self.crimes.append(crimes)
     else:
-      self.crimes = self.__sample_crimes().sort_values(by="time")
+      self.crimes = crimes
       # yield to calling process
       self.halt()
 
