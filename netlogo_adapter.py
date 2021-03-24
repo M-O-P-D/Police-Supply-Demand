@@ -1,5 +1,7 @@
 
-"""python functions called by netlogo for downstream model communication"""
+"""python functions called by netlogo for up/downstream model communication"""
+
+from datetime import date
 
 
 import warnings
@@ -12,16 +14,37 @@ import neworder as no
 
 from crims.model import CrimeMicrosim
 
+# model-like wrapper around canned data
+class CannedCrimeData(no.Model):
+  def __init__(self, start):
+    timeline = no.CalendarTimeline(date(start[0], start[1], 1), 1, "m")
+    super().__init__(timeline, no.MonteCarlo.deterministic_identical_stream)
+    self.crimes = pd.read_csv("./data/crime-sample.csv", parse_dates=["time"])
+
+  def step(self):
+    pass
+
 # init_model must be called to instantiate model
 model = None
 # keep track of the time
 time = None
 timestep = timedelta(hours=1)
 
+
+def init_canned_data(year, month):
+  global model
+  global time
+
+  # monthly open-ended timeline
+  model = CannedCrimeData((year, month))
+  time = model.timeline().time()
+
+
 # TODO might be worth passing the ABM timestep size here
 def init_model(force_area, year, month, initial_loading=1.0):
   global model
   global time
+
   # monthly open-ended timeline
   model = CrimeMicrosim(force_area, (year, month), agg_mode=False)
   time = model.timeline().time()
@@ -73,7 +96,7 @@ if __name__ == "__main__":
   import pandas as pd
 
   init_model("City of London", 2020, 1)
-
+  #init_canned_data(2020,1)
   print(model.crimes.head())
 
   for _ in range(24*45):
