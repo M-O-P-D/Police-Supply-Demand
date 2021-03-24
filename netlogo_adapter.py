@@ -1,6 +1,11 @@
 
 """python functions called by netlogo for downstream model communication"""
 
+
+import warnings
+# suppress MPI-related warning
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="mpi4py module not found, assuming serial mode")
+
 from io import StringIO
 from datetime import datetime, timedelta
 import neworder as no
