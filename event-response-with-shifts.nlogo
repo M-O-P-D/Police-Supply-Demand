@@ -146,25 +146,22 @@ to setup
   ca
   reset-ticks
 
-  if demand-events = "CriMS-Interface"
-  [
-    ; init python session
-    py:setup py:python
-    py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, pop_crimes"
+  ; init python session
+  py:setup py:python
+  py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, pop_crimes"
 
-    set force-area Force
-    set start-year StartYear
-    set loading-factor 1.0
+  set force-area Force
+  set start-year StartYear
+  set loading-factor Loading
 
-    ;send start mnoth and year to crims
-    py:run (word "init_model('" force-area "', " start-year ", " start-month ")")
-    ;adjust internal ABM date-time to match
-    set dt time:create (word start-year "/" start-month "/01 00:00")
+  ;send start mnoth and year to crims
+  py:run (word "init_model('" force-area "', " start-year ", " start-month ", " loading-factor ")")
+  ;adjust internal ABM date-time to match
+  set dt time:create (word start-year "/" start-month "/01 00:00")
 
-  ]
 
   ;create folder path to store results based on settings
-  let path (word "model-output/" demand-events "/resources" number-resources "/rep" replication "/")
+  let path (word "model-output/resources" number-resources "/rep" replication "/")
   pathdir:create path
 
   ;setup output files
@@ -216,14 +213,10 @@ to setup
 
 
   ; if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/06/30 22:00" print event-data]
-  if demand-events = "Flat-file" [
-    print "Reading Event Data from flat-file ......" set event-data csv:from-file "input-data/CriMS-Sample.csv"
-    set event-data remove-item 0 event-data ;remove top (header) row
-  ]
 
-    ;midnight so roster shift 3 on
-    set Shift-3 TRUE
-    roster-on 3
+  ;midnight so roster shift 3 on
+  set Shift-3 TRUE
+  roster-on 3
 
 end
 
@@ -355,12 +348,10 @@ to read-events-from-crims
   ;0    E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
   ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 
-  if demand-events = "CriMS-Interface" [
-    set event-data csv:from-string (pycrimes(loading-factor))
-    set event-data remove-item 0 event-data ;remove top (header) row
-    ;show (word "This hour: " length event-data " crimes to process")
-    ;show event-data
-  ]
+  set event-data csv:from-string (pycrimes(loading-factor))
+  set event-data remove-item 0 event-data ;remove top (header) row
+  ;show (word "This hour: " length event-data " crimes to process")
+  ;show event-data
 
 
   while [length event-data > 0]
@@ -1477,16 +1468,6 @@ event-file-out
 1
 -1000
 
-CHOOSER
-10
-98
-180
-143
-demand-events
-demand-events
-"CriMS-Interface" "Flat-file"
-0
-
 SWITCH
 10
 455
@@ -1687,6 +1668,21 @@ start-month
 start-month
 1 2 3 4 5 6 7 8 9 10 11 12
 2
+
+SLIDER
+10
+95
+182
+128
+Loading
+Loading
+0.5
+1.5
+1.0
+0.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
