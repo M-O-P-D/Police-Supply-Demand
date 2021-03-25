@@ -159,15 +159,18 @@ to setup
 
 
   ;create folder path to store results based on settings
-  let path (word "model-output/resources" number-resources "/rep" replication "/")
+
+  let model-config (word Force "-Load" InitialLoading "-Rep" replication "-")
+
+  let path (word "model-output/")
   pathdir:create path
 
   ;setup output files
-  set event-summary-file (word path "event-summary-file.csv")
-  set active-event-trends-file (word path "active-event-trends-file.csv")
-  set active-resource-trends-file (word path "active-resource-trends-file.csv")
-  set resource-summary-file (word path "officer-summary-file.csv")
-  set resource-usage-trends-file (word path "resource-usage-trends-file.csv")
+  set event-summary-file (word path model-config "event-summary-file.csv")
+  set active-event-trends-file (word path model-config "active-event-trends-file.csv")
+  set active-resource-trends-file (word path model-config "active-resource-trends-file.csv")
+  set resource-summary-file (word path model-config "officer-summary-file.csv")
+  set resource-usage-trends-file (word path model-config "resource-usage-trends-file.csv")
 
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
