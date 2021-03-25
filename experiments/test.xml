@@ -4,7 +4,7 @@
     <go>go-step</go>
     <final>close-files</final>
     <timeLimit steps="736"/>
-    <enumeratedValueSet variable="loading">
+    <enumeratedValueSet variable="InitialLoading">
       <value value="1.0"/>
       <value value="0.9"/>
       <value value="1.1"/>
@@ -12,7 +12,7 @@
     <!--enumeratedValueSet variable="event-characteristics">
       <value value="&quot;Experimental&quot;"/>
     </enumeratedValueSet-->
-    <steppedValueSet variable="replication" first="1" step="1" last="1"/>
+    <steppedValueSet variable="replication" first="1" step="1" last="2"/>
     <enumeratedValueSet variable="color-by-priority">
       <value value="false"/>
     </enumeratedValueSet>
