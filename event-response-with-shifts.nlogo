@@ -21,10 +21,7 @@ globals
   resource-summary-file
   resource-usage-trends-file
 
-  force-area       ; force area we are sampling
-  start-year       ; which is set from StartYear, @Dan why the indirection?
-  loading-factor   ; over/undersampling of historic data
-
+  loading-factor ; dynamic crime loading factor
 ]
 
 ;Events store demand - the things the police must respond to
@@ -146,18 +143,16 @@ to setup
   ca
   reset-ticks
 
+  set loading-factor InitialLoading
+
   ; init python session
   py:setup py:python
   py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, pop_crimes"
 
-  set force-area Force
-  set start-year StartYear
-  set loading-factor Loading
-
-  ; TODO initialise crims with replication (currently hard-coded to 0)
-  py:run (word "init_model(" replication ", '" force-area "', " start-year ", " start-month ", " loading-factor ")")
+  ; seed crims MC with replication
+  py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " loading-factor ")")
   ;adjust internal ABM date-time to match
-  set dt time:create (word start-year "/" start-month "/01 00:00")
+  set dt time:create (word StartYear "/" StartMonth "/01 00:00")
 
 
   ;create folder path to store results based on settings
@@ -212,7 +207,7 @@ to setup
   ;read in the event data
 
 
-  ; if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(loading-factor)) set dt time:create "2020/06/30 22:00" print event-data]
+  ; if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(LoadingFactor)) set dt time:create "2020/06/30 22:00" print event-data]
 
   ;midnight so roster shift 3 on
   set Shift-3 TRUE
@@ -1039,7 +1034,7 @@ end
 ;  ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 ;
 ;  if demand-events = "CriMS-Interface" [
-;    set event-data csv:from-string (pycrimes(loading-factor))
+;    set event-data csv:from-string (pycrimes(LoadingFactor))
 ;
 ;    show (word "Raw data from Crims - " event-data)
 ;    show ""
@@ -1109,7 +1104,7 @@ end
 ;        if length event-data = 0 and demand-events = "CriMS-Interface"
 ;        [
 ;          show "call crims"
-;          set event-data csv:from-string (pycrimes(loading-factor))
+;          set event-data csv:from-string (pycrimes(LoadingFactor))
 ;          set event-data remove-item 0 event-data ;remove top (header) row
 ;        ]
 ;      ]
@@ -1664,8 +1659,8 @@ CHOOSER
 320
 153
 365
-start-month
-start-month
+StartMonth
+StartMonth
 1 2 3 4 5 6 7 8 9 10 11 12
 2
 
@@ -1674,8 +1669,8 @@ SLIDER
 95
 182
 128
-Loading
-Loading
+InitialLoading
+InitialLoading
 0.5
 1.5
 1.0
