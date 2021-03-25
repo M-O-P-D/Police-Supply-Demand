@@ -41,14 +41,15 @@ def init_canned_data(year, month):
 
 
 # TODO might be worth passing the ABM timestep size here
-def init_model(force_area, year, month, initial_loading=1.0):
+def init_model(run_no, force_area, year, month, initial_loading=1.0):
   global model
   global time
 
-  # monthly open-ended timeline
-  model = CrimeMicrosim(force_area, (year, month), agg_mode=False)
+  # monthly open-ended timeline (run_no is used to seed the mc)
+  model = CrimeMicrosim(run_no, force_area, (year, month), agg_mode=False)
   time = model.timeline().time()
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
+  no.log("MC seed=%d" % model.mc().seed())
   # simulate the first month
   get_crimes(initial_loading)
 
@@ -95,7 +96,7 @@ if __name__ == "__main__":
 
   import pandas as pd
 
-  init_model("City of London", 2020, 1)
+  init_model(0, "City of London", 2020, 1)
   #init_canned_data(2020,1)
   print(model.crimes.head())
 

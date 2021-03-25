@@ -154,8 +154,8 @@ to setup
   set start-year StartYear
   set loading-factor Loading
 
-  ;send start mnoth and year to crims
-  py:run (word "init_model('" force-area "', " start-year ", " start-month ", " loading-factor ")")
+  ; TODO initialise crims with replication (currently hard-coded to 0)
+  py:run (word "init_model(0, '" force-area "', " start-year ", " start-month ", " loading-factor ")")
   ;adjust internal ABM date-time to match
   set dt time:create (word start-year "/" start-month "/01 00:00")
 
@@ -2026,47 +2026,10 @@ false
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
 @#$#@#$#@
-NetLogo 6.1.0
+NetLogo 6.2.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
-<experiments>
-  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
-    <setup>setup</setup>
-    <go>go-step</go>
-    <final>close-files</final>
-    <timeLimit steps="736"/>
-    <enumeratedValueSet variable="demand-events">
-      <value value="&quot;Actual&quot;"/>
-      <value value="&quot;Burg-10per-decrease&quot;"/>
-      <value value="&quot;Burg-10per-increase&quot;"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="event-characteristics">
-      <value value="&quot;Experimental&quot;"/>
-    </enumeratedValueSet>
-    <steppedValueSet variable="replication" first="1" step="1" last="10"/>
-    <enumeratedValueSet variable="color-by-priority">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="number-resources">
-      <value value="1800"/>
-      <value value="1860"/>
-      <value value="1980"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="VERBOSE">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="Shifts">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="event-file-out">
-      <value value="true"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="triage-events">
-      <value value="true"/>
-    </enumeratedValueSet>
-  </experiment>
-</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default

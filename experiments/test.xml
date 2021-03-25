@@ -1,0 +1,37 @@
+<experiments>
+  <experiment name="test" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go-step</go>
+    <final>close-files</final>
+    <timeLimit steps="736"/>
+    <enumeratedValueSet variable="loading">
+      <value value="1.0"/>
+      <value value="0.9"/>
+      <value value="1.1"/>
+    </enumeratedValueSet>
+    <!--enumeratedValueSet variable="event-characteristics">
+      <value value="&quot;Experimental&quot;"/>
+    </enumeratedValueSet-->
+    <steppedValueSet variable="replication" first="1" step="1" last="1"/>
+    <enumeratedValueSet variable="color-by-priority">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <!--enumeratedValueSet variable="number-resources">
+      <value value="1800"/>
+      <value value="1860"/>
+      <value value="1980"/>
+    </enumeratedValueSet-->
+    <enumeratedValueSet variable="VERBOSE">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Shifts">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="event-file-out">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="triage-events">
+      <value value="true"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
