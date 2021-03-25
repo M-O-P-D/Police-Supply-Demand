@@ -19,7 +19,8 @@ doc/weekly*.png
 doc/daily*.png
 local/
 cache/
-
+log/
+`
 NetLogo*/
 NetLogo-*.tgz
 
