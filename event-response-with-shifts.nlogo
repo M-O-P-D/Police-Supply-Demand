@@ -143,6 +143,9 @@ to setup
   ca
   reset-ticks
 
+  if SetSeed [ random-seed replication ]
+
+
   set loading-factor InitialLoading
 
   ; init python session
@@ -156,15 +159,18 @@ to setup
 
 
   ;create folder path to store results based on settings
-  let path (word "model-output/resources" number-resources "/rep" replication "/")
+
+  let model-config (word Force "-Load" InitialLoading "-Rep" replication "-")
+
+  let path (word "model-output/")
   pathdir:create path
 
   ;setup output files
-  set event-summary-file (word path "event-summary-file.csv")
-  set active-event-trends-file (word path "active-event-trends-file.csv")
-  set active-resource-trends-file (word path "active-resource-trends-file.csv")
-  set resource-summary-file (word path "officer-summary-file.csv")
-  set resource-usage-trends-file (word path "resource-usage-trends-file.csv")
+  set event-summary-file (word path model-config "event-summary-file.csv")
+  set active-event-trends-file (word path model-config "active-event-trends-file.csv")
+  set active-resource-trends-file (word path model-config "active-resource-trends-file.csv")
+  set resource-summary-file (word path model-config "officer-summary-file.csv")
+  set resource-usage-trends-file (word path model-config "resource-usage-trends-file.csv")
 
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
@@ -1306,9 +1312,9 @@ NIL
 
 TEXTBOX
 15
-575
+620
 140
-652
+697
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1389,9 +1395,9 @@ PENS
 
 SWITCH
 10
-500
+545
 175
-533
+578
 VERBOSE
 VERBOSE
 1
@@ -1411,9 +1417,9 @@ count resources with [resource-status = 2]
 
 SWITCH
 10
-420
+465
 175
-453
+498
 Shifts
 Shifts
 0
@@ -1454,9 +1460,9 @@ PENS
 
 SWITCH
 10
-535
+580
 175
-568
+613
 event-file-out
 event-file-out
 0
@@ -1465,9 +1471,9 @@ event-file-out
 
 SWITCH
 10
-455
+500
 175
-488
+533
 triage-events
 triage-events
 0
@@ -1527,9 +1533,9 @@ PENS
 
 BUTTON
 10
-667
+712
 170
-702
+747
 close files
 close-files
 NIL
@@ -1544,9 +1550,9 @@ NIL
 
 SLIDER
 10
-370
+415
 175
-403
+448
 replication
 replication
 1
@@ -1624,9 +1630,9 @@ PENS
 
 SWITCH
 10
-712
+757
 172
-745
+790
 color-by-priority
 color-by-priority
 0
@@ -1646,7 +1652,7 @@ Force
 INPUTBOX
 15
 250
-172
+80
 310
 StartYear
 2021.0
@@ -1655,10 +1661,10 @@ StartYear
 Number
 
 CHOOSER
-15
-320
-153
-365
+85
+250
+177
+295
 StartMonth
 StartMonth
 1 2 3 4 5 6 7 8 9 10 11 12
@@ -1678,6 +1684,17 @@ InitialLoading
 1
 NIL
 HORIZONTAL
+
+SWITCH
+10
+375
+175
+408
+SetSeed
+SetSeed
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
