@@ -155,7 +155,7 @@ to setup
   set loading-factor Loading
 
   ; TODO initialise crims with replication (currently hard-coded to 0)
-  py:run (word "init_model(0, '" force-area "', " start-year ", " start-month ", " loading-factor ")")
+  py:run (word "init_model(" replication ", '" force-area "', " start-year ", " start-month ", " loading-factor ")")
   ;adjust internal ABM date-time to match
   set dt time:create (word start-year "/" start-month "/01 00:00")
 
