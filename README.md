@@ -8,8 +8,9 @@ The agent-based model and the microsimulation components are now integrated into
 
 ## Agent-based model
 
+![netlogo](./doc/netlogo.png)
+
 TODO...
-TODO screen grab of netlogo...
 
 ## CriMS
 
@@ -23,6 +24,8 @@ It uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework
 ### Dependencies
 
 Create a python environment with the required dependencies. To run the integrated model, you must start netlogo from within your virtualenv/conda env if you're using one. See [Usage](#usage) and [here](doc/stack.md) for more detail.
+
+To run the integrated model in headless mode on a compute cluster, see [batch](./doc/batch.md)
 
 ## Docker container
 

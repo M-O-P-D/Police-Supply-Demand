@@ -7,9 +7,11 @@
 
 ## Running on ARC4
 
-You may need to manually install extensions e.g. pathdir. See [here](https://github.com/cstaelin/Pathdir-Extension#installation)
+Create a conda environment as per [README](./README.md), then download and extract netlogo to a suitable location.
 
-It uses the java SGE module as opposed to a conda package, as installing the latter breaks a dependency (with fiona)
+You may need to manually install extensions e.g. pathdir without GUI access. See [here](https://github.com/cstaelin/Pathdir-Extension#installation)
+
+It uses the java runtime environment SGE module as opposed to a conda package, as installing the latter breaks a dependency (with fiona).
 
 It's done in the batch submission script, but to do it explicitly:
 
