@@ -128,10 +128,9 @@ to-report pydone
   report py:runresult call
 end
 
-; exchange data with downstream model - f is a blanket loading factor for crime intensity
+; exchange data with downstream model
 to-report pycrimes [f]
-  ; let call (word "get_crimes(" f ")")
-  let call (word "pop_crimes()")
+  let call (word "get_crimes()")
   report py:runresult call
 end
 
@@ -146,17 +145,22 @@ to setup
   if SetSeed [ random-seed replication ]
 
 
-  set loading-factor InitialLoading
-
   ; init python session
   py:setup py:python
-  py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, pop_crimes"
+  py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, get_loading, set_loading"
 
   ; seed crims MC with replication
-  py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " loading-factor ")")
+  py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " InitialLoading ")")
   ;adjust internal ABM date-time to match
   set dt time:create (word StartYear "/" StartMonth "/01 00:00")
 
+  set loading-factor table:from-list py:runresult "get_loading()"
+  print loading-factor
+
+  ; this masively increases drug offences *from the second month*
+  ; py:run "set_loading(12.34, 'drugs')"
+  ; set loading-factor table:from-list py:runresult "get_loading()"
+  ; print loading-factor
 
   ;create folder path to store results based on settings
 

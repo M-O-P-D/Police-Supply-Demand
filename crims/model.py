@@ -25,13 +25,13 @@ class CrimeMicrosim(no.Model):
     self.__crime_rates = crime.get_crime_counts()
     self.__crime_outcomes = crime.get_crime_outcomes()
 
-    self.__crime_types = self.__crime_rates.index.unique(level=1)
+    self.__crime_categories = self.__crime_rates.index.unique(level=1)
     self.__geogs = self.__crime_rates.index.unique(level=0)
-    self.__crime_categories = crime.get_category_breakdown()
+    self.__crime_types = crime.get_category_breakdown()
 
     # loading factor for crime sampling
     # TODO make function of crime type
-    self.__loading = 1.0
+    self.__loading = dict.fromkeys(self.__crime_categories, 1.0)
 
     # upstream model
     #self.datastream = DataStream("http://localhost:5000")
@@ -49,8 +49,16 @@ class CrimeMicrosim(no.Model):
       # yield to calling process
       self.halt()
 
-  def set_loading(self, f):
-    self.__loading = f
+  def set_loading(self, f, category=None):
+    if category is None:
+      # change all values
+      self.__loading = dict.fromkeys(self.__loading, f)
+    else:
+      # change specific value
+      self.__loading[category] = f
+
+  def get_loading(self):
+    return self.__loading
 
   def force_area(self):
     return self.__force_area
@@ -70,34 +78,34 @@ class CrimeMicrosim(no.Model):
     # force column ordering
     crimes = pd.DataFrame(columns=[])
 
-    for ct in self.__crime_types:
+    for cat in self.__crime_categories:
 
       # extra [] to ensure result is always a dataframe (even if 1 row)
       # see https://stackoverflow.com/questions/20383647/pandas-selecting-by-label-sometimes-return-series-sometimes-returns-dataframe
-      subcats = self.__crime_categories.loc[[ct]]
+      crime_types = self.__crime_types.loc[[cat]]
 
-      for _, subcat in subcats.iterrows():
-        time_weights = get_periodicity(start_weekday, days_in_month, subcat.code_original) * subcat.proportion
+      for _, crime_type in crime_types.iterrows():
+        time_weights = get_periodicity(start_weekday, days_in_month, crime_type.code_original) * crime_type.proportion
         for g in self.__geogs:
-          if self.__crime_rates.index.isin([(g, ct)]).any():
-            intensity = self.__crime_rates.loc[(g, ct), ("count", "%02d" % t.month)]
+          if self.__crime_rates.index.isin([(g, cat)]).any():
+            intensity = self.__crime_rates.loc[(g, cat), ("count", "%02d" % t.month)]
             # only have suspect likelihood for broad category
-            p_suspect = self.__crime_outcomes.loc[(g,ct), "pSuspect"]
+            p_suspect = self.__crime_outcomes.loc[(g,cat), "pSuspect"]
 
             # impose daily/weekly periodicity of the subtype to the scaled intensity for the type, and adjust by loading factor
-            lambdas = intensity * time_weights * self.__loading
+            lambdas = intensity * time_weights * self.__loading[cat]
             lambdas = np.append(lambdas, 0.0)
             times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
             if len(times) > 0:
               d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
               s = self.mc().hazard(p_suspect, len(times)).astype(bool)
               df = pd.DataFrame(index=no.df.unique_index(len(d)), data={"MSOA": g,
-                                                          "crime_type": ct,
-                                                          "code": subcat.code_original,
-                                                          "description": subcat.description,
+                                                          "crime_category": cat,
+                                                          "code": crime_type.code_original,
+                                                          "description": crime_type.description,
                                                           "time": d,
                                                           "suspect": s,
-                                                          "severity": subcat.ONS_SEVERITY_weight })
+                                                          "severity": crime_type.ONS_SEVERITY_weight })
               crimes = crimes.append(df)
 
     # round to nearest minute

@@ -31,6 +31,13 @@ time = None
 timestep = timedelta(hours=1)
 
 
+def set_loading(f, category=None):
+  return model.set_loading(f, category)
+
+def get_loading():
+  return model.get_loading()
+
+
 def init_canned_data(year, month):
   global model
   global time
@@ -51,31 +58,33 @@ def init_model(run_no, force_area, year, month, initial_loading=1.0):
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
   no.log("MC seed=%d" % model.mc().seed())
   # simulate the first month
-  get_crimes(initial_loading)
+  model.set_loading(initial_loading)
+  no.run(model)
 
 
 def get_time():
-  global model
+  #global model
   return model.timeline().time().strftime("%Y-%m-%d")
 
 def at_end():
-  global model
+  #global model
   return model.timeline().at_end()
 
-# TODO parameter adjustments
-def get_crimes(loading):
-  global model
+# # TODO parameter adjustments
+# def get_crimes(loading):
+#   global model
 
-  no.log("Setting loading factor to %f" % loading)
-  no.log("Sampling crimes in %s for month beginning %s" % (model.force_area(), model.timeline().time()))
-  model.set_loading(loading)
-  no.run(model)
+#   no.log("Setting loading factor to %f" % loading)
+#   no.log("Sampling crimes in %s for month beginning %s" % (model.force_area(), model.timeline().time()))
+#   model.set_loading(loading)
+#   no.run(model)
 
-  buf = StringIO()
-  model.crimes.to_csv(buf)
-  return buf.getvalue()
+#   buf = StringIO()
+#   model.crimes.to_csv(buf)
+#   return buf.getvalue()
 
-def pop_crimes():
+# TODO #6 time window arguments
+def get_crimes():
   global model, time, timestep
 
   # TODO this is inefficient
@@ -100,9 +109,14 @@ if __name__ == "__main__":
   #init_canned_data(2020,1)
   print(model.crimes.head())
 
+  model.set_loading(0.1)
+  model.set_loading(10.0, "drugs")
+
   for _ in range(24*45):
-    crimes = pd.read_csv(StringIO(pop_crimes()), index_col="id")
+    crimes = pd.read_csv(StringIO(get_crimes()), index_col="id")
     no.log("hour ending %s: %d crimes" % (time, len(crimes)))
+
+  print(model.get_loading())
 
 
   # print(get_time())
