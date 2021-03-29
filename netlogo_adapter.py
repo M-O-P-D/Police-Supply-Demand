@@ -1,8 +1,9 @@
 
 """python functions called by netlogo for up/downstream model communication"""
 
-from datetime import date
 
+from datetime import date
+import pandas as pd
 
 import warnings
 # suppress MPI-related warning
@@ -19,10 +20,20 @@ class CannedCrimeData(no.Model):
   def __init__(self, start):
     timeline = no.CalendarTimeline(date(start[0], start[1], 1), 1, "m")
     super().__init__(timeline, no.MonteCarlo.deterministic_identical_stream)
-    self.crimes = pd.read_csv("./data/crime-sample.csv", parse_dates=["time"])
+    self.crimes = pd.read_csv("./test/crime-sample.csv", parse_dates=["time"], index_col="id")
+
+  def force_area(self):
+    return "[canned data]"
+
+  # loading factors do nothing on canned data
+  def get_loading(self, _=None):
+    return { }
+
+  def set_loading(self, f, _=None):
+    pass
 
   def step(self):
-    pass
+    self.halt()
 
 # init_model must be called to instantiate model
 model = None

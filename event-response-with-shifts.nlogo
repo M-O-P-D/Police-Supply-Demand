@@ -117,22 +117,24 @@ end
 
 ; python interface
 ; get the current time
-to-report pytime
-  let call "get_time()"
-  report py:runresult call
-end
+; to-report pytime
+;   let call "get_time()"
+;   report py:runresult call
+; end
 
 ; get the current time
-to-report pydone
-  let call "at_end()"
-  report py:runresult call
-end
+; to-report pydone
+;   let call "at_end()"
+;   report py:runresult call
+; end
 
-; exchange data with downstream model
+; get data from upstream model
 to-report pycrimes [f]
   let call (word "get_crimes()")
   report py:runresult call
 end
+
+
 
 
 ;main setup procedure
@@ -147,10 +149,14 @@ to setup
 
   ; init python session
   py:setup py:python
-  py:run "from netlogo_adapter import init_model, get_time, at_end, get_crimes, get_loading, set_loading"
+  py:run "from netlogo_adapter import init_model, init_canned_data, get_crimes, get_loading, set_loading"
 
   ; seed crims MC with replication
   py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " InitialLoading ")")
+
+  ; or, to use canned data
+  ; py:run (word "init_canned_data(" StartYear ", " StartMonth ")")
+
   ;adjust internal ABM date-time to match
   set dt time:create (word StartYear "/" StartMonth "/01 00:00")
 
@@ -349,7 +355,7 @@ to read-events-from-crims
 
   ;API DATA FORMAT
   ;0    1           2               3       4                                             5                     6           7
-  ;id   MSOA        crime_type      code    description                                   time                  suspect     severity
+  ;id   MSOA        crime_category  code    description                                   time                  suspect     severity
   ;0    E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
   ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 
@@ -1672,7 +1678,7 @@ CHOOSER
 StartMonth
 StartMonth
 1 2 3 4 5 6 7 8 9 10 11 12
-2
+0
 
 SLIDER
 10

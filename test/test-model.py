@@ -7,12 +7,12 @@ warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pypr
 
 no.verbose()
 
-start_year = 2020
-end_year = 2021
-#force = "West Yorkshire"
-force = "City of London"
+start = (2021, 1)
+end = (2021, 12)
+force = "Durham"
+#force = "City of London"
 
-model = model.CrimeMicrosim(force, (start_year, 1), (end_year, 1))
+model = model.CrimeMicrosim(0, force, start, end)
 
 #no.log(model.crime_rates.loc[("E02001109", "Anti-social behaviour")])
 
@@ -22,7 +22,7 @@ model = model.CrimeMicrosim(force, (start_year, 1), (end_year, 1))
 
 no.run(model)
 
-model.crimes.sample(n=500).sort_values(by="time").to_csv("./data/crime-sample.csv")
+model.crimes.sample(n=500).sort_values(by="time").to_csv("./test/crime-sample.csv")
 #print(model.crimes.sample(10))
 
 
