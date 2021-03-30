@@ -15,6 +15,8 @@ import neworder as no
 
 from crims.model import CrimeMicrosim
 
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
 # model-like wrapper around canned data
 class CannedCrimeData(no.Model):
   def __init__(self, start):
@@ -37,9 +39,6 @@ class CannedCrimeData(no.Model):
 
 # init_model must be called to instantiate model
 model = None
-# keep track of the time
-time = None
-timestep = timedelta(hours=1)
 
 
 def set_loading(f, category=None):
@@ -51,21 +50,15 @@ def get_loading():
 
 def init_canned_data(year, month):
   global model
-  global time
-
-  # monthly open-ended timeline
   model = CannedCrimeData((year, month))
-  time = model.timeline().time()
 
 
 # TODO might be worth passing the ABM timestep size here
 def init_model(run_no, force_area, year, month, initial_loading=1.0):
   global model
-  global time
 
   # monthly open-ended timeline (run_no is used to seed the mc)
   model = CrimeMicrosim(run_no, force_area, (year, month), agg_mode=False)
-  time = model.timeline().time()
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
   no.log("MC seed=%d" % model.mc().seed())
   # simulate the first month
@@ -73,41 +66,21 @@ def init_model(run_no, force_area, year, month, initial_loading=1.0):
   no.run(model)
 
 
-def get_time():
-  #global model
-  return model.timeline().time().strftime("%Y-%m-%d")
+def get_crimes(start, end):
+  global model, timestep
 
-def at_end():
-  #global model
-  return model.timeline().at_end()
+  ts = datetime.strptime(start, TIME_FORMAT)
+  te = datetime.strptime(end, TIME_FORMAT)
 
-# # TODO parameter adjustments
-# def get_crimes(loading):
-#   global model
-
-#   no.log("Setting loading factor to %f" % loading)
-#   no.log("Sampling crimes in %s for month beginning %s" % (model.force_area(), model.timeline().time()))
-#   model.set_loading(loading)
-#   no.run(model)
-
-#   buf = StringIO()
-#   model.crimes.to_csv(buf)
-#   return buf.getvalue()
-
-# TODO #6 time window arguments
-def get_crimes():
-  global model, time, timestep
-
-  # TODO this is inefficient
-  if time >= model.crimes.time.max():
+  # NB model time is the start of the *next* (as yet unsampled) timestep
+  if ts >= model.timeline().time():
     no.log("Sampling crimes in %s for month beginning %s" % (model.force_area(), model.timeline().time()))
     no.run(model)
 
-  end = time + timestep
+  #no.log("%s -> %s: %d" % (ts, te, len(model.crimes[(model.crimes.time >= ts) & (model.crimes.time < te)])))
 
   buf = StringIO()
-  model.crimes[(model.crimes.time >= time) & (model.crimes.time < end)].to_csv(buf)
-  time = end
+  model.crimes[(model.crimes.time >= ts) & (model.crimes.time < te)].to_csv(buf)
   return buf.getvalue()
 
 
@@ -123,9 +96,16 @@ if __name__ == "__main__":
   model.set_loading(0.1)
   model.set_loading(10.0, "drugs")
 
+  t = model.timeline().start()
+
+  ts = t
+
+  # test time serialisation as it would be if coming from netlogo
   for _ in range(24*45):
-    crimes = pd.read_csv(StringIO(get_crimes()), index_col="id")
-    no.log("hour ending %s: %d crimes" % (time, len(crimes)))
+    te = ts + timedelta(hours=1)
+    crimes = pd.read_csv(StringIO(get_crimes(datetime.strftime(ts, TIME_FORMAT), datetime.strftime(te, TIME_FORMAT))), index_col="id")
+    no.log("%s->%s: %d crimes" % (ts, te, len(crimes)))
+    ts = te
 
   print(model.get_loading())
 

@@ -129,8 +129,11 @@ end
 ; end
 
 ; get data from upstream model
-to-report pycrimes [f]
-  let call (word "get_crimes()")
+to-report pycrimes [start]
+  ; serialise start/end into strings as can't pass a netlogo time type
+  let ts time:show start "yyyy-MM-dd HH:mm:ss"
+  let te time:show (time:plus start 1 "hours") "yyyy-MM-dd HH:mm:ss"
+  let call (word "get_crimes('" ts "', '" te  "')")
   report py:runresult call
 end
 
@@ -218,12 +221,6 @@ to setup
 
   ;set the global clock
   if event-file-out [start-file-out]
-
-
-  ;read in the event data
-
-
-  ; if demand-events = "CriMS-Interface" [ print "Reading Event Data from CriMS ......" set event-data csv:from-string (pycrimes(LoadingFactor)) set dt time:create "2020/06/30 22:00" print event-data]
 
   ;midnight so roster shift 3 on
   set Shift-3 TRUE
@@ -359,7 +356,7 @@ to read-events-from-crims
   ;0    E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
   ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 
-  set event-data csv:from-string (pycrimes(loading-factor))
+  set event-data csv:from-string pycrimes dt
   set event-data remove-item 0 event-data ;remove top (header) row
   ;show (word "This hour: " length event-data " crimes to process")
   ;show event-data
@@ -1040,99 +1037,6 @@ end
 
 
 
-;; procedure to read in the events for the given time window / tick
-;to read-events-old
-;
-;  ;API DATA FORMAT
-;  ;0    1           2               3       4                                             5                     6           7
-;  ;id   MSOA        crime_type      code    description                                   time                  suspect     severity
-;  ;0    E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
-;  ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
-;
-;  if demand-events = "CriMS-Interface" [
-;    set event-data csv:from-string (pycrimes(LoadingFactor))
-;
-;    show (word "Raw data from Crims - " event-data)
-;    show ""
-;    set event-data remove-item 0 event-data ;remove top (header) row
-;
-;
-;    show (word "Data to process this hour - " event-data)
-;    show ""
-;    show (word (length event-data) " events to process this hour")
-;
-;
-;  ]
-;
-;  let hour-end FALSE
-;
-;  if length event-data > 0
-;  [
-;    while [not hour-end]
-;    [
-;      ;pull the top row from the data
-;      let temp item 0 event-data
-;      print temp
-;
-;      ;construct a date
-;      let temp-dt time:create-with-format (item 5 temp) "yyyy-MM-dd HH:mm:ss"
-;
-;      print (word "event-dt = " temp-dt " ---- window = " dt " to " time:plus dt 59 "minutes")
-;      ;check if the event occurs at current tick - which is one hour window
-;      ifelse (time:is-between? temp-dt dt (time:plus dt 59 "minutes"))
-;      [
-;
-;        show "IN HERE"
-;
-;        ;create an event agent
-;        create-events 1
-;        [
-;          set count-crime-hour count-crime-hour + 1
-;
-;          ;make it invisible
-;          set hidden? true
-;
-;          ;fill in relevant details for event from data
-;          set eventID item 0 temp
-;          set event-type item 4 temp
-;          set event-class item 2 temp
-;          set event-MSOA item 1 temp
-;          set event-severity item 7 temp
-;          set event-suspect item 6 temp
-;          set event-start-dt dt
-;          set event-status 1 ;awaiting resource
-;          set event-paused false
-;
-;          ;get the amount of units/time required to respond to resource from event info
-;          set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
-;          set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
-;          set event-priority convert-severity-to-event-priority event-severity
-;          set event-resource-req-total event-resource-req-amount * event-resource-req-time
-;          set event-resource-counter event-resource-req-total
-;
-;
-;        ]
-;
-;        ;once the event agent has been created delete it from the data file
-;        set event-data remove-item 0 event-data
-;
-;        ; get more data from CriMS if we have consumed it all
-;        if length event-data = 0 and demand-events = "CriMS-Interface"
-;        [
-;          show "call crims"
-;          set event-data csv:from-string (pycrimes(LoadingFactor))
-;          set event-data remove-item 0 event-data ;remove top (header) row
-;        ]
-;      ]
-;      [
-;        ; Event belongs to next hour - set hour-end to stop looping
-;        show "hour end"
-;        set hour-end TRUE
-;      ]
-;    ]
-;  ]
-;
-;end
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
