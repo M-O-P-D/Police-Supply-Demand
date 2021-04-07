@@ -15,7 +15,7 @@ warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pypr
 app = Flask(__name__)
 
 
-def run_sim(force_name, month):
+def run_sim(seed, force_name, month):
 
   year = 2020
 
@@ -23,7 +23,7 @@ def run_sim(force_name, month):
   end_month = month + 1 if month < 12 else 1
 
   # construct and run the model for one month only
-  microsim = model.CrimeMicrosim(force_name, (year, month), (end_year, end_month))
+  microsim = model.CrimeMicrosim(seed, force_name, (year, month), (end_year, end_month))
   model.no.run(microsim)
   return microsim.crimes
 
@@ -50,16 +50,16 @@ def crime_data():
       if not p in request.args:
         raise KeyError("param not specified: %s" % p)
 
+    force = request.args.get("force")
+    month = int(request.args.get("month"))
     fmt = request.args.get("format", "json") # default to json
-
     valid_formats = ["json", "csv"]
     if fmt not in valid_formats:
       raise ValueError("format must be one of %s" % str(valid_formats))
 
-    force = request.args.get("force")
-    month = int(request.args.get("month"))
+    seed = int(request.args.get("seed", 0))
 
-    crimes = run_sim(force, month)
+    crimes = run_sim(seed, force, month)
     if fmt == "json":
       return json.loads(crimes.sort_values(by="time").to_json(orient="table")), 200
     else:
@@ -80,8 +80,9 @@ def crime_map(): #force, start, end):
 
     force = request.args.get("force")
     month = int(request.args.get("month"))
+    seed = int(request.args.get("seed", 0))
 
-    crimes = run_sim(force, month)
+    crimes = run_sim(seed, force, month)
 
     plt = visualisation.density_map(crimes, force)
 
