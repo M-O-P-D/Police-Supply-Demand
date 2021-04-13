@@ -39,9 +39,11 @@ resources-own
   current-event-type ;the type of event the resource-agent is responding to
   current-event-class ; broader crime class
 
-  ;placeholders to allow units of resource to only be able to respond of events of a certain type - currently not used
+  ;splitresource agents into Response and CID pools
+  ; resource-type = 1 RESPONSE
+  ; resource-type = 2 C.I.D.
   resource-type
-  resource-roles
+
 
   ;status of resource agent
   resource-status ;represents the current state of the resource agent - coded: 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
@@ -197,7 +199,7 @@ to setup
   set Shift-3 false
 
   ; create police resoruce agents - one per patch
-  ask n-of number-resources patches
+  ask n-of (number-resources) patches
   [
     sprout-resources 1
     [
@@ -205,8 +207,12 @@ to setup
       set color grey
       ifelse Shifts [set resource-status 0] [set resource-status 1]
       set events-completed 0
+
+      ;initially specify all units as response
+      set resource-type  1
     ]
   ]
+
 
   ;if shifts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
   if Shifts
@@ -216,6 +222,19 @@ to setup
     ask resources with [ycor > ((third-split-unit * 1) - 1) and ycor <= ((third-split-unit * 2) - 1)] [ set working-shift 2]
     ask resources with [ycor > ((third-split-unit * 2) - 1)] [ set working-shift 3]
   ]
+
+
+  ; if resource split is switched on police resources are split into 2 pools - response officers (resource-type = 1) who deal with lower level incidents and CID  (resource-type = 2) who deal with more serious offences
+  ; the proportion of officers in each shift who are CID is defined by the GUI slider proportion-CID
+  ; currently this implementation assumes that CID operate accross all shifts - this might be explored in future model iterations
+
+  if resource-split
+  [
+    ask n-of ((count resources with [working-shift = 1]) * proportion-CID ) resources with [working-shift = 1] [ set shape "circle" set resource-type  2 ]
+    ask n-of ((count resources with [working-shift = 2]) * proportion-CID ) resources with [working-shift = 2] [ set shape "circle" set resource-type  2 ]
+    ask n-of ((count resources with [working-shift = 3]) * proportion-CID ) resources with [working-shift = 3] [ set shape "circle" set resource-type  2 ]
+  ]
+
 
   ;set the global clock
   if event-file-out [start-file-out]
@@ -1034,7 +1053,6 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
@@ -1224,9 +1242,9 @@ NIL
 
 TEXTBOX
 15
-620
+730
 140
-697
+807
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1307,9 +1325,9 @@ PENS
 
 SWITCH
 10
-545
+655
 175
-578
+688
 VERBOSE
 VERBOSE
 1
@@ -1372,9 +1390,9 @@ PENS
 
 SWITCH
 10
-580
+690
 175
-613
+723
 event-file-out
 event-file-out
 0
@@ -1383,9 +1401,9 @@ event-file-out
 
 SWITCH
 10
-500
+580
 175
-533
+613
 triage-events
 triage-events
 0
@@ -1445,9 +1463,9 @@ PENS
 
 BUTTON
 10
-712
+822
 170
-747
+857
 close files
 close-files
 NIL
@@ -1461,10 +1479,10 @@ NIL
 1
 
 SLIDER
-10
-415
-175
-448
+15
+360
+180
+393
 replication
 replication
 1
@@ -1542,12 +1560,12 @@ PENS
 
 SWITCH
 10
-757
+867
 172
-790
+900
 color-by-priority
 color-by-priority
-0
+1
 1
 -1000
 
@@ -1559,7 +1577,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
-9
+22
 
 INPUTBOX
 15
@@ -1598,15 +1616,41 @@ NIL
 HORIZONTAL
 
 SWITCH
-10
-375
-175
-408
+15
+320
+180
+353
 SetSeed
 SetSeed
 1
 1
 -1000
+
+SWITCH
+10
+500
+175
+533
+resource-split
+resource-split
+0
+1
+-1000
+
+SLIDER
+10
+535
+175
+568
+proportion-CID
+proportion-CID
+0
+1
+0.05
+0.05
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
