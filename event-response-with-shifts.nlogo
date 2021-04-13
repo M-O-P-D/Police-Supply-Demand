@@ -166,10 +166,8 @@ to setup
   set loading-factor table:from-list py:runresult "get_loading()"
   print loading-factor
 
-  ; this masively increases drug offences *from the second month*
+  ; test - massively increase drug offences *from the second month* (i.e. after the burn-in)
   ; py:run "set_loading(12.34, 'drugs')"
-  ; set loading-factor table:from-list py:runresult "get_loading()"
-  ; print loading-factor
 
   ;create folder path to store results based on settings
 
