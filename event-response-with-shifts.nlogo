@@ -864,28 +864,35 @@ to update-all-plots
   set-current-plot "Count Available Resources"
   set-current-plot-pen "TOTAL"
   plot count resources with [resource-status = 1 or resource-status = 2]
+  if resource-split
+  [
     set-current-plot-pen "CID"
-  plot count resources with [resource-type = 2 and (resource-status = 1 or resource-status = 2)]
+    plot count resources with [resource-type = 2 and (resource-status = 1 or resource-status = 2)]
     set-current-plot-pen "RESPONSE"
-  plot count resources with [resource-type = 1 and (resource-status = 1 or resource-status = 2)]
-
-
+    plot count resources with [resource-type = 1 and (resource-status = 1 or resource-status = 2)]
+  ]
 
   set-current-plot "% Resource Usage"
   set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
-  set-current-plot-pen "CID"
-  plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
-  set-current-plot-pen "RESPONSE"
-  plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
+  if resource-split
+  [
+    set-current-plot-pen "CID"
+    plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
+    set-current-plot-pen "RESPONSE"
+    plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
+  ]
 
   set-current-plot "Count Active Resources"
   set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2])
-  set-current-plot-pen "CID"
-  plot (count resources with [resource-type = 2 and resource-status = 2])
-  set-current-plot-pen "RESPONSE"
-  plot (count resources with [resource-type = 1 and resource-status = 2])
+  if resource-split
+  [
+    set-current-plot-pen "CID"
+    plot (count resources with [resource-type = 2 and resource-status = 2])
+    set-current-plot-pen "RESPONSE"
+    plot (count resources with [resource-type = 1 and resource-status = 2])
+  ]
 
   set-current-plot "Events Waiting"
   set-current-plot-pen "waiting-total"
@@ -1188,7 +1195,6 @@ end
 ;plot count events with [event-type = "Theft from the person"]
 ;plot count events with [event-type = "Vehicle crime"]
 ;plot count events with [event-type = "Violence and sexual offences"]
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
