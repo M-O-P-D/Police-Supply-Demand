@@ -155,14 +155,13 @@ to setup
 
   ; init python session
   py:setup py:python
-  py:run "from netlogo_adapter import init_model, init_canned_data, get_crimes, get_loading, set_loading"
+  py:run "from netlogo_adapter import init_model, get_crimes, get_loading, set_loading"
 
+  ; if Force="TEST" canned data rather than the actual model will be used
   ; seed crims MC with replication
   set BurnInMonths 1
   py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " InitialLoading ", " BurnInMonths ")")
 
-  ; or, to use canned data
-  ; py:run (word "init_canned_data(" StartYear ", " StartMonth ")")
 
   ;adjust internal ABM date-time to match
   set dt time:create (word StartYear "/" StartMonth "/01 00:00")
@@ -1038,7 +1037,6 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
@@ -1562,7 +1560,7 @@ CHOOSER
 245
 Force
 Force
-"Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
+"Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
 9
 
 INPUTBOX

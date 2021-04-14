@@ -48,14 +48,19 @@ def get_loading():
   return model.get_loading()
 
 
-def init_canned_data(year, month):
-  global model
-  model = CannedCrimeData((year, month))
+# def init_canned_data(year, month):
+#   global model
+#   model = CannedCrimeData((year, month))
 
 
 # TODO might be worth passing the ABM timestep size here
 def init_model(run_no, force_area, year, month, initial_loading, burn_in):
   global model
+
+  # use canned data if requested
+  if force_area == "TEST":
+    model = CannedCrimeData((year, month))
+    return
 
   # monthly open-ended timeline (run_no is used to seed the mc)
   model = CrimeMicrosim(run_no, force_area, (year, month), burn_in=burn_in)
