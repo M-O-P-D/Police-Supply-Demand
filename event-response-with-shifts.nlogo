@@ -156,7 +156,7 @@ to setup
   py:setup py:python
   py:run "from netlogo_adapter import init_model, init_canned_data, get_crimes, get_loading, set_loading"
 
-  ifelse Force = "#Test"
+  ifelse Force = "TEST"
   [
     ; use canned data - loads test/crime-sample.csv
     py:run (word "init_canned_data(" StartYear ", " StartMonth ")")
@@ -567,16 +567,16 @@ to shift-drop-events  [ shift ]
   ask events with [event-status = 2]
   [
     ;drop all units whose shift has just ended from those events
-    print (word EventID " - HAND-OVER @ shift change - " count current-resource " staff prior to shift change")
+    if VERBOSE [print (word EventID " - HAND-OVER @ shift change - " count current-resource " staff prior to shift change")]
     set current-resource current-resource with [working-shift != shift]
-    print (word EventID " - staff remaining in active shift - " count current-resource)
+    if VERBOSE [print (word EventID " - staff remaining in active shift - " count current-resource)]
     ;check if that leaves any resource left
     if count current-resource = 0
     [
       ;if not pause the event and set its status back to 1
       set event-status 1
       set event-paused true
-      print (word eventID " - PAUSED due to lack of staff - further " event-resource-counter " person hours required to complete this event")
+      if VERBOSE [print (word eventID " - PAUSED due to lack of staff - further " event-resource-counter " person hours required to complete this event")]
     ]
   ]
 end
@@ -784,7 +784,6 @@ end
 ; event procedure to assess if sufficient CID resources are available to replenish an ongoing but understaffed current event (due to shift change) and if so allocate them to it
 to replenish-resources-CID
 
-  user-message (word EventID " CID replenish")
   ;check if the required number of resources are available to replenish job
   if count resources with [resource-status = 1 and resource-type = 2] >= (event-resource-req-amount - (count current-resource))
   [
@@ -816,7 +815,6 @@ end
 ; event procedure to assess if sufficient RESPONSE resources are available to replenish an ongoing but understaffed current event (due to shift change)  and if so allocate them to it
 to replenish-resources-response
 
-  user-message (word EventID " RESPONSE replenish")
   ;check if the required number of resources are available to replenish job
   if count resources with [resource-status = 1 and resource-type = 1] >= (event-resource-req-amount - (count current-resource))
   [
@@ -864,17 +862,30 @@ to update-all-plots
 
 
   set-current-plot "Count Available Resources"
-  set-current-plot-pen "resources"
+  set-current-plot-pen "TOTAL"
   plot count resources with [resource-status = 1 or resource-status = 2]
+    set-current-plot-pen "CID"
+  plot count resources with [resource-type = 2 and (resource-status = 1 or resource-status = 2)]
+    set-current-plot-pen "RESPONSE"
+  plot count resources with [resource-type = 1 and (resource-status = 1 or resource-status = 2)]
 
 
-  set-current-plot "Total Resource Usage"
-  set-current-plot-pen "Supply"
+
+  set-current-plot "% Resource Usage"
+  set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
+  set-current-plot-pen "CID"
+  plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
+  set-current-plot-pen "RESPONSE"
+  plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
 
   set-current-plot "Count Active Resources"
-  set-current-plot-pen "count-active-resources"
+  set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2])
+  set-current-plot-pen "CID"
+  plot (count resources with [resource-type = 2 and resource-status = 2])
+  set-current-plot-pen "RESPONSE"
+  plot (count resources with [resource-type = 1 and resource-status = 2])
 
   set-current-plot "Events Waiting"
   set-current-plot-pen "waiting-total"
@@ -1178,7 +1189,6 @@ end
 ;plot count events with [event-type = "Vehicle crime"]
 ;plot count events with [event-type = "Violence and sexual offences"]
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
@@ -1305,7 +1315,7 @@ PLOT
 15
 1285
 135
-Total Resource Usage
+% Resource Usage
 time
 %
 0.0
@@ -1313,10 +1323,12 @@ time
 0.0
 100.0
 true
-false
+true
 "" ""
 PENS
-"Supply" 1.0 0 -16777216 true "" ""
+"TOTAL" 1.0 0 -16777216 true "" ""
+"CID" 1.0 0 -2674135 true "" ""
+"RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
 540
@@ -1456,7 +1468,7 @@ SWITCH
 688
 VERBOSE
 VERBOSE
-0
+1
 1
 -1000
 
@@ -1661,10 +1673,12 @@ NIL
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"count-active-resources" 1.0 0 -16777216 true "" ""
+"TOTAL" 1.0 0 -16777216 true "" ""
+"CID" 1.0 0 -2674135 true "" ""
+"RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
 541
@@ -1679,10 +1693,12 @@ NIL
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"resources" 1.0 0 -16777216 true "" ""
+"TOTAL" 1.0 0 -16777216 true "" ""
+"CID" 1.0 0 -2674135 true "" ""
+"RESPONSE" 1.0 0 -13345367 true "" ""
 
 SWITCH
 10
@@ -1702,7 +1718,7 @@ CHOOSER
 245
 Force
 Force
-"#Test" "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
+"TEST" "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire"
 0
 
 INPUTBOX
@@ -1772,7 +1788,7 @@ proportion-CID
 proportion-CID
 0
 1
-0.1
+0.3
 0.05
 1
 NIL
