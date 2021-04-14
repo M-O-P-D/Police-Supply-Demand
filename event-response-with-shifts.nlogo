@@ -21,6 +21,9 @@ globals
   resource-summary-file
   resource-usage-trends-file
 
+  ; TODO add to interface after merge
+  BurnInMonths
+
   loading-factor ; dynamic crime loading factor
 ]
 
@@ -155,7 +158,8 @@ to setup
   py:run "from netlogo_adapter import init_model, init_canned_data, get_crimes, get_loading, set_loading"
 
   ; seed crims MC with replication
-  py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " InitialLoading ")")
+  set BurnInMonths 1
+  py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " InitialLoading ", " BurnInMonths ")")
 
   ; or, to use canned data
   ; py:run (word "init_canned_data(" StartYear ", " StartMonth ")")

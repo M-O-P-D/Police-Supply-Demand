@@ -9,7 +9,7 @@ from .crime import Crime
 from .utils import get_periodicity
 
 class CrimeMicrosim(no.Model):
-  def __init__(self, run_no, force_area, start, end=None, agg_mode=True):
+  def __init__(self, run_no, force_area, start, end=None, burn_in=None):
     # timeline with monthly steps and annual checkpoints
     if end is not None:
       timeline = no.CalendarTimeline(date(start[0], start[1], 1), date(end[0], end[1], 1), 1, "m")
@@ -17,8 +17,9 @@ class CrimeMicrosim(no.Model):
       timeline = no.CalendarTimeline(date(start[0], start[1], 1), 1, "m")
     super().__init__(timeline, lambda _: run_no + 77027465) # don't use with MPI - unless you want perfectly correlated streams!
 
-    # this controls whether the model yields to the caller after each timestep, or runs to the end (aggregating all the data)
-    self.__aggregate = agg_mode
+    # specify a number of timesteps to run before yielding to the calling process (so that
+    # the model can subseqently be resumed on a monthly basis with altered loading factors)
+    self.__burn_in = burn_in if burn_in is not None else np.inf
 
     self.__force_area = force_area
     crime = Crime(self.__force_area, 2017, 12, 2020, 11)
@@ -42,12 +43,19 @@ class CrimeMicrosim(no.Model):
 
     crimes = self.__sample_crimes().sort_values(by="time")
     no.log("Sampled %d crimes in month beginning %s" % (len(crimes), self.timeline().time()))
-    if self.__aggregate:
+    if self.__burn_in > self.timeline().index():
+      # append crimes during burn-in period
       self.crimes = self.crimes.append(crimes)
     else:
+      # replace crimes after burn-in period
       self.crimes = crimes
+
+  def check(self):
+    #no.log(self.timeline().index())
+    if self.__burn_in <= self.timeline().index():
       # yield to calling process
       self.halt()
+    return True
 
   def set_loading(self, f, category=None):
     if category is None:

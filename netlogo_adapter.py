@@ -54,11 +54,11 @@ def init_canned_data(year, month):
 
 
 # TODO might be worth passing the ABM timestep size here
-def init_model(run_no, force_area, year, month, initial_loading=1.0):
+def init_model(run_no, force_area, year, month, initial_loading, burn_in):
   global model
 
   # monthly open-ended timeline (run_no is used to seed the mc)
-  model = CrimeMicrosim(run_no, force_area, (year, month), agg_mode=False)
+  model = CrimeMicrosim(run_no, force_area, (year, month), burn_in=burn_in)
   no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
   no.log("MC seed=%d" % model.mc().seed())
   # simulate the first month
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
   import pandas as pd
 
-  init_model(0, "City of London", 2020, 1)
+  init_model(0, "City of London", 2020, 1, 1.0, 2)
   #init_canned_data(2020,1)
   print(model.crimes.head())
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
   ts = t
 
   # test time serialisation as it would be if coming from netlogo
-  for _ in range(24*45):
+  for _ in range(24*75):
     te = ts + timedelta(hours=1)
     crimes = pd.read_csv(StringIO(get_crimes(datetime.strftime(ts, TIME_FORMAT), datetime.strftime(te, TIME_FORMAT))), index_col="id")
     no.log("%s->%s: %d crimes" % (ts, te, len(crimes)))
