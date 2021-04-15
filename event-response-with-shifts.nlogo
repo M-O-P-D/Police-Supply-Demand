@@ -42,9 +42,11 @@ resources-own
   current-event-type ;the type of event the resource-agent is responding to
   current-event-class ; broader crime class
 
-  ;placeholders to allow units of resource to only be able to respond of events of a certain type - currently not used
+  ;splitresource agents into Response and CID pools
+  ; resource-type = 1 RESPONSE
+  ; resource-type = 2 C.I.D.
   resource-type
-  resource-roles
+
 
   ;status of resource agent
   resource-status ;represents the current state of the resource agent - coded: 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
@@ -200,7 +202,7 @@ to setup
   set Shift-3 false
 
   ; create police resoruce agents - one per patch
-  ask n-of number-resources patches
+  ask n-of (number-resources) patches
   [
     sprout-resources 1
     [
@@ -208,8 +210,12 @@ to setup
       set color grey
       ifelse Shifts [set resource-status 0] [set resource-status 1]
       set events-completed 0
+
+      ;initially specify all units as response
+      set resource-type  1
     ]
   ]
+
 
   ;if shifts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
   if Shifts
@@ -219,6 +225,19 @@ to setup
     ask resources with [ycor > ((third-split-unit * 1) - 1) and ycor <= ((third-split-unit * 2) - 1)] [ set working-shift 2]
     ask resources with [ycor > ((third-split-unit * 2) - 1)] [ set working-shift 3]
   ]
+
+
+  ; if resource split is switched on police resources are split into 2 pools - response officers (resource-type = 1) who deal with lower level incidents and CID  (resource-type = 2) who deal with more serious offences
+  ; the proportion of officers in each shift who are CID is defined by the GUI slider proportion-CID
+  ; currently this implementation assumes that CID operate accross all shifts - this might be explored in future model iterations
+
+  if resource-split
+  [
+    ask n-of ((count resources with [working-shift = 1]) * proportion-CID ) resources with [working-shift = 1] [ set shape "circle" set resource-type  2 ]
+    ask n-of ((count resources with [working-shift = 2]) * proportion-CID ) resources with [working-shift = 2] [ set shape "circle" set resource-type  2 ]
+    ask n-of ((count resources with [working-shift = 3]) * proportion-CID ) resources with [working-shift = 3] [ set shape "circle" set resource-type  2 ]
+  ]
+
 
   ;set the global clock
   if event-file-out [start-file-out]
@@ -249,27 +268,46 @@ to go-step
   ;read in current hour's events
   read-events-from-crims
 
-
   ;assign resources - right now this is written events look for resources where in reality resources should look for events
   ifelse triage-events
   [
-    ;rudimentary triage
+    ifelse resource-split
+    [
+      ;Rudimentary triage - with RESPONSE and CID POOLS - currently priority 1 events responded to by CID, priority 2 & 3 Response officers
 
-    ;pickup ongoing jobs that are paused first
-    ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources]
-    ;then jobs that have no one
-    ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources]
-    ;then jobs that are ongoing but under staffed
-    ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+      ;pickup ongoing jobs that are paused first
+      ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources-CID]
+      ;then jobs that have no one
+      ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources-CID]
+      ;then jobs that are ongoing but under staffed
+      ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-CID]
 
-    ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources]
-    ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources]
-    ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+      ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources-response]
+      ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources-response]
+      ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-response]
 
-    ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources]
-    ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources]
-    ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+      ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources-response]
+      ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources-response]
+      ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-response]
+    ]
+    [
+      ;Rudimentary triage - without RESPONSE and CID POOLS
 
+      ;pickup ongoing jobs that are paused first
+      ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources]
+      ;then jobs that have no one
+      ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources]
+      ;then jobs that are ongoing but under staffed
+      ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+
+      ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources]
+      ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources]
+      ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+
+      ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources]
+      ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources]
+      ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
+    ]
   ]
   [
     ask events with [event-status = 1 and event-paused = true] [get-resources]
@@ -298,11 +336,6 @@ to increment-time
   tick
   set dt time:plus dt 1 "hours"
 end
-
-
-
-
-
 
 
 
@@ -531,14 +564,16 @@ to shift-drop-events  [ shift ]
   ask events with [event-status = 2]
   [
     ;drop all units whose shift has just ended from those events
+    if VERBOSE [print (word EventID " - HAND-OVER @ shift change - " count current-resource " staff prior to shift change")]
     set current-resource current-resource with [working-shift != shift]
+    if VERBOSE [print (word EventID " - staff remaining in active shift - " count current-resource)]
     ;check if that leaves any resource left
     if count current-resource = 0
     [
       ;if not pause the event and set its status back to 1
       set event-status 1
       set event-paused true
-      ;print (word self " was paused due to lack of staff - a further " event-resource-counter " are required to complete this event")
+      if VERBOSE [print (word eventID " - PAUSED due to lack of staff - further " event-resource-counter " person hours required to complete this event")]
     ]
   ]
 end
@@ -564,7 +599,7 @@ to check-event-status
     ;count completion
     set count-completed-events count-completed-events + 1
 
-    if VERBOSE [print (word "Event complete - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
+    if VERBOSE [print (word EventID " - EVENT COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
 
     ;destroy event object
 
@@ -627,9 +662,64 @@ to get-resources
   ;check if the required number of resources are available
   if count resources with [resource-status = 1] >= (event-resource-req-amount)
   [
-    if VERBOSE [print (word "Officers responding to priority " event-priority " " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
+    if VERBOSE [print (word EventID " - Officers responding to priority " event-priority " " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter) ]
     ;link resource to event
     set current-resource n-of event-resource-req-amount resources with [resource-status = 1]
+
+    ;record start and end datetime of response
+    if event-paused = false [set event-response-start-dt dt]
+    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
+    set event-status 2 ; mark the event as ongoing
+
+    ask current-resource
+    [
+      set current-event myself
+      set current-event-type [event-type] of current-event
+      set current-event-class [event-class] of current-event
+      set resource-status 2
+    ]
+    set event-paused false
+  ]
+
+end
+
+
+; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
+to get-resources-CID
+
+  ;check if the required number of CID resources are available
+  if count resources with [resource-status = 1 and resource-type = 2] >= (event-resource-req-amount)
+  [
+    if VERBOSE [print (word EventID " - CID OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
+    ;link resource to event
+    set current-resource n-of event-resource-req-amount resources with [resource-status = 1 and resource-type = 2]
+
+    ;record start and end datetime of response
+    if event-paused = false [set event-response-start-dt dt]
+    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
+    set event-status 2 ; mark the event as ongoing
+
+    ask current-resource
+    [
+      set current-event myself
+      set current-event-type [event-type] of current-event
+      set current-event-class [event-class] of current-event
+      set resource-status 2
+    ]
+    set event-paused false
+  ]
+
+end
+
+; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
+to get-resources-response
+
+  ;check if the required number of CID resources are available
+  if count resources with [resource-status = 1 and resource-type = 1] >= (event-resource-req-amount)
+  [
+    if VERBOSE [print (word EventID " - RESPONSE OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total  " REMAINING = " event-resource-counter )]
+    ;link resource to event
+    set current-resource n-of event-resource-req-amount resources with [resource-status = 1 and resource-type = 1]
 
     ;record start and end datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -652,32 +742,84 @@ end
 
 
 
+; event procedure to assess if sufficient resources are available to replenish an ongoing but understaffed current event and if so allocate them to it
+; understaffed but still active events can be created when a job is allocated to multiple officers who span consecutive shifts - at shift change some
+; officers may be rostered off leaving some number of still rostered on officers still working - these functions identify these jobs and replenish them with other officers from teh next shift
+; note that typically jobs are allocated officers from the same shift, thus at shift change they are paused and then reallocated resources from the new shift using get-resources above
+; these functions just catch the special case described above.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
 to replenish-resources
 
   ;check if the required number of resources are available to replenish job
   if count resources with [resource-status = 1] >= (event-resource-req-amount - (count current-resource))
   [
-    if VERBOSE [print (word "Adding officers to " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
+    if VERBOSE [print (word EventID " - Adding officers to " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
 
     ;link resource to event
     ;print (word count current-resource " - pre replenish - paused - " event-paused )
     set current-resource (turtle-set current-resource n-of (event-resource-req-amount - (count current-resource)) resources with [resource-status = 1])
+    ;print (word count current-resource " - post replenish")
+
+    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
+    set event-status 2 ; mark the event as ongoing
+
+    ask current-resource
+    [
+      ;link event to resource
+      set current-event myself
+      set current-event-type [event-type] of current-event
+      set current-event-class [event-class] of current-event
+      set resource-status 2
+    ]
+
+  ]
+
+end
+
+
+
+; event procedure to assess if sufficient CID resources are available to replenish an ongoing but understaffed current event (due to shift change) and if so allocate them to it
+to replenish-resources-CID
+
+  ;check if the required number of resources are available to replenish job
+  if count resources with [resource-status = 1 and resource-type = 2] >= (event-resource-req-amount - (count current-resource))
+  [
+    if VERBOSE [print (word EventID " - Adding CID officers to " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
+
+    ;link resource to event
+    ;print (word count current-resource " - pre replenish - paused - " event-paused )
+    set current-resource (turtle-set current-resource n-of (event-resource-req-amount - (count current-resource)) resources with [resource-status = 1 and resource-type = 2])
+    ;print (word count current-resource " - post replenish")
+
+    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
+    set event-status 2 ; mark the event as ongoing
+
+    ask current-resource
+    [
+      ;link event to resource
+      set current-event myself
+      set current-event-type [event-type] of current-event
+      set current-event-class [event-class] of current-event
+      set resource-status 2
+    ]
+
+  ]
+
+end
+
+
+
+; event procedure to assess if sufficient RESPONSE resources are available to replenish an ongoing but understaffed current event (due to shift change)  and if so allocate them to it
+to replenish-resources-response
+
+  ;check if the required number of resources are available to replenish job
+  if count resources with [resource-status = 1 and resource-type = 1] >= (event-resource-req-amount - (count current-resource))
+  [
+    if VERBOSE [print (word EventID " - Adding RESPONSE officers to " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
+
+    ;link resource to event
+    ;print (word count current-resource " - pre replenish - paused - " event-paused )
+    set current-resource (turtle-set current-resource n-of (event-resource-req-amount - (count current-resource)) resources with [resource-status = 1 and resource-type = 1])
     ;print (word count current-resource " - post replenish")
 
     ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
@@ -705,10 +847,6 @@ end
 
 
 
-
-
-
-
 ;plot update commands
 to update-all-plots
 
@@ -721,17 +859,37 @@ to update-all-plots
 
 
   set-current-plot "Count Available Resources"
-  set-current-plot-pen "resources"
+  set-current-plot-pen "TOTAL"
   plot count resources with [resource-status = 1 or resource-status = 2]
+  if resource-split
+  [
+    set-current-plot-pen "CID"
+    plot count resources with [resource-type = 2 and (resource-status = 1 or resource-status = 2)]
+    set-current-plot-pen "RESPONSE"
+    plot count resources with [resource-type = 1 and (resource-status = 1 or resource-status = 2)]
+  ]
 
-
-  set-current-plot "Total Resource Usage"
-  set-current-plot-pen "Supply"
+  set-current-plot "% Resource Usage"
+  set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
+  if resource-split
+  [
+    set-current-plot-pen "CID"
+    plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
+    set-current-plot-pen "RESPONSE"
+    plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
+  ]
 
   set-current-plot "Count Active Resources"
-  set-current-plot-pen "count-active-resources"
+  set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2])
+  if resource-split
+  [
+    set-current-plot-pen "CID"
+    plot (count resources with [resource-type = 2 and resource-status = 2])
+    set-current-plot-pen "RESPONSE"
+    plot (count resources with [resource-type = 1 and resource-status = 2])
+  ]
 
   set-current-plot "Events Waiting"
   set-current-plot-pen "waiting-total"
@@ -1036,7 +1194,6 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
@@ -1163,7 +1320,7 @@ PLOT
 15
 1285
 135
-Total Resource Usage
+% Resource Usage
 time
 %
 0.0
@@ -1171,10 +1328,12 @@ time
 0.0
 100.0
 true
-false
+true
 "" ""
 PENS
-"Supply" 1.0 0 -16777216 true "" ""
+"TOTAL" 1.0 0 -16777216 true "" ""
+"CID" 1.0 0 -2674135 true "" ""
+"RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
 540
@@ -1226,9 +1385,9 @@ NIL
 
 TEXTBOX
 15
-620
+730
 140
-697
+807
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1309,9 +1468,9 @@ PENS
 
 SWITCH
 10
-545
+655
 175
-578
+688
 VERBOSE
 VERBOSE
 1
@@ -1374,9 +1533,9 @@ PENS
 
 SWITCH
 10
-580
+690
 175
-613
+723
 event-file-out
 event-file-out
 0
@@ -1385,9 +1544,9 @@ event-file-out
 
 SWITCH
 10
-500
+580
 175
-533
+613
 triage-events
 triage-events
 0
@@ -1447,9 +1606,9 @@ PENS
 
 BUTTON
 10
-712
+822
 170
-747
+857
 close files
 close-files
 NIL
@@ -1463,10 +1622,10 @@ NIL
 1
 
 SLIDER
-10
-415
-175
-448
+15
+360
+180
+393
 replication
 replication
 1
@@ -1519,10 +1678,12 @@ NIL
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"count-active-resources" 1.0 0 -16777216 true "" ""
+"TOTAL" 1.0 0 -16777216 true "" ""
+"CID" 1.0 0 -2674135 true "" ""
+"RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
 541
@@ -1537,19 +1698,21 @@ NIL
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"resources" 1.0 0 -16777216 true "" ""
+"TOTAL" 1.0 0 -16777216 true "" ""
+"CID" 1.0 0 -2674135 true "" ""
+"RESPONSE" 1.0 0 -13345367 true "" ""
 
 SWITCH
 10
-757
+867
 172
-790
+900
 color-by-priority
 color-by-priority
-0
+1
 1
 -1000
 
@@ -1600,15 +1763,41 @@ NIL
 HORIZONTAL
 
 SWITCH
-10
-375
-175
-408
+15
+320
+180
+353
 SetSeed
 SetSeed
 1
 1
 -1000
+
+SWITCH
+10
+500
+175
+533
+resource-split
+resource-split
+0
+1
+-1000
+
+SLIDER
+10
+535
+175
+568
+proportion-CID
+proportion-CID
+0
+1
+0.3
+0.05
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
