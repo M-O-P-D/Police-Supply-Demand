@@ -4,10 +4,21 @@
     <go>go-step</go>
     <final>close-files</final>
     <timeLimit steps="736"/>
+    <!--enumeratedValueSet variable="event-characteristics">
+      <value value="&quot;Experimental&quot;"/>
+    </enumeratedValueSet-->
+    <steppedValueSet variable="replication" first="1" step="1" last="2"/>
+    <enumeratedValueSet variable="Force">
+      <value value="&quot;City of London&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="StartYear">
+      <value value="2020"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="StartMonth">
+      <value value="12"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="InitialLoading">
       <value value="1.0"/>
-      <value value="0.9"/>
-      <value value="1.1"/>
     </enumeratedValueSet>
     <!--enumeratedValueSet variable="event-characteristics">
       <value value="&quot;Experimental&quot;"/>

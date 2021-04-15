@@ -175,7 +175,7 @@ to setup
 
   ;create folder path to store results based on settings
 
-  let model-config (word Force "-Load" InitialLoading "-Rep" replication "-")
+  let model-config (word Force "-" behaviorspace-experiment-name "-" replication "-")
 
   let path (word "model-output/")
   pathdir:create path
