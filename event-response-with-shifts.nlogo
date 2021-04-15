@@ -21,9 +21,6 @@ globals
   resource-summary-file
   resource-usage-trends-file
 
-  ; TODO add to interface after merge
-  BurnInMonths
-
   loading-factor ; dynamic crime loading factor
 ]
 
@@ -1191,7 +1188,6 @@ end
 ;plot count events with [event-type = "Theft from the person"]
 ;plot count events with [event-type = "Vehicle crime"]
 ;plot count events with [event-type = "Violence and sexual offences"]
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 205
@@ -1620,10 +1616,10 @@ NIL
 1
 
 SLIDER
-15
-360
-180
-393
+10
+425
+175
+458
 replication
 replication
 1
@@ -1761,10 +1757,10 @@ NIL
 HORIZONTAL
 
 SWITCH
-15
-320
-180
-353
+10
+385
+175
+418
 SetSeed
 SetSeed
 1
@@ -1796,6 +1792,17 @@ proportion-CID
 1
 NIL
 HORIZONTAL
+
+INPUTBOX
+15
+315
+172
+375
+BurnInMonths
+1.0
+1
+0
+Number
 
 @#$#@#$#@
 ## WHAT IS IT?

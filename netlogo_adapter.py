@@ -31,7 +31,7 @@ class CannedCrimeData(no.Model):
   def get_loading(self, _=None):
     return { }
 
-  def set_loading(self, f, _=None):
+  def set_loading(self, _f, _=None):
     pass
 
   def step(self):
@@ -52,6 +52,15 @@ def get_loading():
 # TODO might be worth passing the ABM timestep size here
 def init_model(run_no, force_area, year, month, initial_loading, burn_in):
   global model
+
+  # this adjustment needs to happen on netlogo side to keep dates in sync
+  # assert burn_in > 0 
+  # # adjust year/month so that the supplied values correspond to the *end* of the burn-in period
+  # month -= burn_in
+  # while month < 1:
+  #   year -= 1
+  #   month += 12
+
 
   # use canned data if requested
   if force_area == "TEST":

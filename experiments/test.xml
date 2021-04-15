@@ -17,6 +17,9 @@
     <enumeratedValueSet variable="StartMonth">
       <value value="12"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="BurnInMonths">
+      <value value="1"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="InitialLoading">
       <value value="1.0"/>
     </enumeratedValueSet>
@@ -27,11 +30,9 @@
     <enumeratedValueSet variable="color-by-priority">
       <value value="false"/>
     </enumeratedValueSet>
-    <!--enumeratedValueSet variable="number-resources">
-      <value value="1800"/>
-      <value value="1860"/>
-      <value value="1980"/>
-    </enumeratedValueSet-->
+    <enumeratedValueSet variable="number-resources">
+      <value value="300"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="VERBOSE">
       <value value="false"/>
     </enumeratedValueSet>

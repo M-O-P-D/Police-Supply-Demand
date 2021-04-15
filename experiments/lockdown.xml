@@ -21,6 +21,9 @@
     <enumeratedValueSet variable="StartMonth">
       <value value="12"/>
     </enumeratedValueSet>
+    <enumeratedValueSet variable="BurnInMonths">
+      <value value="1"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="color-by-priority">
       <value value="false"/>
     </enumeratedValueSet>
