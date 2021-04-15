@@ -169,7 +169,6 @@ to setup
   set dt time:create (word StartYear "/" StartMonth "/01 00:00")
 
   set loading-factor table:from-list py:runresult "get_loading()"
-  print loading-factor
 
   ; test - massively increase drug offences *from the second month* (i.e. after the burn-in)
   ; py:run "set_loading(12.34, 'drugs')"
@@ -1192,7 +1191,6 @@ end
 ;plot count events with [event-type = "Theft from the person"]
 ;plot count events with [event-type = "Vehicle crime"]
 ;plot count events with [event-type = "Violence and sexual offences"]
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW

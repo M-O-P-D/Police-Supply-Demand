@@ -2,7 +2,7 @@
 """python functions called by netlogo for up/downstream model communication"""
 
 
-from datetime import date
+from datetime import date, datetime
 import pandas as pd
 
 import warnings
@@ -42,15 +42,11 @@ model = None
 
 
 def set_loading(f, category=None):
+  no.log("Setting %s loading to %f" % (category, f))
   return model.set_loading(f, category)
 
 def get_loading():
   return model.get_loading()
-
-
-# def init_canned_data(year, month):
-#   global model
-#   model = CannedCrimeData((year, month))
 
 
 # TODO might be worth passing the ABM timestep size here
@@ -79,8 +75,9 @@ def get_crimes(start, end):
 
   # NB model time is the start of the *next* (as yet unsampled) timestep
   if ts >= model.timeline().time():
-    no.log("Sampling crimes in %s for month beginning %s" % (model.force_area(), model.timeline().time()))
+    no.log("%s Sampling crimes in %s for month beginning %s..." % (datetime.now(), model.force_area(), model.timeline().time()))
     no.run(model)
+    no.log("%s sampling complete" % datetime.now())
 
   #no.log("%s -> %s: %d" % (ts, te, len(model.crimes[(model.crimes.time >= ts) & (model.crimes.time < te)])))
 

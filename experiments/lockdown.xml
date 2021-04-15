@@ -12,14 +12,21 @@
       <value value="&quot;Experimental&quot;"/>
     </enumeratedValueSet-->
     <steppedValueSet variable="replication" first="1" step="1" last="10"/>
+    <enumeratedValueSet variable="Force">
+      <value value="&quot;Durham&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="StartYear">
+      <value value="2020"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="StartMonth">
+      <value value="12"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="color-by-priority">
       <value value="false"/>
     </enumeratedValueSet>
-    <!--enumeratedValueSet variable="number-resources">
-      <value value="1800"/>
+    <enumeratedValueSet variable="number-resources">
       <value value="1860"/>
-      <value value="1980"/>
-    </enumeratedValueSet-->
+    </enumeratedValueSet>
     <enumeratedValueSet variable="VERBOSE">
       <value value="false"/>
     </enumeratedValueSet>
