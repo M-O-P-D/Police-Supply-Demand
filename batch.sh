@@ -4,10 +4,10 @@
 #$ -M a.p.smith@leeds.ac.uk
 #$ -cwd -V
 #$ -l h_vmem=2G
-#$ -l h_rt=8:00:00
+#$ -l h_rt=1:00:00
 #$ -o log
 #$ -e log
-#$ -pe ib 10
+#$ -pe smp 10
 
 
 # bail if no conda env activated
