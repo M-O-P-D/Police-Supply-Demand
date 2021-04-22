@@ -22,7 +22,7 @@ class CrimeMicrosim(no.Model):
     self.__burn_in = burn_in if burn_in is not None else np.inf
 
     self.__force_area = force_area
-    crime = Crime(self.__force_area, 2017, 12, 2020, 11)
+    crime = Crime(self.__force_area, 2018, 3, 2021, 2)
     self.__crime_rates = crime.get_crime_counts()
     self.__crime_outcomes = crime.get_crime_outcomes()
 
