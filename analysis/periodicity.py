@@ -1,7 +1,8 @@
-
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy import stats
 
 from crims.encryption import encrypt_csv, decrypt_csv
 from crims.utils import get_category_subtypes
@@ -10,7 +11,7 @@ from crims.crime import Crime
 
 sns.set_theme(style="whitegrid")
 
-DO_GRAPHS = True
+DO_GRAPHS = False #True
 
 dpi = 100
 xsize = 640
@@ -76,20 +77,38 @@ crime_weights["period"] = crime_weights["DayNumber"] * 3 + crime_weights["TimeWi
 crime_weights = crime_weights.drop(["DayNumber", "TimeWindow"], axis=1).set_index(["xcor_code", "period"])
 assert crime_weights["count"].sum() == total
 
-totals = crime_weights.reset_index().groupby(["xcor_code"]).sum("count").drop("period", axis=1).rename({"count": "total"}, axis=1)
-assert totals["total"].sum() == total
+#print(crime_weights)
+
+#totals = crime_weights.reset_index().groupby(["xcor_code"]).sum("count").drop("period", axis=1).rename({"count": "total"}, axis=1)
+#assert totals["total"].sum() == total
 
 # add missing entries as zeros
-idx = [level.unique() for level in crime_weights.index.levels]
-crime_weights = crime_weights.reindex(pd.MultiIndex.from_product(idx)).fillna(0)
+#idx = [level.unique() for level in crime_weights.index.levels]
+#crime_weights = crime_weights.reindex(pd.MultiIndex.from_product(idx)).fillna(0)
 
-#print(crime_weights.head(25))
+crime_weights = crime_weights.unstack(level=1, fill_value=0.0)
+
+print(crime_weights)
+
+totals = crime_weights.sum(axis=1)
+
+alpha = np.full(21, 1/3) # per per day prior
+
+crime_weights = crime_weights.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
+print(crime_weights)
+
+assert np.allclose(totals.values, crime_weights.sum(axis=1).values)
+
+crime_weights = crime_weights.stack()
+
+print(crime_weights.head(25))
 
 # join with totals
-crime_weights = crime_weights.join(totals) # set_index("xcor_code").
+#crime_weights = crime_weights.join(totals) # set_index("xcor_code").
 crime_weights["weight"] = crime_weights["count"] / crime_weights["total"] * 21 # 21 possible periods
 print(crime_weights.head(45))
 assert crime_weights["count"].sum() == total
+
 
 # # compare codes in datsets
 # annual_trend_codes = get_category_subtypes()[["description", "code_original"]].reset_index(drop=True).set_index("code_original").drop_duplicates().reset_index()
@@ -98,6 +117,9 @@ assert crime_weights["count"].sum() == total
 # print(compare.head())
 # import csv
 # compare.to_csv("code_compare.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+
+# think its ok...
+stop
 
 #crime_weights.to_csv("data/weekly-weights.csv")
 encrypt_csv(crime_weights, "data/weekly-weights.csv.enc")

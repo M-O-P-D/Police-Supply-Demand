@@ -1,0 +1,15 @@
+# Monthly
+
+![](doc/monthly-bicycle_theft.png)
+![](doc/monthly-burglary.png)
+![](doc/monthly-criminal_damage_and_arson.png)
+![](doc/monthly-drugs.png)
+![](doc/monthly-other_crime.png)
+![](doc/monthly-other_theft.png)
+![](doc/monthly-possession_of_weapons.png)
+![](doc/monthly-public_order.png)
+![](doc/monthly-robbery.png)
+![](doc/monthly-shoplifting.png)
+![](doc/monthly-theft_from_the_person.png)
+![](doc/monthly-vehicle_crime.png)
+![](doc/monthly-violence_and_sexual_offences.png)
