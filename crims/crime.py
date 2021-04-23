@@ -7,7 +7,9 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Polygon
-from police_api import PoliceAPI
+from scipy import stats
+# appears that this is no longer working
+#from police_api import PoliceAPI
 
 from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, smooth, get_category_subtypes, get_data_path
 
@@ -54,7 +56,7 @@ class Crime:
     # self.month = month
     self.original_force_name = force_name
     self.force_name = standardise_force_name(force_name)
-    self.api = PoliceAPI()
+    #self.api = PoliceAPI()
     self.data = Crime.__get_raw_data(self.force_name, start_year, start_month, end_year, end_month)
     self.data["SuspectDemand"] = self.data["Last outcome category"].apply(lambda c: Crime.__outcomes_mapping[c])
     # assume annual cycle and aggregate years
@@ -63,20 +65,20 @@ class Crime:
     self.category_data = get_category_subtypes()
 
   # returns a GeoDataFrame
-  def get_neighbourhoods(self, force_name=None):
-    # allow getting neighbourhoods from another force (without having to load all the crime data)
-    if force_name is None:
-      force_name = self.force_name
-    forcepd = self.api.get_force(force_name)
+  # def get_neighbourhoods(self, force_name=None):
+  #   # allow getting neighbourhoods from another force (without having to load all the crime data)
+  #   if force_name is None:
+  #     force_name = self.force_name
+  #   forcepd = self.api.get_force(force_name)
 
-    ns = forcepd.neighbourhoods
-    #print(n.locations)# %%
+  #   ns = forcepd.neighbourhoods
+  #   #print(n.locations)# %%
 
-    gdf = gpd.GeoDataFrame({"id": [n.id for n in ns],
-                            "name": [n.name for n in ns],
-                            "geometry": [Polygon([(p[1], p[0]) for p in n.boundary]) for n in ns]},
-                            crs = {"init": "epsg:4326" }).to_crs(epsg=3857)
-    return gdf
+  #   gdf = gpd.GeoDataFrame({"id": [n.id for n in ns],
+  #                           "name": [n.name for n in ns],
+  #                           "geometry": [Polygon([(p[1], p[0]) for p in n.boundary]) for n in ns]},
+  #                           crs = {"init": "epsg:4326" }).to_crs(epsg=3857)
+  #   return gdf
 
   # for now just use bulk downloads
   @staticmethod
@@ -107,7 +109,36 @@ class Crime:
 
     return pd.merge(data, msoas, left_on="LSOA code", right_index=True)
 
+  def get_crime_counts_deprecated(self):
+
+    # TODO sample annual variability? 3 counts will give *some* indication?
+
+    # count monthly incidence by time, space and type. note this is an *annual* incidence rate
+    counts = self.data[["MSOA", "crime_type", "MonthOnly", "Crime ID"]]
+
+    counts = counts.rename({"Crime ID": "count"}, axis=1) \
+      .groupby(["MSOA", "MonthOnly", "crime_type"]) \
+      .count() \
+      .unstack(level=1, fill_value=0)
+
+    # ensure all data accounted for
+    assert counts.sum().sum() == len(self.data)
+
+    # counts["count"] = counts["count"].astype(float) * 12 / 3
+    counts = counts.astype(float) * 12 / 3 # THIS ASSUMES WE HAVE 3Y OF DATA
+
+    # smooth counts (ensuring numbers ar conserved)
+    before = counts.sum(axis=1)
+    counts = counts.T.apply(lambda r: smooth(r.values, 7)).T
+    assert np.all(counts.sum(axis=1) == before)
+
+    # the incidences are the lambdas for sampling arrival times
+    return counts
+
   def get_crime_counts(self):
+    """ New version that uses a Bayesian inference with an unweighted prior """ 
+
+    alpha = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
 
     # TODO sample annual variability? 3 counts will give *some* indication?
 
@@ -125,10 +156,12 @@ class Crime:
     # counts["count"] = counts["count"].astype(float) * 12 / 3
     counts = counts.astype(float) * 12 / 3
 
-    # smooth counts (ensuring numbers ar conserved)
-    before = counts.sum()
-    counts = counts.apply(lambda r: smooth(r.values, 7))
-    assert np.all(counts.sum() == before)
+    before = counts.T.sum()
+
+    # apply Baysian inference with a 1-per-day prior
+    counts = counts.T.apply(lambda r: stats.dirichlet.mean(r + alpha) * np.sum(r)).T
+
+    assert np.allclose(counts.T.sum(), before)
 
     # the incidences are the lambdas for sampling arrival times
     return counts
