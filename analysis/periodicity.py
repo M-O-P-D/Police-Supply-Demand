@@ -73,41 +73,76 @@ crimes.TimeWindow = crimes.TimeWindow.apply(intraday_enum)
 
 crime_weights = crimes.groupby(["DayNumber", "TimeWindow", "xcor_code"], as_index=False).size() \
   .rename({"size": "count"}, axis=1)
+
+crime_weights_w = crimes.groupby(["DayNumber", "xcor_code"], as_index=False).size() \
+  .rename({"size": "count"}, axis=1).set_index(["xcor_code", "DayNumber"])
+crime_weights_d = crimes.groupby(["TimeWindow", "xcor_code"], as_index=False).size() \
+  .rename({"size": "count"}, axis=1).set_index(["xcor_code", "TimeWindow"])
+
 crime_weights["period"] = crime_weights["DayNumber"] * 3 + crime_weights["TimeWindow"]
 crime_weights = crime_weights.drop(["DayNumber", "TimeWindow"], axis=1).set_index(["xcor_code", "period"])
+assert crime_weights_w["count"].sum() == total
+assert crime_weights_d["count"].sum() == total
 assert crime_weights["count"].sum() == total
 
-#print(crime_weights)
-
-#totals = crime_weights.reset_index().groupby(["xcor_code"]).sum("count").drop("period", axis=1).rename({"count": "total"}, axis=1)
-#assert totals["total"].sum() == total
-
-# add missing entries as zeros
-#idx = [level.unique() for level in crime_weights.index.levels]
-#crime_weights = crime_weights.reindex(pd.MultiIndex.from_product(idx)).fillna(0)
-
+# apply Bayesian inference to 21 x 8 hour cycle
 crime_weights = crime_weights.unstack(level=1, fill_value=0.0)
 
-print(crime_weights)
+totals = crime_weights.sum(axis=1).rename("total")
 
-totals = crime_weights.sum(axis=1)
+alpha = np.full(21, 1/3) # 1 per day prior
+crime_weights_s = crime_weights.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
+assert np.allclose(totals.values, crime_weights_s.sum(axis=1).values)
 
-alpha = np.full(21, 1/3) # per per day prior
+crime_weights_s = crime_weights_s.stack()
+crime_weights_s = crime_weights_s.join(crime_weights.stack(), lsuffix="_p")
+crime_weights_s = crime_weights_s.join(totals)
 
-crime_weights = crime_weights.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
-print(crime_weights)
+crime_weights_s["weight"] = crime_weights_s["count_p"] / crime_weights_s["total"] * 21 # 21 possible periods
+print(crime_weights_s.head(45))
+#assert crime_weights["count"].sum() == total
+crime_weights_s.to_csv("./period_adjusted.csv")
 
-assert np.allclose(totals.values, crime_weights.sum(axis=1).values)
 
-crime_weights = crime_weights.stack()
+######################################################
+# apply Bayesian inference to shift cycle
+print(crime_weights_d)
+crime_weights_d = crime_weights_d.unstack(level=1, fill_value=0.0)
+print(crime_weights_d)
 
-print(crime_weights.head(25))
+alpha = np.full(3, 1/3) # 1 per day prior
+crime_weights_ds = crime_weights_d.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
+assert np.allclose(totals.values, crime_weights_d.sum(axis=1).values)
+
+crime_weights_ds = crime_weights_ds.stack()
+crime_weights_ds = crime_weights_ds.join(crime_weights_d.stack(), lsuffix="_p")
+
+print(crime_weights_ds.head(25))
+assert crime_weights_ds.sum()["count_p"] == crime_weights_ds.sum()["count"]
+crime_weights_ds.to_csv("./daily_adjusted.csv")
+
+######################################################
+# apply Bayesian inference to daily cycle
+print(crime_weights_w)
+crime_weights_w = crime_weights_w.unstack(level=1, fill_value=0.0)
+print(crime_weights_w)
+
+alpha = np.full(7, 1) # 1 per day prior
+crime_weights_ws = crime_weights_w.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
+assert np.allclose(totals.values, crime_weights_w.sum(axis=1).values)
+
+crime_weights_ws = crime_weights_ws.stack()
+crime_weights_ws = crime_weights_ws.join(crime_weights_w.stack(), lsuffix="_p")
+
+print(crime_weights_ws.head(25))
+assert crime_weights_ws.sum()["count_p"] == crime_weights_ws.sum()["count"]
+crime_weights_ws.to_csv("./weekly_adjusted.csv")
+
+stop
 
 # join with totals
 #crime_weights = crime_weights.join(totals) # set_index("xcor_code").
-crime_weights["weight"] = crime_weights["count"] / crime_weights["total"] * 21 # 21 possible periods
-print(crime_weights.head(45))
-assert crime_weights["count"].sum() == total
+#crime_weights["total"] = crime_weights.sum()
 
 
 # # compare codes in datsets

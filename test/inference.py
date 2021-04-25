@@ -19,7 +19,7 @@ def var(c, alpha):
 K = 12
 
 #impose some periodicity to the sampling
-ps = 2+np.sin(np.linspace(0.0, 2*np.pi, K+1)[:-1])
+ps = 4+np.sin(np.linspace(0.0, 2*np.pi, K+1)[:-1])
 ps /= np.sum(ps)
 
 
@@ -49,9 +49,10 @@ w = 1.0
 N = 12
 c, p, sd = sample(K, w, N, ps)
 
-ax1.bar(range(K), c, width=0.3, alpha=0.5)
-ax1.errorbar(range(K), p*N, fmt='o', yerr=sd*N, color="r")
-ax1.fill_between(range(K), (p-sd)*N, (p+sd)*N, alpha=0.2)
+ax1.bar(range(K), c, width=0.3, alpha=0.5, label="Sampled events")
+ax1.errorbar(range(K), p*N, fmt='o', yerr=sd*N, color="r", label="Posterior distribution")
+ax1.fill_between(range(K), (p-sd)*N, (p+sd)*N, alpha=0.2, color="orange")
+ax1.plot(range(K), ps*N, color='k', alpha=0.5, label="Sample distribution")
 ax1.set_title("Prior weight=%d Samples=%d" % (w*K, N))
 
 w = 30.0
@@ -59,7 +60,9 @@ N = 40
 c, p, sd = sample(K, w, N, ps)
 ax2.bar(range(K), c, width=0.3, alpha=0.5)
 ax2.errorbar(range(K), p*N, fmt='o', yerr=sd*N, color="r")
-ax2.fill_between(range(K), (p-sd)*N, (p+sd)*N, alpha=0.2)
+ax2.fill_between(range(K), (p-sd)*N, (p+sd)*N, color="orange", alpha=0.2)
+ax2.plot(range(K), ps*N, color='k', alpha=0.5)
+ax1.legend()
 ax2.set_title("Prior weight=%d Samples=%d" % (w*K, N))
 
 w = 30.0
@@ -67,7 +70,8 @@ N = 4000
 c, p, sd = sample(K, w, N, ps)
 ax3.bar(range(K), c, width=0.3, alpha=0.5)
 ax3.errorbar(range(K), p*N, fmt='o', yerr=sd*N, color="r")
-ax3.fill_between(range(K), (p-sd)*N, (p+sd)*N, alpha=0.2)
+ax3.fill_between(range(K), (p-sd)*N, (p+sd)*N, color="orange", alpha=0.2)
+ax3.plot(range(K), ps*N, color="k", alpha=0.5)
 ax3.set_title("Prior weight=%d Samples=%d" % (w*K, N))
 plt.show()
 
