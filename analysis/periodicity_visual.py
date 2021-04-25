@@ -17,6 +17,13 @@ all_d = pd.read_csv("./daily_adjusted.csv", index_col=["xcor_code", "TimeWindow"
 all_w = pd.read_csv("./weekly_adjusted.csv", index_col=["xcor_code", "DayNumber"])
 all_p = pd.read_csv("./period_adjusted.csv", index_col=["xcor_code", "period"])
 
+x = []
+for wday in ["M", "Tu", "W", "Th", "F", "Sa", "Su"]:
+  for shift in ["n", "d", "e"]:
+    x.append("%s-%s" % (wday, shift))
+
+#print(x)
+
 
 for t in types:
 
@@ -33,9 +40,10 @@ for t in types:
   p["count_p2"] = np.reshape(np.outer(w.count_p / w.count_p.sum(), d.count_p / d.count_p.sum()), 21) * count
 
   plt.cla()
-  plt.bar(p.index, p["count"], label="actual")
-  plt.plot(p.index, p["count_p"], "o", label="posterior", color="r")
-  plt.plot(p.index, p["count_p2"], "o", label="orthogonal", color="k")
+  plt.bar(x, p["count"], label="actual")
+  plt.plot(x, p["count_p"], "o", label="posterior", color="r")
+  plt.plot(x, p["count_p2"], "o", label="orthogonal", color="k")
+  plt.xticks(rotation = 60) # Rotates X-Axis Ticks by 45-degrees
   plt.title("%s (count=%d)" % (t, count))
   plt.xlabel("8h period")
   plt.xlabel("count")
