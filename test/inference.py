@@ -4,7 +4,13 @@ from scipy import stats
 
 import matplotlib.pyplot as plt
 
-# manual calculations
+from crims.encryption import decrypt_csv
+
+dow = ["M", "Tu", "W", "Th", "F", "Sa", "Su"]
+tod = ["n", "d", "e"]
+x = ["%s-%s" % (dow[x//3], tod[x%3]) for x in range(21)]
+
+# manual calculations equivalent to scipy.dirichlet.mean/var
 def mean(c, alpha):
   return (c + alpha) / (np.sum(c) + np.sum(alpha))
 
@@ -13,64 +19,59 @@ def var(c, alpha):
   a = (c + alpha) / s
   return a * (1 - a) / (s + 1)
 
+def posterior(w, obs):
+
+  #print(c.head())
+  count = obs.sum()
+
+  alpha = np.full(len(obs), YEARS_OF_DATA * w / 3.0)
+
+  print(alpha)
+  print(obs)
+
+  expectation = count * stats.dirichlet.mean(alpha + obs)
+
+  stddev = count * np.sqrt(stats.dirichlet.var(alpha + obs))
+
+  return expectation, stddev
+
+def plot(ctype, weight, ax, obs, expectation, stddev):
+  ax.bar(x, obs, width=0.5, alpha=1.0, label="Observed events")
+  ax.errorbar(x, expectation, fmt='o', yerr=stddev, color="r", label="Posterior distribution")
+  ax.fill_between(x, expectation-stddev, expectation+stddev, alpha=0.2, color="orange")
+  ax.set_title("%s Prior weight=%.1f/y Samples=%.1f/y" % (ctype, weight, np.sum(obs)/YEARS_OF_DATA))
+
 # no of categories
-K = 12
+YEARS_OF_DATA = 2
 
-#impose some periodicity to the sampling
-ps = 4+np.sin(np.linspace(0.0, 2*np.pi, K+1)[:-1])
-ps /= np.sum(ps)
-
-
-def sample(K, w, N, ps):
-  alpha = np.ones(K) * w + 1
-
-  rng = np.random.default_rng()
-
-  c = np.bincount(rng.choice(K, N, p=ps), minlength=K)
-  #print(c)
-
-  p = stats.dirichlet.mean(c + alpha)
-  assert np.all(p == mean(c, alpha))
-  #print(p)
-
-  v = stats.dirichlet.var(c + alpha) #print(var(c, alpha))
-  assert np.allclose(v, var(c, alpha), rtol=2**-53)
-  #print(v)
-
-  return c, p, np.sqrt(v)
+data = decrypt_csv("./data/weekly-weights.csv.enc", index_col=["xcor_code", "period"])
 
 fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15,5))
-#fig.suptitle('Horizontally stacked subplots')
+plt.tight_layout()
 
-# prior weight
-w = 1.0
-N = 12
-c, p, sd = sample(K, w, N, ps)
+#types = ["1", "10A", "17B", "22B", "30C", "8R", "105A"]
+ctype = "17B"
 
-ax1.bar(range(K), c, width=0.3, alpha=0.5, label="Sampled events")
-ax1.errorbar(range(K), p*N, fmt='o', yerr=sd*N, color="r", label="Posterior distribution")
-ax1.fill_between(range(K), (p-sd)*N, (p+sd)*N, alpha=0.2, color="orange")
-ax1.plot(range(K), ps*N, color='k', alpha=0.5, label="Sample distribution")
-ax1.set_title("Prior weight=%d Samples=%d" % (w*K, N))
+obs = data.loc[ctype, "count"]
 
-w = 30.0
-N = 40
-c, p, sd = sample(K, w, N, ps)
-ax2.bar(range(K), c, width=0.3, alpha=0.5)
-ax2.errorbar(range(K), p*N, fmt='o', yerr=sd*N, color="r")
-ax2.fill_between(range(K), (p-sd)*N, (p+sd)*N, color="orange", alpha=0.2)
-ax2.plot(range(K), ps*N, color='k', alpha=0.5)
-ax1.legend()
-ax2.set_title("Prior weight=%d Samples=%d" % (w*K, N))
+w = 1.0 # per year
+expectation, stddev = posterior(w, obs)
+plot(ctype, w, ax1, obs, expectation, stddev)
 
-w = 30.0
-N = 4000
-c, p, sd = sample(K, w, N, ps)
-ax3.bar(range(K), c, width=0.3, alpha=0.5)
-ax3.errorbar(range(K), p*N, fmt='o', yerr=sd*N, color="r")
-ax3.fill_between(range(K), (p-sd)*N, (p+sd)*N, color="orange", alpha=0.2)
-ax3.plot(range(K), ps*N, color="k", alpha=0.5)
-ax3.set_title("Prior weight=%d Samples=%d" % (w*K, N))
+w = 4.0 # per year
+expectation, stddev = posterior(w, obs)
+plot(ctype, w, ax2, obs, expectation, stddev)
+
+w = 16.0 # per year
+expectation, stddev = posterior(w, obs)
+plot(ctype, w, ax3, obs, expectation, stddev)
+
+# ax1.bar(x, obs, width=0.5, alpha=1.0, label="Observed events")
+# ax1.errorbar(x, expectation, fmt='o', yerr=stddev, color="r", label="Posterior distribution")
+# ax1.fill_between(x, expectation-stddev, expectation+stddev, alpha=0.2, color="orange")
+# ax1.set_title("Prior weight=%d Samples=%d" % (w*K, N))
+
+
 plt.show()
 
 # TODO pymc3 ? see here https://towardsdatascience.com/estimating-probabilities-with-bayesian-modeling-in-python-7144be007815
