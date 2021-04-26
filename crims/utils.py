@@ -49,7 +49,7 @@ def get_periodicity(dow_adj, days_in_month, category):
   # align and repeat week to the current month. NB Mo=0, Su=6
   weights = np.tile(np.roll(cycle.weight, -3*dow_adj), 5)[:3*days_in_month]
 
-  # renormalise to mean weight of 1
+  # renormalise to mean weight of 1 - this is a scaling factor applied to the monthly intensity
   weights *= len(weights) / weights.sum()
 
   return weights

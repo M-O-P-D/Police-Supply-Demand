@@ -13,8 +13,6 @@ def var(c, alpha):
   a = (c + alpha) / s
   return a * (1 - a) / (s + 1)
 
-
-
 # no of categories
 K = 12
 

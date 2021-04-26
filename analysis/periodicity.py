@@ -11,7 +11,7 @@ from crims.crime import Crime
 
 sns.set_theme(style="whitegrid")
 
-DO_GRAPHS = False #True
+DO_GRAPHS = True
 
 dpi = 100
 xsize = 640
@@ -95,69 +95,52 @@ crime_weights_s = crime_weights.T.apply(lambda r: stats.dirichlet.mean((r + alph
 assert np.allclose(totals.values, crime_weights_s.sum(axis=1).values)
 
 crime_weights_s = crime_weights_s.stack()
-crime_weights_s = crime_weights_s.join(crime_weights.stack(), lsuffix="_p")
+crime_weights_s = crime_weights_s.join(crime_weights.stack(), lsuffix="_adj")
 crime_weights_s = crime_weights_s.join(totals)
 
-crime_weights_s["weight"] = crime_weights_s["count_p"] / crime_weights_s["total"] * 21 # 21 possible periods
+#crime_weights_s["weight"] = crime_weights_s["count_p"] / crime_weights_s["total"] * 21 # 21 possible periods
 print(crime_weights_s.head(45))
 #assert crime_weights["count"].sum() == total
-crime_weights_s.to_csv("./period_adjusted.csv")
+#crime_weights_s.to_csv("./period_adjusted.csv")
 
 
-######################################################
-# apply Bayesian inference to shift cycle
-print(crime_weights_d)
-crime_weights_d = crime_weights_d.unstack(level=1, fill_value=0.0)
-print(crime_weights_d)
+# ######################################################
+# # apply Bayesian inference to shift cycle aggregated across week
+# print(crime_weights_d)
+# crime_weights_d = crime_weights_d.unstack(level=1, fill_value=0.0)
+# print(crime_weights_d)
 
-alpha = np.full(3, 1/3) # 1 per day prior
-crime_weights_ds = crime_weights_d.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
-assert np.allclose(totals.values, crime_weights_d.sum(axis=1).values)
+# alpha = np.full(3, 1/3) # 1 per day prior
+# crime_weights_ds = crime_weights_d.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
+# assert np.allclose(totals.values, crime_weights_d.sum(axis=1).values)
 
-crime_weights_ds = crime_weights_ds.stack()
-crime_weights_ds = crime_weights_ds.join(crime_weights_d.stack(), lsuffix="_p")
+# crime_weights_ds = crime_weights_ds.stack()
+# crime_weights_ds = crime_weights_ds.join(crime_weights_d.stack(), lsuffix="_adj")
 
-print(crime_weights_ds.head(25))
-assert crime_weights_ds.sum()["count_p"] == crime_weights_ds.sum()["count"]
-crime_weights_ds.to_csv("./daily_adjusted.csv")
+# print(crime_weights_ds.head(25))
+# assert crime_weights_ds.sum()["count_adj"] == crime_weights_ds.sum()["count"]
+# crime_weights_ds.to_csv("./daily_adjusted.csv")
 
-######################################################
-# apply Bayesian inference to daily cycle
-print(crime_weights_w)
-crime_weights_w = crime_weights_w.unstack(level=1, fill_value=0.0)
-print(crime_weights_w)
+# ######################################################
+# # apply Bayesian inference to daily cycle aggregated across shift
+# print(crime_weights_w)
+# crime_weights_w = crime_weights_w.unstack(level=1, fill_value=0.0)
+# print(crime_weights_w)
 
-alpha = np.full(7, 1) # 1 per day prior
-crime_weights_ws = crime_weights_w.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
-assert np.allclose(totals.values, crime_weights_w.sum(axis=1).values)
+# alpha = np.full(7, 1) # 1 per day prior
+# crime_weights_ws = crime_weights_w.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
+# assert np.allclose(totals.values, crime_weights_w.sum(axis=1).values)
 
-crime_weights_ws = crime_weights_ws.stack()
-crime_weights_ws = crime_weights_ws.join(crime_weights_w.stack(), lsuffix="_p")
+# crime_weights_ws = crime_weights_ws.stack()
+# crime_weights_ws = crime_weights_ws.join(crime_weights_w.stack(), lsuffix="_adj")
 
-print(crime_weights_ws.head(25))
-assert crime_weights_ws.sum()["count_p"] == crime_weights_ws.sum()["count"]
-crime_weights_ws.to_csv("./weekly_adjusted.csv")
+# print(crime_weights_ws.head(25))
+# assert crime_weights_ws.sum()["count_adj"] == crime_weights_ws.sum()["count"]
+# crime_weights_ws.to_csv("./weekly_adjusted.csv")
 
-stop
-
-# join with totals
-#crime_weights = crime_weights.join(totals) # set_index("xcor_code").
-#crime_weights["total"] = crime_weights.sum()
-
-
-# # compare codes in datsets
-# annual_trend_codes = get_category_subtypes()[["description", "code_original"]].reset_index(drop=True).set_index("code_original").drop_duplicates().reset_index()
-# print(annual_trend_codes.head())
-# compare = pd.merge(annual_trend_codes, code_lookup.reset_index(), left_on="code_original", right_on="xcor_code", how="outer")
-# print(compare.head())
-# import csv
-# compare.to_csv("code_compare.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
-
-# think its ok...
-stop
 
 #crime_weights.to_csv("data/weekly-weights.csv")
-encrypt_csv(crime_weights, "data/weekly-weights.csv.enc")
+encrypt_csv(crime_weights_s, "data/weekly-weights.csv.enc")
 
 # check monthly aggregations have some consistency
 
