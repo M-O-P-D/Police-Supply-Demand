@@ -85,7 +85,7 @@ dependencies:
   - numpy=1.20.1=py39hdbf815f_0
   - openjpeg=2.4.0=hf7af979_0
   - openpyxl=3.0.7=pyhd8ed1ab_0
-  - openssl=1.1.1j=h7f98852_0
+  - openssl=1.1.1k=h7f98852_0
   - pandas=1.2.3=py39hde0f152_0
   - pcre=8.44=he1b5a44_0
   - pip=21.0.1=pyhd8ed1ab_0
@@ -111,6 +111,7 @@ dependencies:
   - readline=8.0=he28a2e2_2
   - requests=2.25.1=pyhd3deb0d_0
   - rtree=0.9.7=py39hb102c33_1
+  - scipy=1.6.2=py39hee8e79c_0
   - setuptools=49.6.0=py39hf3d152e_3
   - shapely=1.7.1=py39ha61afbd_4
   - six=1.15.0=pyh9f0ad1d_0
@@ -145,6 +146,5 @@ dependencies:
   - pip:
     - police-api-client==1.2.2
     - pykml==0.2.0
-    - responses==0.12.1
-prefix: /home/home01/geoaps/.conda/envs/crims
-
+    - responses==0.13.2
+prefix: /home/az/miniconda3/envs/crims
