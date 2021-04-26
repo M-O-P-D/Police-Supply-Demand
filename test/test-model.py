@@ -9,9 +9,9 @@ warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pypr
 
 start = (2021, 1)
 end = (2021, 12)
-force = "West Yorkshire"
+#force = "West Yorkshire"
 #force = "Durham"
-#force = "City of London"
+force = "City of London"
 
 model = model.CrimeMicrosim(0, force, start, end)
 
