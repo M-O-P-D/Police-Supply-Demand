@@ -12,7 +12,6 @@ from crims.encryption import decrypt_csv
 # 105A = 16083
 
 types = ["1", "10A", "17B", "22B", "30C", "8R", "105A"] #[1, 100]
-
 names = pd.read_csv("./data/severity_codes.csv")[["description", "code_original"]]
 
 all_d = pd.read_csv("./daily_adjusted.csv", index_col=["xcor_code", "TimeWindow"])
@@ -27,9 +26,11 @@ for wday in ["M", "Tu", "W", "Th", "F", "Sa", "Su"]:
 
 #print(x)
 
-# xsize = 800
-# ysize = 600
-dpi = 150
+# xsize = 1200
+# ysize = 900
+# dpi = 200
+
+#plt.tight_layout()
 
 for t in types:
 
@@ -49,17 +50,17 @@ for t in types:
   p["count_adj2"] = np.reshape(np.outer(w.count_adj / w.count_adj.sum(), d.count_adj / d.count_adj.sum()), 21) * count
 
   plt.cla()
-  plt.bar(x, p["count"], label="actual", alpha=0.5)
+  plt.bar(x, p["count"], label="observed", alpha=0.5)
   plt.plot(x, p["count_adj"], "o", label="posterior", color="r")
-  plt.plot(x, p["count_adj2"], "o", label="posterior (orthogonal)", color="orange")
-  plt.plot(x, [1/3]*len(x), "o", label="prior", color="k")
+  #plt.plot(x, p["count_adj2"], "o", label="posterior (orthogonal)", color="orange")
+  #plt.plot(x, [1/3]*len(x), "o", label="prior", color="k",markersize=2)
   plt.xticks(rotation = 60) # Rotates X-Axis Ticks by 45-degrees
   plt.title("%s (code=%s count=%d)" % (n, t, count))
   plt.xlabel("8h period")
-  plt.xlabel("count")
+  plt.ylabel("count")
   plt.legend()
   #plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
-  plt.savefig("doc/periodicity-%s.png" % t, dpi=dpi)
+  plt.savefig("doc/periodicity-%s.png" % t, bbox_inches="tight")
 
 
 #plt.show()

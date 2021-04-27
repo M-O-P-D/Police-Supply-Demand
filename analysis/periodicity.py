@@ -9,7 +9,7 @@ from crims.utils import get_category_subtypes
 
 from crims.crime import Crime
 
-sns.set_theme(style="whitegrid")
+#sns.set_theme(style="whitegrid")
 
 DO_GRAPHS = True
 
@@ -46,6 +46,7 @@ tod = ["Night", "Day", "Evening"]
 def tod_map(t):
   return tod[t]
 
+# this is 2y of data, 1/2019-12/2020 time given as year, month, day of week, time of day (but not day of month)
 crimes = decrypt_csv("./data/Playing_Periodicity.csv.enc").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
 
 # # fix codes that have turned into dates
@@ -170,8 +171,8 @@ if DO_GRAPHS:
   for i in crimes_annual.index.levels[0].unique():
     print(i)
     crimes_annual.loc[[i]].plot.bar(title=i, ylabel="crimes reported")
-    plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
-    plt.savefig("doc/annual-%s.png" % i.replace(" ", "_"), dpi=dpi)
+    #plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
+    plt.savefig("doc/annual-%s.png" % i.replace(" ", "_"), bbox_inches="tight")
     plt.close()
 
   crimes_monthly = crimes.merge(crime_categories, left_on="xcor_code", right_on="code_original") \
@@ -185,10 +186,11 @@ if DO_GRAPHS:
   plt.rcParams["figure.figsize"] = [10, 5]
   for i in crimes_monthly.index.levels[0].unique():
     print(i)
-    ax = crimes_monthly.loc[[i]].T.plot.bar(title=i, ylabel="crimes reported", stacked=True)
+    #print(crimes_monthly.loc[[i]].droplevel(0))
+    ax = crimes_monthly.loc[[i]].droplevel(0).T.plot.bar(title=i, ylabel="crimes reported", stacked=True)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
-    plt.savefig("doc/monthly-%s.png" % i.replace(" ", "_"), dpi=dpi)
+    #plt.gcf().set_size_inches(xsize/dpi, ysize/dpi)
+    plt.savefig("doc/monthly-%s.png" % i.replace(" ", "_"), bbox_inches="tight")
     plt.close()
 
   # YearCreated  MonthNumber  DayNumber  TimeWindow xcor_code      xcor_lkhoccodename
