@@ -17,6 +17,8 @@ doc/annual*.png
 doc/monthly*.png
 doc/weekly*.png
 doc/daily*.png
+doc/inference*.png
+doc/periodicity*.png
 local/
 cache/
 log/
