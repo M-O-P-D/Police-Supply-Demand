@@ -69,18 +69,19 @@ data_d = pd.read_csv("./daily_adjusted.csv", index_col=["xcor_code", "TimeWindow
 
 #types = ["1", "10A", "17B", "22B", "30C", "8R", "105A"]
 names = pd.read_csv("./data/severity_codes.csv")[["description", "code_original"]]
+#names = pd.read_csv("./data/policeuk-ons-code-join.csv")[["ONS_COUNTS_description", "ONS_COUNTS_code"]]
+#names = pd.read_csv("../crims/data/police-uk-category-mappings.csv")[["Home Office Code", "Offence"]]
 types = data.index.unique(level=0).values
 
-
 # TODO investigate code mismatch
-# types2 = names.code_original.unique()
-# print(np.setdiff1d(types, types2))
-# print(np.setdiff1d(types2, types))
+types2 = names.code_original.unique()
+print("Codes with no description: %s" % np.setdiff1d(types, types2))
+
+#print(np.setdiff1d(types2, types))
 # ['100' '200' '37/2' '4.10' '5550' '8T' '8U' 'NFIB1']
 # ['1/4.1/4.10/4.2' '14' '15' '27' '28D' '31' '37.1' '37.2' '3A' '4.2' '4.3' '4.6' '4.9' '72' '90']
 
-
-for ctype in types: 
+for ctype in types:
 
   obs = data.loc[ctype, "count"]
 
@@ -89,8 +90,9 @@ for ctype in types:
   try:
     name = names[names.code_original == ctype].description.values[0]
   except:
-    print("no data for %s" % ctype)
-    continue
+    print("no description for %s" % ctype)
+    name = "???"
+    #continue
   #axs[i].suptitle("%s (%s)" % (name, ctype))
 
   # weight prior so that total samples at least 1 per week
@@ -117,7 +119,7 @@ for ctype in types:
   plt.ylabel("count")
   plt.legend()
 
-  plt.savefig("./doc/inference-%s.png" % ctype)
+  plt.savefig("./doc/inference-%s.png" % ctype.replace("/", "_"))
   #break
 
 #plt.show()

@@ -11,7 +11,7 @@ from scipy import stats
 # appears that this is no longer working
 #from police_api import PoliceAPI
 
-from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, smooth, get_category_subtypes, get_data_path
+from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, get_category_subtypes, get_data_path
 
 class Crime:
 
@@ -109,34 +109,9 @@ class Crime:
 
     return pd.merge(data, msoas, left_on="LSOA code", right_index=True)
 
-  def get_crime_counts_deprecated(self):
-
-    # TODO sample annual variability? 3 counts will give *some* indication?
-
-    # count monthly incidence by time, space and type. note this is an *annual* incidence rate
-    counts = self.data[["MSOA", "crime_type", "MonthOnly", "Crime ID"]]
-
-    counts = counts.rename({"Crime ID": "count"}, axis=1) \
-      .groupby(["MSOA", "MonthOnly", "crime_type"]) \
-      .count() \
-      .unstack(level=1, fill_value=0)
-
-    # ensure all data accounted for
-    assert counts.sum().sum() == len(self.data)
-
-    # counts["count"] = counts["count"].astype(float) * 12 / 3
-    counts = counts.astype(float) * 12 / 3 # THIS ASSUMES WE HAVE 3Y OF DATA
-
-    # smooth counts (ensuring numbers ar conserved)
-    before = counts.sum(axis=1)
-    counts = counts.T.apply(lambda r: smooth(r.values, 7)).T
-    assert np.all(counts.sum(axis=1) == before)
-
-    # the incidences are the lambdas for sampling arrival times
-    return counts
 
   def get_crime_counts(self):
-    """ New version that uses a Bayesian inference with an unweighted prior """ 
+    """ New version that uses a Bayesian inference with an unweighted (flat) prior """
 
     alpha = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
 
