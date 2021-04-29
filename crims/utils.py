@@ -186,7 +186,8 @@ def get_category_subtypes():
 
   cats = raw.groupby(["force", "category", "description", "code_original"]).sum().reset_index()
 
-  cats = pd.merge(cats, cat_mapping, how="left", left_on="code_original", right_on="ONS_COUNTS_code").set_index(["force", "POLICE_UK_CAT_MAP_category"]).drop(["category", "ONS_COUNTS_code"], axis=1)
+  # NOTE: left join means that crime types in cat_mapping that are not in cats are dropped e.g. 4.10
+  cats = pd.merge(cats, cat_mapping, how="left", left_on="code_original", right_on="ONS_COUNTS_code").set_index(["force", "POLICE_UK_CAT_MAP_category"]).drop(["category"], axis=1)
 
   # now append antisocial behaviour
   asb = pd.DataFrame({"force": raw.force.unique(),

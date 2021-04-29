@@ -11,7 +11,7 @@ from crims.crime import Crime
 
 #sns.set_theme(style="whitegrid")
 
-DO_GRAPHS = True
+DO_GRAPHS = False
 
 dpi = 100
 xsize = 640
@@ -28,7 +28,8 @@ code_adjustments = {
   "04-Apr": "4.4",
   "04-Aug": "4.8",
   "04-Jul": "4.7",
-  "04-Oct": "4.10" # TODO this ends up as 4.1 when save to csv
+  "04-Oct": "4.10", # TODO this ends up as 4.1 when save to csv
+  "37/2": "37.2"
 }
 
 def intraday_enum(t):
@@ -49,9 +50,13 @@ def tod_map(t):
 # this is 2y of data, 1/2019-12/2020 time given as year, month, day of week, time of day (but not day of month)
 crimes = decrypt_csv("./data/Playing_Periodicity.csv.enc").drop(["MonthCreated","WeekCreated", "DayCreated"], axis=1)
 
-# # fix codes that have turned into dates
+# # fix codes that have turned into dates or are otherwise mismatched
 crimes.xcor_code = crimes.xcor_code.apply(fix_code)
 
+# remove unwanted codes for "skeleton crime" and fraud
+crimes = crimes[~crimes.xcor_code.isin(["5550", "NFIB1"])]
+
+print(crimes[crimes.xcor_code == "4.10"])
 # create crime description lookup
 #codes = crimes.xcor_code.unique()
 
@@ -91,8 +96,9 @@ crime_weights = crime_weights.unstack(level=1, fill_value=0.0)
 
 totals = crime_weights.sum(axis=1).rename("total")
 
-alpha = np.full(21, 1/3) # 1 per day prior
-crime_weights_s = crime_weights.T.apply(lambda r: stats.dirichlet.mean((r + alpha)) * np.sum(r)).T
+# weight prior so that total (obs+prior) is at least 1 per week
+# alpha = np.full(max(104-r.sum(), 1), 21)
+crime_weights_s = crime_weights.T.apply(lambda r: stats.dirichlet.mean((r + np.full(21, max(104.0-np.sum(r), 1.0)))) * np.sum(r)).T
 assert np.allclose(totals.values, crime_weights_s.sum(axis=1).values)
 
 crime_weights_s = crime_weights_s.stack()
@@ -152,9 +158,8 @@ crime_categories = crime.get_category_breakdown()
 my_cats = crimes.xcor_code.unique()
 their_cats = crime_categories["code_original"].unique()
 
-import numpy as np
-print("codes not in bulk data:", np.setdiff1d(my_cats, their_cats))
-print("codes not in local data:", np.setdiff1d(their_cats, my_cats))
+print("codes in local but not in severity lookup:", np.setdiff1d(my_cats, their_cats))
+print("codes in severity lookup but not in local data:", np.setdiff1d(their_cats, my_cats))
 
 crime_categories = crime_categories.reset_index()[["code_original", "description", "POLICE_UK_CAT_MAP_category"]]
 

@@ -61,20 +61,19 @@ YEARS_OF_DATA = 2
 
 data = decrypt_csv("./data/weekly-weights.csv.enc", index_col=["xcor_code", "period"])
 
-data_w = pd.read_csv("./weekly_adjusted.csv", index_col=["xcor_code", "DayNumber"])
-data_d = pd.read_csv("./daily_adjusted.csv", index_col=["xcor_code", "TimeWindow"])
-
+# data_w = pd.read_csv("./weekly_adjusted.csv", index_col=["xcor_code", "DayNumber"])
+# data_d = pd.read_csv("./daily_adjusted.csv", index_col=["xcor_code", "TimeWindow"])
 
 #plt.tight_layout()
 
 #types = ["1", "10A", "17B", "22B", "30C", "8R", "105A"]
-names = pd.read_csv("./data/severity_codes.csv")[["description", "code_original"]]
+names = pd.read_csv("./data/policeuk-ons-code-join.csv")[["ONS_COUNTS_description", "ONS_COUNTS_code"]]
 #names = pd.read_csv("./data/policeuk-ons-code-join.csv")[["ONS_COUNTS_description", "ONS_COUNTS_code"]]
 #names = pd.read_csv("../crims/data/police-uk-category-mappings.csv")[["Home Office Code", "Offence"]]
 types = data.index.unique(level=0).values
 
 # TODO investigate code mismatch
-types2 = names.code_original.unique()
+types2 = names.ONS_COUNTS_code .unique()
 print("Codes with no description: %s" % np.setdiff1d(types, types2))
 
 #print(np.setdiff1d(types2, types))
@@ -88,11 +87,10 @@ for ctype in types:
   print(ctype)
 
   try:
-    name = names[names.code_original == ctype].description.values[0]
+    name = names[names.ONS_COUNTS_code == ctype].ONS_COUNTS_description.values[0]
   except:
     print("no description for %s" % ctype)
-    name = "???"
-    #continue
+    continue
   #axs[i].suptitle("%s (%s)" % (name, ctype))
 
   # weight prior so that total samples at least 1 per week
