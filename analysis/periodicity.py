@@ -1,3 +1,10 @@
+"""
+Computes 
+- crime counts from the restricted data over a weekly 21-shift cycle
+- multinomial distribution for each crime type using Bayesian inference (NB can be plotted using inference.py)
+- graphs annual, weekly and daily variability of counts
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,7 +18,7 @@ from crims.crime import Crime
 
 #sns.set_theme(style="whitegrid")
 
-DO_GRAPHS = False
+DO_GRAPHS = True
 
 dpi = 100
 xsize = 640
@@ -95,21 +102,27 @@ assert crime_weights["count"].sum() == total
 crime_weights = crime_weights.unstack(level=1, fill_value=0.0)
 
 totals = crime_weights.sum(axis=1).rename("total")
+print(totals)
+prior_weights = totals.apply(lambda t: max(104 - t, 1)).rename("prior_weight")
+print(prior_weights)
 
 # weight prior so that total (obs+prior) is at least 1 per week
 # alpha = np.full(max(104-r.sum(), 1), 21)
 crime_weights_s = crime_weights.T.apply(lambda r: stats.dirichlet.mean((r + np.full(21, max(104.0-np.sum(r), 1.0)))) * np.sum(r)).T
+crime_weights_ssd = crime_weights.T.apply(lambda r: np.sqrt(stats.dirichlet.var((r + np.full(21, max(104.0-np.sum(r), 1.0))))) * np.sum(r)).T
 assert np.allclose(totals.values, crime_weights_s.sum(axis=1).values)
 
-crime_weights_s = crime_weights_s.stack()
-crime_weights_s = crime_weights_s.join(crime_weights.stack(), lsuffix="_adj")
-crime_weights_s = crime_weights_s.join(totals)
+crime_weights = crime_weights.stack()
+crime_weights = crime_weights.join(crime_weights_s.stack(), rsuffix="_mean")
+crime_weights = crime_weights.join(crime_weights_ssd.stack(), rsuffix="_stddev")
+crime_weights = crime_weights.join(prior_weights)
+crime_weights = crime_weights.join(totals)
 
 #crime_weights_s["weight"] = crime_weights_s["count_p"] / crime_weights_s["total"] * 21 # 21 possible periods
-print(crime_weights_s.head(45))
+print(crime_weights.head(45))
+
 #assert crime_weights["count"].sum() == total
 #crime_weights_s.to_csv("./period_adjusted.csv")
-
 
 # ######################################################
 # # apply Bayesian inference to shift cycle aggregated across week
@@ -147,7 +160,7 @@ print(crime_weights_s.head(45))
 
 
 #crime_weights.to_csv("data/weekly-weights.csv")
-encrypt_csv(crime_weights_s, "data/weekly-weights.csv.enc")
+encrypt_csv(crime_weights, "data/weekly-weights.csv.enc")
 
 # check monthly aggregations have some consistency
 

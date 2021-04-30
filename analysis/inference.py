@@ -94,15 +94,14 @@ for ctype in types:
   #axs[i].suptitle("%s (%s)" % (name, ctype))
 
   # weight prior so that total samples at least 1 per week
-  w = max(52.0 - obs.sum()/2, 1.0) # per year
-
-  # or... how do we compute variance?
-  #obs_w = data_w.loc[ctype, "count"]
-  #obs_d = data_d.loc[ctype, "count"]
-
-  expectation, stddev = posterior(w, obs)
+  # w = max(52.0 - obs.sum()/2, 0.5) # per year
+  # expectation, stddev = posterior(w, obs)
   #expectation, stddev = posterior_orth(w, obs_w, obs_d)
 
+  # just use the precomputed values
+  w = data.loc[ctype, "prior_weight"][0]
+  expectation = data.loc[ctype, "count_mean"]
+  stddev = data.loc[ctype, "count_stddev"]
   #plot("%s (%s)" % (name, ctype), w, axs[i], obs, expectation, stddev)
 
   plt.cla()
@@ -112,7 +111,7 @@ for ctype in types:
   #plt.plot(x, p["count_adj2"], "o", label="posterior (orthogonal)", color="orange")
   #plt.plot(x, [1/3]*len(x), "o", label="prior", color="k",markersize=2)
   plt.xticks(rotation = 60) # Rotates X-Axis Ticks by 45-degrees
-  plt.title("%s (code=%s count=%.1f/y prior weight=%.1f/y)" % (name, ctype, obs.sum()/2, w))
+  plt.title("%s (code=%s)\ncount=%.1f/y prior weight=%.1f/y" % (name, ctype, obs.sum()/2, w/2))
   plt.xlabel("8h period")
   plt.ylabel("count")
   plt.legend()

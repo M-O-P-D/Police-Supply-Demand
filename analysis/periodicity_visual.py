@@ -1,3 +1,6 @@
+raise DeprecationWarning("no longer working: use analysis/inference.py and/or analysis/periodicity.py")
+
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt

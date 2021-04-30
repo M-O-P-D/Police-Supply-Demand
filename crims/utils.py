@@ -40,14 +40,14 @@ def static_vars(**kwargs):
 @static_vars(weekly_weights=decrypt_csv(get_data_path("weekly-weights.csv.enc")))
 def get_periodicity(dow_adj, days_in_month, category):
 
-  cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code==category][["period", "count_adj"]]
+  cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code==category][["period", "count_mean"]]
 
   # if no data assume no daily/weekly periodicity
   if cycle.empty:
     return np.ones(3 * days_in_month)
 
   # align and repeat week to the current month. NB Mo=0, Su=6
-  weights = np.tile(np.roll(cycle.count_adj, -3*dow_adj), 5)[:3*days_in_month]
+  weights = np.tile(np.roll(cycle.count_mean, -3*dow_adj), 5)[:3*days_in_month]
 
   # renormalise to mean weight of 1 - this is a scaling factor applied to the monthly intensity
   weights *= len(weights) / weights.sum()

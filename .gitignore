@@ -1,7 +1,6 @@
 #gitignore file
 .venv*
 .env
-data
 .vscode/
 __pycache__
 
@@ -11,14 +10,14 @@ model-output/*
 
 *.tmp.nlogo
 
-data/Playing_Periodicity.csv
-data/*.zip
+data/
+!data/weekly-weights.csv.enc
+!data/policeuk-ons-code-join.csv
 doc/annual*.png
 doc/monthly*.png
 doc/weekly*.png
 doc/daily*.png
 doc/inference*.png
-doc/periodicity*.png
 local/
 cache/
 log/
