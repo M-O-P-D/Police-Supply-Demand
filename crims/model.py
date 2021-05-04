@@ -39,6 +39,10 @@ class CrimeMicrosim(no.Model):
 
     self.crimes = pd.DataFrame()
 
+  # access input data
+  def get_input(self):
+    return self.__crime_rates
+
   def step(self):
 
     crimes = self.__sample_crimes().sort_values(by="time")
@@ -122,10 +126,8 @@ class CrimeMicrosim(no.Model):
     return crimes
 
 
-  def checkpoint(self):
-    no.log("Simualated %d crimes between %s and %s" % (len(self.crimes), self.timeline().start(), self.timeline().end()))
-    #no.log("Annual average = %f" % self.__crime_rates.sum().mean())
-    #no.log(self.crimes)
+  def finalise(self):
+    no.log("Sampling ended at %s (step %d, timeline end=%s)" % (self.timeline().time(), self.timeline().index(), self.timeline().end()))
 
 
 
