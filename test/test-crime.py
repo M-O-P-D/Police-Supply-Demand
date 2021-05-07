@@ -37,10 +37,6 @@ crime = Crime('West Yorkshire', 2018, 3, 2021, 2)
 
 # %%
 
-counts = crime.get_crime_counts_deprecated()
-print(counts.sum(axis=1))
-print(counts.sum(axis=1).sum())
-
 counts = crime.get_crime_counts()
 print(counts.sum(axis=1))
 print(counts.sum(axis=1).sum())
