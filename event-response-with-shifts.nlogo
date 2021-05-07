@@ -151,6 +151,7 @@ to setup
 
   if SetSeed [ random-seed replication ]
 
+  if ((shift-1-officers + shift-2-officers + shift-3-officers) != number-resources) [ user-message "WARNING: Shift allocation does not sum to 100%" ]
 
   ; init python session
   py:setup py:python
@@ -185,7 +186,7 @@ to setup
   set resource-usage-trends-file (word path model-config "resource-usage-trends-file.csv")
 
 
-  ;size the view window so that 1 patch equals 1 unit of resource - world is 50 resources wide - calculate height and resize
+  ;size the view window so that 1 patch equals 1 unit of resource - world is 10 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
   let y-dim-resource-temp (number-resources / 10) - 1
 
@@ -217,9 +218,21 @@ to setup
   if Shifts
   [
     let third-split-unit ((y-dim-resource-temp + 1) / 3)
-    ask resources with [ycor >= 0 and ycor <= ((third-split-unit * 1) - 1)  ] [ set working-shift 1]
-    ask resources with [ycor > ((third-split-unit * 1) - 1) and ycor <= ((third-split-unit * 2) - 1)] [ set working-shift 2]
-    ask resources with [ycor > ((third-split-unit * 2) - 1)] [ set working-shift 3]
+
+    ;take values from the interface that allow users to specify officers in each shift (shift-1-officers, shift-2-officers, shift-3-officers) and
+    ;identify where to chop up the visulaisation window and who to allocate to which shift - this complexity is only necessary if we want to visulaize
+    ;the shifts grouped togther in the UI (otherwise it would just be n-of patches etc)
+    let shift-1-split (shift-1-officers / 10)
+    let shift-2-split (shift-2-officers / 10)
+    let shift-3-split (shift-3-officers / 10)
+
+    ask resources with [ycor >= 0 and ycor < (shift-1-split)  ] [ set working-shift 1]
+    ask resources with [ycor >= shift-1-split and ycor < (shift-1-split + shift-2-split)] [ set working-shift 2]
+    ask resources with [ycor >= (shift-1-split + shift-2-split) and ycor < shift-1-split + shift-2-split + shift-3-split] [ set working-shift 3]
+
+    ;ask resources with [ycor >= 0 and ycor <= ((third-split-unit * 1) - 1)  ] [ set working-shift 1]
+    ;ask resources with [ycor > ((third-split-unit * 1) - 1) and ycor <= ((third-split-unit * 2) - 1)] [ set working-shift 2]
+    ;ask resources with [ycor > ((third-split-unit * 2) - 1)] [ set working-shift 3]
   ]
 
 
@@ -1234,16 +1247,16 @@ NIL
 1
 
 SLIDER
-395
+390
 120
-535
+530
 153
 number-resources
 number-resources
 60
-5000
+3000
 360.0
-60
+10
 1
 NIL
 HORIZONTAL
@@ -1266,10 +1279,10 @@ NIL
 1
 
 MONITOR
-394
-219
-534
-264
+390
+425
+530
+470
 Resources Free
 count resources with [resource-status = 1]
 17
@@ -1277,10 +1290,10 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-395
-365
-535
-410
+390
+530
+530
+575
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -1288,10 +1301,10 @@ count events with [event-status = 1]
 11
 
 MONITOR
-395
-412
-532
-457
+390
+577
+527
+622
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -1299,10 +1312,10 @@ count events with [event-status = 2]
 11
 
 MONITOR
-395
-462
-533
-507
+390
+627
+528
+672
 Events - Completed
 count-completed-events
 17
@@ -1472,10 +1485,10 @@ VERBOSE
 -1000
 
 MONITOR
-394
-267
-534
-312
+390
+473
+530
+518
 Resources Responding
 count resources with [resource-status = 2]
 17
@@ -1548,10 +1561,10 @@ triage-events
 -1000
 
 MONITOR
-396
-529
-530
-574
+392
+685
+526
+730
 priority 1 waiting
 count events with [event-status = 1 and event-priority = 1]
 17
@@ -1559,10 +1572,10 @@ count events with [event-status = 1 and event-priority = 1]
 11
 
 MONITOR
-396
-577
-530
-622
+392
+733
+526
+778
 priority 2 waiting
 count events with [event-status = 1 and event-priority = 2]
 17
@@ -1570,10 +1583,10 @@ count events with [event-status = 1 and event-priority = 2]
 11
 
 MONITOR
-396
-629
-531
-674
+390
+780
+525
+825
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
 17
@@ -1718,7 +1731,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-9
+43
 
 INPUTBOX
 15
@@ -1768,10 +1781,10 @@ SetSeed
 -1000
 
 SWITCH
-10
-500
-175
-533
+390
+325
+530
+358
 resource-split
 resource-split
 0
@@ -1779,10 +1792,10 @@ resource-split
 -1000
 
 SLIDER
-10
-535
-175
-568
+390
+360
+530
+393
 proportion-CID
 proportion-CID
 0
@@ -1803,6 +1816,68 @@ BurnInMonths
 1
 0
 Number
+
+SLIDER
+390
+155
+530
+188
+shift-1-officers
+shift-1-officers
+0
+1000
+120.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+390
+190
+530
+223
+shift-2-officers
+shift-2-officers
+0
+1000
+120.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+390
+225
+530
+258
+shift-3-officers
+shift-3-officers
+0
+1000
+120.0
+10
+1
+NIL
+HORIZONTAL
+
+BUTTON
+390
+265
+530
+298
+Equalize Shifts
+let equal-shift-amount (number-resources / 3)\nset shift-1-officers equal-shift-amount\nset shift-2-officers equal-shift-amount\nset shift-3-officers equal-shift-amount\n
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
