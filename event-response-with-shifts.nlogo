@@ -151,7 +151,9 @@ to setup
 
   if SetSeed [ random-seed replication ]
 
-  if ((shift-1-officers + shift-2-officers + shift-3-officers) != number-resources) [ user-message "WARNING: Shift allocation does not sum to 100%" ]
+  if ((shift-1-response + shift-1-CID) mod 10 != 0) [ user-message "WARNING: Shift 1 allocation must be a multiple of 10 \nPress Halt and reset shift allocation" ]
+  if ((shift-2-response + shift-2-CID) mod 10 != 0) [ user-message "WARNING: Shift 2 allocation must be a multiple of 10 \nPress Halt and reset shift allocation" ]
+  if ((shift-3-response + shift-3-CID) mod 10 != 0) [ user-message "WARNING: Shift 3 allocation must be a multiple of 10 \nPress Halt and reset shift allocation" ]
 
   ; init python session
   py:setup py:python
@@ -188,6 +190,7 @@ to setup
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 10 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
+  let number-resources (shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-CID + shift-3-CID)
   let y-dim-resource-temp (number-resources / 10) - 1
 
   resize-world 0 9 0 y-dim-resource-temp
@@ -209,7 +212,7 @@ to setup
       set events-completed 0
 
       ;initially specify all units as response
-      set resource-type  1
+      set resource-type 1
     ]
   ]
 
@@ -217,14 +220,14 @@ to setup
   ;if shifts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
   if Shifts
   [
-    let third-split-unit ((y-dim-resource-temp + 1) / 3)
+    ;let third-split-unit ((y-dim-resource-temp + 1) / 3)
 
-    ;take values from the interface that allow users to specify officers in each shift (shift-1-officers, shift-2-officers, shift-3-officers) and
+    ;take values from the interface that allow users to specify officers in each shift (shift-1-response, shift-2-response, shift-3-response) and
     ;identify where to chop up the visulaisation window and who to allocate to which shift - this complexity is only necessary if we want to visulaize
     ;the shifts grouped togther in the UI (otherwise it would just be n-of patches etc)
-    let shift-1-split (shift-1-officers / 10)
-    let shift-2-split (shift-2-officers / 10)
-    let shift-3-split (shift-3-officers / 10)
+    let shift-1-split ((shift-1-response + shift-1-CID) / 10)
+    let shift-2-split ((shift-2-response + shift-2-CID) / 10)
+    let shift-3-split ((shift-3-response + shift-3-CID) / 10)
 
     ask resources with [ycor >= 0 and ycor < (shift-1-split)  ] [ set working-shift 1]
     ask resources with [ycor >= shift-1-split and ycor < (shift-1-split + shift-2-split)] [ set working-shift 2]
@@ -240,12 +243,10 @@ to setup
   ; the proportion of officers in each shift who are CID is defined by the GUI slider proportion-CID
   ; currently this implementation assumes that CID operate accross all shifts - this might be explored in future model iterations
 
-  if resource-split
-  [
-    ask n-of ((count resources with [working-shift = 1]) * proportion-CID ) resources with [working-shift = 1] [ set shape "circle" set resource-type  2 ]
-    ask n-of ((count resources with [working-shift = 2]) * proportion-CID ) resources with [working-shift = 2] [ set shape "circle" set resource-type  2 ]
-    ask n-of ((count resources with [working-shift = 3]) * proportion-CID ) resources with [working-shift = 3] [ set shape "circle" set resource-type  2 ]
-  ]
+    ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type  2 ]
+    ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type  2 ]
+    ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type  2 ]
+
 
 
   ;set the global clock
@@ -866,18 +867,6 @@ to update-all-plots
   set-current-plot-pen "total"
   plot count-crime-hour
 
-
-  set-current-plot "Count Available Resources"
-  set-current-plot-pen "TOTAL"
-  plot count resources with [resource-status = 1 or resource-status = 2]
-  if resource-split
-  [
-    set-current-plot-pen "CID"
-    plot count resources with [resource-type = 2 and (resource-status = 1 or resource-status = 2)]
-    set-current-plot-pen "RESPONSE"
-    plot count resources with [resource-type = 1 and (resource-status = 1 or resource-status = 2)]
-  ]
-
   set-current-plot "% Resource Usage"
   set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
@@ -887,17 +876,6 @@ to update-all-plots
     plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
     set-current-plot-pen "RESPONSE"
     plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
-  ]
-
-  set-current-plot "Count Active Resources"
-  set-current-plot-pen "TOTAL"
-  plot (count resources with [resource-status = 2])
-  if resource-split
-  [
-    set-current-plot-pen "CID"
-    plot (count resources with [resource-type = 2 and resource-status = 2])
-    set-current-plot-pen "RESPONSE"
-    plot (count resources with [resource-type = 1 and resource-status = 2])
   ]
 
   set-current-plot "Events Waiting"
@@ -1203,13 +1181,13 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-205
-10
-378
-613
+190
+60
+438
+525
 -1
 -1
-16.5
+24.0
 1
 10
 1
@@ -1222,7 +1200,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-35
+18
 0
 0
 1
@@ -1246,21 +1224,6 @@ NIL
 NIL
 1
 
-SLIDER
-390
-120
-530
-153
-number-resources
-number-resources
-60
-3000
-360.0
-10
-1
-NIL
-HORIZONTAL
-
 BUTTON
 85
 15
@@ -1279,10 +1242,10 @@ NIL
 1
 
 MONITOR
-390
-425
-530
-470
+540
+795
+680
+840
 Resources Free
 count resources with [resource-status = 1]
 17
@@ -1290,10 +1253,10 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-390
-530
-530
-575
+540
+845
+680
+890
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -1301,10 +1264,10 @@ count events with [event-status = 1]
 11
 
 MONITOR
-390
-577
-527
-622
+685
+845
+825
+890
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -1312,10 +1275,10 @@ count events with [event-status = 2]
 11
 
 MONITOR
-390
-627
-528
-672
+830
+845
+968
+890
 Events - Completed
 count-completed-events
 17
@@ -1323,17 +1286,17 @@ count-completed-events
 11
 
 PLOT
-905
-15
-1285
-135
+820
+20
+1200
+260
 % Resource Usage
 time
 %
 0.0
 10.0
 0.0
-100.0
+110.0
 true
 true
 "" ""
@@ -1343,10 +1306,10 @@ PENS
 "RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
-540
-262
-1285
-521
+455
+267
+1200
+526
 active-events
 time
 count of events
@@ -1391,19 +1354,19 @@ NIL
 1
 
 TEXTBOX
-15
-730
-140
-807
+200
+630
+325
+707
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
 1
 
 MONITOR
-394
+190
 15
-533
+315
 60
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
@@ -1412,10 +1375,10 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1290
-262
-1724
-782
+1205
+267
+1639
+787
 scatter
 count events
 count resource
@@ -1443,10 +1406,10 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-541
-526
-1286
-783
+456
+531
+1201
+788
 resources
 time
 resources
@@ -1475,9 +1438,9 @@ PENS
 
 SWITCH
 10
-655
+905
 175
-688
+938
 VERBOSE
 VERBOSE
 1
@@ -1485,26 +1448,15 @@ VERBOSE
 -1000
 
 MONITOR
-390
-473
-530
-518
+685
+795
+825
+840
 Resources Responding
 count resources with [resource-status = 2]
 17
 1
 11
-
-SWITCH
-10
-465
-175
-498
-Shifts
-Shifts
-0
-1
--1000
 
 MONITOR
 12
@@ -1518,10 +1470,10 @@ length event-data
 11
 
 PLOT
-1291
-15
-1720
-135
+1206
+20
+1635
+140
 Events Waiting
 NIL
 NIL
@@ -1540,9 +1492,9 @@ PENS
 
 SWITCH
 10
-690
+460
 175
-723
+493
 event-file-out
 event-file-out
 0
@@ -1551,9 +1503,9 @@ event-file-out
 
 SWITCH
 10
-580
+595
 175
-613
+628
 triage-events
 triage-events
 0
@@ -1561,10 +1513,10 @@ triage-events
 -1000
 
 MONITOR
-392
-685
-526
-730
+540
+895
+680
+940
 priority 1 waiting
 count events with [event-status = 1 and event-priority = 1]
 17
@@ -1572,10 +1524,10 @@ count events with [event-status = 1 and event-priority = 1]
 11
 
 MONITOR
-392
-733
-526
-778
+685
+895
+825
+940
 priority 2 waiting
 count events with [event-status = 1 and event-priority = 2]
 17
@@ -1583,10 +1535,10 @@ count events with [event-status = 1 and event-priority = 2]
 11
 
 MONITOR
-390
-780
-525
-825
+830
+895
+965
+940
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
 17
@@ -1594,10 +1546,10 @@ count events with [event-status = 1 and event-priority = 3]
 11
 
 PLOT
-540
-15
-900
-135
+455
+20
+815
+260
 Crime
 NIL
 NIL
@@ -1644,10 +1596,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-394
-64
-533
-109
+320
+15
+440
+60
 Shift1-Shift2-Shift3
 (word Shift-1 \"-\" Shift-2 \"-\" Shift-3)
 17
@@ -1655,10 +1607,10 @@ Shift1-Shift2-Shift3
 11
 
 PLOT
-1291
-137
-1721
-257
+1206
+142
+1636
+262
 paused events
 NIL
 NIL
@@ -1671,46 +1623,6 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count events with [event-paused = true]"
-
-PLOT
-905
-135
-1285
-255
-Count Active Resources
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"TOTAL" 1.0 0 -16777216 true "" ""
-"CID" 1.0 0 -2674135 true "" ""
-"RESPONSE" 1.0 0 -13345367 true "" ""
-
-PLOT
-541
-137
-901
-257
-Count Available Resources
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"TOTAL" 1.0 0 -16777216 true "" ""
-"CID" 1.0 0 -2674135 true "" ""
-"RESPONSE" 1.0 0 -13345367 true "" ""
 
 SWITCH
 10
@@ -1780,32 +1692,6 @@ SetSeed
 1
 -1000
 
-SWITCH
-390
-325
-530
-358
-resource-split
-resource-split
-0
-1
--1000
-
-SLIDER
-390
-360
-530
-393
-proportion-CID
-proportion-CID
-0
-1
-0.3
-0.05
-1
-NIL
-HORIZONTAL
-
 INPUTBOX
 15
 315
@@ -1818,57 +1704,113 @@ BurnInMonths
 Number
 
 SLIDER
-390
-155
-530
-188
-shift-1-officers
-shift-1-officers
+200
+715
+340
+748
+shift-1-response
+shift-1-response
 0
-1000
-120.0
-10
+300
+50.0
+5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-390
-190
-530
-223
-shift-2-officers
-shift-2-officers
+200
+750
+340
+783
+shift-2-response
+shift-2-response
 0
-1000
-120.0
-10
+300
+50.0
+5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-390
-225
-530
-258
-shift-3-officers
-shift-3-officers
+200
+785
+340
+818
+shift-3-response
+shift-3-response
 0
-1000
-120.0
-10
+300
+25.0
+5
 1
 NIL
 HORIZONTAL
+
+SLIDER
+345
+715
+450
+748
+shift-1-CID
+shift-1-CID
+0
+100
+30.0
+5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+345
+750
+450
+783
+shift-2-CID
+shift-2-CID
+0
+100
+30.0
+5
+1
+NIL
+HORIZONTAL
+
+SLIDER
+345
+785
+450
+818
+shift-3-CID
+shift-3-CID
+0
+100
+5.0
+5
+1
+NIL
+HORIZONTAL
+
+MONITOR
+340
+660
+445
+705
+Total Resources
+shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-CID + shift-3-CID
+17
+1
+11
 
 BUTTON
-390
-265
-530
-298
-Equalize Shifts
-let equal-shift-amount (number-resources / 3)\nset shift-1-officers equal-shift-amount\nset shift-2-officers equal-shift-amount\nset shift-3-officers equal-shift-amount\n
+200
+865
+305
+898
+visualise-shifts
+ask resources with [working-shift = 1] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 1]\n]\nask resources with [working-shift = 2] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 2]\n]\n\nask resources with [working-shift = 3]\n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 3]\n]
 NIL
 1
 T
@@ -1877,6 +1819,58 @@ NIL
 NIL
 NIL
 NIL
+1
+
+SWITCH
+200
+825
+340
+858
+resource-split
+resource-split
+0
+1
+-1000
+
+SWITCH
+10
+555
+175
+588
+Shifts
+Shifts
+0
+1
+-1000
+
+TEXTBOX
+460
+800
+535
+818
+Resources
+13
+0.0
+1
+
+TEXTBOX
+460
+845
+515
+863
+Events
+13
+0.0
+1
+
+TEXTBOX
+460
+895
+520
+913
+Backlog
+13
+0.0
 1
 
 @#$#@#$#@
