@@ -50,7 +50,12 @@ resources-own
   ;records what shift - if any - a resource is working on
   working-shift
   events-completed ;measure of total number of incidents completed
-  workload ; count the number of ongoing jobs
+
+  ;towards paralell processing of jobs by single agents - i.e. an officer can be responding to 2 incidents at the same time - this is beacuse much of the demand will be associated with investigations.
+  ; should this functionality only apply to CID???? Speak to Lee
+  workload ; count the number of ongoing jobs an officer is dealing with currently
+  max-resource-capacity ; expressed as float (0-1) represneting a % so that jobs can be split accross an individual - allows user to set that all officers spend x% of time doing something else
+  current-resource-capacity ; expressed as float (0-1) represneting a % - current % taken up, based on max-resource-capcity. So if max-resource-capacity = 0.8 and working on 2 jobs, each gets 0.4 which equates to 24 min per hour.
 
 ]
 
@@ -164,8 +169,8 @@ to setup
 
   set loading-factor table:from-list py:runresult "get_loading()"
 
-  ; test - massively increase drug offences *from the second month* (i.e. after the burn-in)
-  ; py:run "set_loading(12.34, 'drugs')"
+  ; test - increase drug offences *from the second month* (i.e. after the burn-in)
+  ; py:run "set_loading(1.34, 'drugs')"
 
   ;create folder path to store results based on settings
 
@@ -182,11 +187,12 @@ to setup
   set resource-usage-trends-file (word path model-config "resource-usage-trends-file.csv")
 
 
+
+
   ;size the view window so that 1 patch equals 1 unit of resource - world is 10 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
   let number-resources (shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-CID + shift-3-CID)
   let y-dim-resource-temp (number-resources / 10) - 1
-
   resize-world 0 9 0 y-dim-resource-temp
 
 
@@ -214,7 +220,6 @@ to setup
   ;if shifts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
   if Shifts
   [
-    ;let third-split-unit ((y-dim-resource-temp + 1) / 3)
 
     ;take values from the interface that allow users to specify officers in each shift (shift-1-response, shift-2-response, shift-3-response) and
     ;identify where to chop up the visulaisation window and who to allocate to which shift - this complexity is only necessary if we want to visulaize
@@ -227,9 +232,6 @@ to setup
     ask resources with [ycor >= shift-1-split and ycor < (shift-1-split + shift-2-split)] [ set working-shift 2]
     ask resources with [ycor >= (shift-1-split + shift-2-split) and ycor < shift-1-split + shift-2-split + shift-3-split] [ set working-shift 3]
 
-    ;ask resources with [ycor >= 0 and ycor <= ((third-split-unit * 1) - 1)  ] [ set working-shift 1]
-    ;ask resources with [ycor > ((third-split-unit * 1) - 1) and ycor <= ((third-split-unit * 2) - 1)] [ set working-shift 2]
-    ;ask resources with [ycor > ((third-split-unit * 2) - 1)] [ set working-shift 3]
   ]
 
 
@@ -275,8 +277,6 @@ to go-step
   ;assign resources - right now this is written events look for resources where in reality resources should look for events
   ifelse triage-events
   [
-    ifelse resource-split
-    [
       ;Rudimentary triage - with RESPONSE and CID POOLS - currently priority 1 events responded to by CID, priority 2 & 3 Response officers
 
       ;pickup ongoing jobs that are paused first
@@ -293,25 +293,6 @@ to go-step
       ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources-response]
       ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources-response]
       ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-response]
-    ]
-    [
-      ;Rudimentary triage - without RESPONSE and CID POOLS
-
-      ;pickup ongoing jobs that are paused first
-      ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources]
-      ;then jobs that have no one
-      ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources]
-      ;then jobs that are ongoing but under staffed
-      ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
-
-      ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources]
-      ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources]
-      ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
-
-      ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources]
-      ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources]
-      ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources]
-    ]
   ]
   [
     ask events with [event-status = 1 and event-paused = true] [get-resources]
@@ -864,13 +845,11 @@ to update-all-plots
   set-current-plot "% Resource Usage"
   set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
-  if resource-split
-  [
-    set-current-plot-pen "CID"
-    plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
-    set-current-plot-pen "RESPONSE"
-    plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
-  ]
+
+  set-current-plot-pen "CID"
+  plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
+  set-current-plot-pen "RESPONSE"
+  plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
 
   set-current-plot "Events Waiting"
   set-current-plot-pen "waiting-total"
@@ -1814,17 +1793,6 @@ NIL
 NIL
 NIL
 1
-
-SWITCH
-200
-825
-340
-858
-resource-split
-resource-split
-0
-1
--1000
 
 SWITCH
 10
