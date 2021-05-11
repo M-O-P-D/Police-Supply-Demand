@@ -34,7 +34,6 @@ breed [resources resource]
 ;POLICE RESOURCE VARIABLES
 resources-own
 [
-
   current-event ;the id of the event-agent the resource-agent is responding to
   current-event-type ;the type of event the resource-agent is responding to
   current-event-class ; broader crime class
@@ -44,18 +43,14 @@ resources-own
   ; resource-type = 2 C.I.D.
   resource-type
 
-
   ;status of resource agent
   resource-status ;represents the current state of the resource agent - coded: 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
   resource-start-dt ; the date-time when the current job started
 
-  ;resource-hours-required ;count of hours required to respond to current event
-  ;resource-end-dt ;calculated end date/time of current event - equates to resource-start-dt + resource-hours-required
-
   ;records what shift - if any - a resource is working on
   working-shift
-
   events-completed ;measure of total number of incidents completed
+  workload ; count the number of ongoing jobs
 
 ]
 
@@ -80,7 +75,6 @@ events-own
   event-resource-req-amount ;number of resource units required to repsond to event - drawn from event-reference
   event-resource-req-total
   event-priority ; placeholder for variable that allows events to be triaged in terms of importance of response
-
   event-severity ; ONS CSS associated with offence - as passed by crims
   event-suspect ; bool for presence of suspect - as passed by crims
 
@@ -1242,9 +1236,9 @@ NIL
 1
 
 MONITOR
-540
+550
 795
-680
+690
 840
 Resources Free
 count resources with [resource-status = 1]
@@ -1253,9 +1247,9 @@ count resources with [resource-status = 1]
 11
 
 MONITOR
-540
+550
 845
-680
+690
 890
 Events - Awaiting
 count events with [event-status = 1]
@@ -1264,9 +1258,9 @@ count events with [event-status = 1]
 11
 
 MONITOR
-685
+695
 845
-825
+835
 890
 Events - Ongoing
 count events with [event-status = 2]
@@ -1275,9 +1269,9 @@ count events with [event-status = 2]
 11
 
 MONITOR
-830
+840
 845
-968
+978
 890
 Events - Completed
 count-completed-events
@@ -1296,7 +1290,7 @@ time
 0.0
 10.0
 0.0
-110.0
+100.0
 true
 true
 "" ""
@@ -1448,9 +1442,9 @@ VERBOSE
 -1000
 
 MONITOR
-685
+695
 795
-825
+835
 840
 Resources Responding
 count resources with [resource-status = 2]
@@ -1513,9 +1507,9 @@ triage-events
 -1000
 
 MONITOR
-540
+550
 895
-680
+690
 940
 priority 1 waiting
 count events with [event-status = 1 and event-priority = 1]
@@ -1524,9 +1518,9 @@ count events with [event-status = 1 and event-priority = 1]
 11
 
 MONITOR
-685
+695
 895
-825
+835
 940
 priority 2 waiting
 count events with [event-status = 1 and event-priority = 2]
@@ -1535,9 +1529,9 @@ count events with [event-status = 1 and event-priority = 2]
 11
 
 MONITOR
-830
+840
 895
-965
+975
 940
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
@@ -1643,7 +1637,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-43
+9
 
 INPUTBOX
 15
@@ -1844,9 +1838,9 @@ Shifts
 -1000
 
 TEXTBOX
-460
+470
 800
-535
+545
 818
 Resources
 13
@@ -1854,9 +1848,9 @@ Resources
 1
 
 TEXTBOX
-460
+470
 845
-515
+525
 863
 Events
 13
@@ -1864,14 +1858,36 @@ Events
 1
 
 TEXTBOX
-460
+470
 895
-520
+530
 913
 Backlog
 13
 0.0
 1
+
+MONITOR
+200
+905
+455
+950
+Response - mean #jobs completed p/officer
+mean [events-completed] of resources with [resource-type = 1]
+3
+1
+11
+
+MONITOR
+200
+955
+455
+1000
+CID - mean #jobs completed p/officer
+mean [events-completed] of resources with [resource-type = 2]
+3
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
