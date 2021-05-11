@@ -275,30 +275,25 @@ to go-step
   read-events-from-crims
 
   ;assign resources - right now this is written events look for resources where in reality resources should look for events
-  ifelse triage-events
-  [
-      ;Rudimentary triage - with RESPONSE and CID POOLS - currently priority 1 events responded to by CID, priority 2 & 3 Response officers
 
-      ;pickup ongoing jobs that are paused first
-      ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources-CID]
-      ;then jobs that have no one
-      ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources-CID]
-      ;then jobs that are ongoing but under staffed
-      ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-CID]
+  ;Rudimentary triage - with RESPONSE and CID POOLS - currently priority 1 events responded to by CID, priority 2 & 3 Response officers
 
-      ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources-response]
-      ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources-response]
-      ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-response]
+  ;pickup ongoing jobs that are paused first
+  ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources-CID]
+  ;then jobs that have no one
+  ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources-CID]
+  ;then jobs that are ongoing but under staffed
+  ask events with [event-priority = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-CID]
 
-      ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources-response]
-      ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources-response]
-      ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-response]
-  ]
-  [
-    ask events with [event-status = 1 and event-paused = true] [get-resources]
-    ask events with [event-status = 1] [get-resources]
-    ask events with [event-status = 2 and count current-resource < event-resource-req-amount] [get-resources]
-  ]
+  ask events with [event-priority = 2 and event-status = 1 and event-paused = true] [get-resources-response]
+  ask events with [event-priority = 2 and event-status = 1 and event-paused = false] [get-resources-response]
+  ask events with [event-priority = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-response]
+
+  ask events with [event-priority = 3 and event-status = 1 and event-paused = true] [get-resources-response]
+  ask events with [event-priority = 3 and event-status = 1 and event-paused = false] [get-resources-response]
+  ask events with [event-priority = 3 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-amount] [replenish-resources-response]
+
+
 
 
   ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
@@ -1470,17 +1465,6 @@ SWITCH
 493
 event-file-out
 event-file-out
-0
-1
--1000
-
-SWITCH
-10
-595
-175
-628
-triage-events
-triage-events
 0
 1
 -1000
