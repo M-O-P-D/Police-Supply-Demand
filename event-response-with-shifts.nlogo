@@ -208,7 +208,7 @@ to setup
     [
       set shape "square"
       set color grey
-      ifelse Shifts [set resource-status 0] [set resource-status 1]
+      set resource-status 0
       set events-completed 0
 
       ;initially specify all units as response
@@ -217,9 +217,7 @@ to setup
   ]
 
 
-  ;if shifts are turned on split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
-  if Shifts
-  [
+    ;split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
 
     ;take values from the interface that allow users to specify officers in each shift (shift-1-response, shift-2-response, shift-3-response) and
     ;identify where to chop up the visulaisation window and who to allocate to which shift - this complexity is only necessary if we want to visulaize
@@ -232,7 +230,6 @@ to setup
     ask resources with [ycor >= shift-1-split and ycor < (shift-1-split + shift-2-split)] [ set working-shift 2]
     ask resources with [ycor >= (shift-1-split + shift-2-split) and ycor < shift-1-split + shift-2-split + shift-3-split] [ set working-shift 3]
 
-  ]
 
 
   ; if resource split is switched on police resources are split into 2 pools - response officers (resource-type = 1) who deal with lower level incidents and CID  (resource-type = 2) who deal with more serious offences
@@ -268,7 +265,7 @@ to go-step
   if VERBOSE [print time:show dt "dd-MM-yyyy HH:mm"]
 
   ;update time and check shift bool
-  if Shifts [check-shift]
+  check-shift
   set count-crime-hour 0
 
   ;read in current hour's events
@@ -1777,17 +1774,6 @@ NIL
 NIL
 NIL
 1
-
-SWITCH
-10
-555
-175
-588
-Shifts
-Shifts
-0
-1
--1000
 
 TEXTBOX
 470
