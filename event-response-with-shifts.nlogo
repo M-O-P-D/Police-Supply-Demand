@@ -408,15 +408,29 @@ to-report convert-severity-to-resource-amount  [ resource-time ]
 end
 
 ; Function that calculates number of hours a case will need based on severity of offence, presence or absense of a suspect (NOT USED), and a weight which allows mainpulation of how much resouce is allocated to particular offences (NOT USED)
+;to-report convert-severity-to-resource-time [ severity suspect weight ]
+;  ;divide severity by 50 and round up to int to get mean hours
+;  let mean-time ceiling (severity / 50)
+;  let sd-time (severity / 500)
+;  ;in this 'stupid' case just apply a random normal to that time to get the actual time to return - and make sure it's a positive number with ABS - HACK
+;  let time (abs round random-normal mean-time sd-time) + 1
+;  ;show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
+;  report time
+;end
+
+; Function that calculates number of hours a case will need based on severity of offence, presence or absense of a suspect (NOT USED), and a weight which allows mainpulation of how much resouce is allocated to particular offences (NOT USED)
 to-report convert-severity-to-resource-time [ severity suspect weight ]
-  ;divide severity by 50 and round up to int to get mean hours
-  let mean-time ceiling (severity / 50)
-  let sd-time (severity / 500)
-  ;in this 'stupid' case just apply a random normal to that time to get the actual time to return - and make sure it's a positive number with ABS - HACK
-  let time (abs round random-normal mean-time sd-time) + 1
-  ;show (word severity " ONS CSS - mean-time=" mean-time " ,sd-time=" sd-time " -- Actual=" time)
+  ;double severity if there's a suspect and divide by 50
+  let s 1
+  if suspect [set s 2]
+  let mean-time (severity * s) / 50
+  ; sample time rounded UP to nearest whole hour
+  ; NOTE that .5 is rounded up, see http://ccl.northwestern.edu/netlogo/docs/dict/round.html
+  let time round ((random-exponential mean-time) + 0.5)
+  show (word severity " ONS CSS - mean-time=" mean-time " ,suspect=" s " -- Exp=" time)
   report time
 end
+
 
 ; return priority 1,2, or 3 based on severity - should implement THRIVE here
 to-report convert-severity-to-event-priority [ severity ]
