@@ -210,37 +210,32 @@ to setup
       set color grey
       set resource-status 0
       set events-completed 0
-
       ;initially specify all units as response
       set resource-type 1
+
+      set max-resource-capacity 1
+      set current-resource-capacity 0
     ]
   ]
 
 
-    ;split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
+  ;split the agents so that the bottom third work shift 1, middle third shift 2, top third shift 3
+  ;take values from the interface that allow users to specify officers in each shift (shift-1-response, shift-2-response, shift-3-response) and
+  ;identify where to chop up the visulaisation window and who to allocate to which shift - this complexity is only necessary if we want to visulaize
+  ;the shifts grouped togther in the UI (otherwise it would just be n-of patches etc)
+  let shift-1-split ((shift-1-response + shift-1-CID) / 10)
+  let shift-2-split ((shift-2-response + shift-2-CID) / 10)
+  let shift-3-split ((shift-3-response + shift-3-CID) / 10)
 
-    ;take values from the interface that allow users to specify officers in each shift (shift-1-response, shift-2-response, shift-3-response) and
-    ;identify where to chop up the visulaisation window and who to allocate to which shift - this complexity is only necessary if we want to visulaize
-    ;the shifts grouped togther in the UI (otherwise it would just be n-of patches etc)
-    let shift-1-split ((shift-1-response + shift-1-CID) / 10)
-    let shift-2-split ((shift-2-response + shift-2-CID) / 10)
-    let shift-3-split ((shift-3-response + shift-3-CID) / 10)
+  ask resources with [ycor >= 0 and ycor < (shift-1-split)  ] [ set working-shift 1]
+  ask resources with [ycor >= shift-1-split and ycor < (shift-1-split + shift-2-split)] [ set working-shift 2]
+  ask resources with [ycor >= (shift-1-split + shift-2-split) and ycor < shift-1-split + shift-2-split + shift-3-split] [ set working-shift 3]
 
-    ask resources with [ycor >= 0 and ycor < (shift-1-split)  ] [ set working-shift 1]
-    ask resources with [ycor >= shift-1-split and ycor < (shift-1-split + shift-2-split)] [ set working-shift 2]
-    ask resources with [ycor >= (shift-1-split + shift-2-split) and ycor < shift-1-split + shift-2-split + shift-3-split] [ set working-shift 3]
-
-
-
-  ; if resource split is switched on police resources are split into 2 pools - response officers (resource-type = 1) who deal with lower level incidents and CID  (resource-type = 2) who deal with more serious offences
-  ; the proportion of officers in each shift who are CID is defined by the GUI slider proportion-CID
-  ; currently this implementation assumes that CID operate accross all shifts - this might be explored in future model iterations
-
-    ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type  2 ]
-    ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type  2 ]
-    ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type  2 ]
-
-
+  ; Split police resources into 2 pools - response officers (resource-type = 1) who deal with lower level incidents and CID  (resource-type = 2) who deal with more serious offences
+  ; Global vars specify counts of each across shifts shift-1-response, shift-1-CID, shift-2-response, shift-2-CID, shift-3-response, shift-3-CID
+  ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type  2 ]
+  ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type  2 ]
+  ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type  2 ]
 
   ;set the global clock
   if event-file-out [start-file-out]
@@ -317,41 +312,6 @@ end
 
 
 
-to start-file-out
-
-  file-close-all
-
-  if file-exists? event-summary-file [file-delete event-summary-file]
-  file-open event-summary-file
-  file-print "eventID,count-resources,event-status,event-type,event-class,event-LSOA,event-start-dt,event-response-start-dt,event-response-end-dt,event-resource-counter,event-resource-type,event-resource-req-time,event-resource-req-amount,event-resource-req-total"
-
-  if file-exists? active-event-trends-file [file-delete active-event-trends-file]
-  file-open active-event-trends-file
-  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
-
-  if file-exists? active-resource-trends-file [file-delete active-resource-trends-file]
-  file-open active-resource-trends-file
-  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
-
-  if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
-  file-open resource-usage-trends-file
-  file-print "date-time,usage%,events-ongoing,events-waiting,piority1-waiting,piority2-waiting,piority3-waiting"
-
-end
-
-to close-files
-  if file-exists? resource-summary-file [file-delete resource-summary-file]
-  file-open resource-summary-file
-  file-print "resourceID, events-completed"
-  ask resources
-  [
-    file-print (word who "," events-completed)
-  ]
-
-  file-close-all
-end
-
-
 
 
 
@@ -410,16 +370,6 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
 ; color resource agents based on current state - blue for responding - grey for available
 to draw-resource-status
 
@@ -446,11 +396,6 @@ end
 
 
 
-
-
-
-
-
 ; Function that calculates number of officers a case will need based on amount of hours required.
 to-report convert-severity-to-resource-amount  [ resource-time ]
   ;derive amount of staff required from amount of time required - if more than 8 hours divide up into additional officers
@@ -473,7 +418,6 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   report time
 end
 
-
 ; return priority 1,2, or 3 based on severity - should implement THRIVE here
 to-report convert-severity-to-event-priority [ severity ]
   let priority 0
@@ -489,17 +433,11 @@ to-report convert-severity-to-event-priority [ severity ]
 end
 
 
-
-
-
-
-
 to roster-on [ shift ]
 
   ;as a shift changes roster on new staff - assumes that each shift has 1/3 of resources active - although there is overlap between shifts
 
   if VERBOSE [ print (word "Shift " shift " - Rostering on ") ]
-
   if shift = 1 [ ask resources with [resource-status = 0 and working-shift = 1] [set resource-status 1 set working-shift 1 ]]
   if shift = 2 [ ask resources with [resource-status = 0 and working-shift = 2] [set resource-status 1 set working-shift 2 ]]
   if shift = 3 [ ask resources with [resource-status = 0 and working-shift = 3] [set resource-status 1 set working-shift 3 ]]
@@ -509,11 +447,8 @@ end
 
 
 
-;to do next - how do we roster off officers - what happens to events that arecurrently underway - how are they passed on
-; A few  options
-; Pass events on to specific  other resource agents
-;put the events back on the stack (this would require to count amount of time spent on event so to know remaining hours
-; continue working until event finishes - this would likely require agents to pick up events based on how much  time they have lefton their shift
+;procedure that takes all officers currently working off shift and places all ongoing jobs back onto the pile of current jobs to be icked up by the next officers
+;could implement overtime here such that officers worked longer, or finished their current job.
 to roster-off [ shift ]
 
   if VERBOSE [ print (word "Shift " shift " - Rostering off") ]  ;" ends - currently there are " count resources with [ working-shift = shift] " working and " count resources with [resource-status = 1 and working-shift = shift] " officers not on a job to be easily rostered off")
@@ -632,35 +567,6 @@ end
 
 
 
-
-; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
-to get-resources
-
-  ;check if the required number of resources are available
-  if count resources with [resource-status = 1] >= (event-resource-req-amount)
-  [
-    if VERBOSE [print (word EventID " - Officers responding to priority " event-priority " " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter) ]
-    ;link resource to event
-    set current-resource n-of event-resource-req-amount resources with [resource-status = 1]
-
-    ;record start and end datetime of response
-    if event-paused = false [set event-response-start-dt dt]
-    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
-    set event-status 2 ; mark the event as ongoing
-
-    ask current-resource
-    [
-      set current-event myself
-      set current-event-type [event-type] of current-event
-      set current-event-class [event-class] of current-event
-      set resource-status 2
-    ]
-    set event-paused false
-  ]
-
-end
-
-
 ; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
 to get-resources-CID
 
@@ -686,7 +592,46 @@ to get-resources-CID
     set event-paused false
   ]
 
+
+
 end
+
+
+; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
+to get-resources-CID-parallel
+
+  ;check if the required number of CID resources are available that are COMPLETELY FREE
+  ifelse count resources with [resource-status = 1 and resource-type = 2] >= (event-resource-req-amount)
+  [
+    if VERBOSE [print (word EventID " - CID OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
+    ;link resource to event
+    set current-resource n-of event-resource-req-amount resources with [resource-status = 1 and resource-type = 2]
+
+    ;record start and end datetime of response
+    if event-paused = false [set event-response-start-dt dt]
+    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
+    set event-status 2 ; mark the event as ongoing
+
+    ask current-resource
+    [
+      set current-event myself
+      set current-event-type [event-type] of current-event
+      set current-event-class [event-class] of current-event
+      set resource-status 2
+    ]
+    set event-paused false
+  ]
+
+  ;in this scenario there are not enough complelety free CID resources - but an event must be responded to so start to split jobs
+  [
+
+  ]
+
+
+end
+
+
+
 
 ; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
 to get-resources-response
@@ -725,33 +670,7 @@ end
 ; note that typically jobs are allocated officers from the same shift, thus at shift change they are paused and then reallocated resources from the new shift using get-resources above
 ; these functions just catch the special case described above.
 
-to replenish-resources
 
-  ;check if the required number of resources are available to replenish job
-  if count resources with [resource-status = 1] >= (event-resource-req-amount - (count current-resource))
-  [
-    if VERBOSE [print (word EventID " - Adding officers to " event-type " event - " event-resource-req-amount " unit(s) required for " event-resource-req-time " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
-
-    ;link resource to event
-    ;print (word count current-resource " - pre replenish - paused - " event-paused )
-    set current-resource (turtle-set current-resource n-of (event-resource-req-amount - (count current-resource)) resources with [resource-status = 1])
-    ;print (word count current-resource " - post replenish")
-
-    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
-    set event-status 2 ; mark the event as ongoing
-
-    ask current-resource
-    [
-      ;link event to resource
-      set current-event myself
-      set current-event-type [event-type] of current-event
-      set current-event-class [event-class] of current-event
-      set resource-status 2
-    ]
-
-  ]
-
-end
 
 
 
@@ -814,6 +733,48 @@ to replenish-resources-response
   ]
 
 end
+
+
+
+
+
+
+
+to start-file-out
+
+  file-close-all
+
+  if file-exists? event-summary-file [file-delete event-summary-file]
+  file-open event-summary-file
+  file-print "eventID,count-resources,event-status,event-type,event-class,event-LSOA,event-start-dt,event-response-start-dt,event-response-end-dt,event-resource-counter,event-resource-type,event-resource-req-time,event-resource-req-amount,event-resource-req-total"
+
+  if file-exists? active-event-trends-file [file-delete active-event-trends-file]
+  file-open active-event-trends-file
+  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+
+  if file-exists? active-resource-trends-file [file-delete active-resource-trends-file]
+  file-open active-resource-trends-file
+  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+
+  if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
+  file-open resource-usage-trends-file
+  file-print "date-time,usage%,events-ongoing,events-waiting,piority1-waiting,piority2-waiting,piority3-waiting"
+
+end
+
+to close-files
+  if file-exists? resource-summary-file [file-delete resource-summary-file]
+  file-open resource-summary-file
+  file-print "resourceID, events-completed"
+  ask resources
+  [
+    file-print (word who "," events-completed)
+  ]
+
+  file-close-all
+end
+
+
 
 
 
