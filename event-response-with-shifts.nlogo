@@ -400,14 +400,14 @@ end
 to-report convert-severity-to-resource-amount  [ resource-time ]
   ;derive amount of staff required from amount of time required - if more than 8 hours divide up into additional officers
   let mean-amount ceiling (resource-time / 8)
-  ;in this 'stupid' case just apply a random poisson to the mean ammount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
-  let amount (ceiling random-poisson mean-amount)
+  ;in this 'stupid' case just apply a random poisson to the mean amount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
+  let amount 1 + (floor random-poisson mean-amount)
   if amount = 0 [ set amount 1 ] ;minimum of 1
   ;show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
   report amount
 end
 
-; Function that calculates number of hours a case will need based on severity of offence, presence or absense of a suspect (NOT USED), and a weight which allows mainpulation of how much resouce is allocated to particular offences (NOT USED)
+; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect (NOT USED), and a weight which allows manipulation of how much resource is allocated to particular offences (NOT USED)
 ;to-report convert-severity-to-resource-time [ severity suspect weight ]
 ;  ;divide severity by 50 and round up to int to get mean hours
 ;  let mean-time ceiling (severity / 50)
@@ -418,16 +418,16 @@ end
 ;  report time
 ;end
 
-; Function that calculates number of hours a case will need based on severity of offence, presence or absense of a suspect (NOT USED), and a weight which allows mainpulation of how much resouce is allocated to particular offences (NOT USED)
+; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect (NOT USED), and a weight which allows manipulation of how much resource is allocated to particular offences (NOT USED)
 to-report convert-severity-to-resource-time [ severity suspect weight ]
   ;double severity if there's a suspect and divide by 50
   let s 1
   if suspect [set s 2]
-  let mean-time (severity * s) / 50
-  ; sample time rounded UP to nearest whole hour
-  ; NOTE that .5 is rounded up, see http://ccl.northwestern.edu/netlogo/docs/dict/round.html
-  let time round ((random-exponential mean-time) + 0.5)
-  show (word severity " ONS CSS - mean-time=" mean-time " ,suspect=" s " -- Exp=" time)
+  let mean-time severity * s / 50
+
+  ; sample time and round up to nearest whole hour
+  let time ceiling random-exponential mean-time
+  ; show (word severity " ONS CSS - mean=" mean-time " -- time=" time)
   report time
 end
 
