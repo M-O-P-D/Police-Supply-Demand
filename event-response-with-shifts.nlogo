@@ -426,12 +426,14 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   ;double severity if there's a suspect and divide by 50
   let s 1
   if suspect [set s 2]
-  let mean-time severity * s / 100
+  ; sample lognormal
+  let mean-log-time ln(severity * s / 100)
+  let stdev-log-time 0.2
 
   ; sample time and round up to nearest whole hour
-  let time ceiling random-exponential mean-time
+  let time ceiling exp(random-normal mean-log-time stdev-log-time)
 
-  ; show (word severity " ONS CSS - mean=" mean-time " -- time=" time)
+  ; show (word severity " ONS CSS - mean=" exp(mean-time) " -- time=" time)
   report time
 end
 
@@ -446,7 +448,7 @@ to-report convert-severity-to-event-priority [ severity ]
     [ set priority 2 ]
     [ set priority 3 ]
   ]
-  ;show (word severity " ONS CSS - priority=" priority)
+  ; show (word severity " ONS CSS - priority=" priority)
   report priority
 end
 
@@ -1128,7 +1130,7 @@ GRAPHICS-WINDOW
 190
 65
 306
-635
+365
 -1
 -1
 10.8
@@ -1144,7 +1146,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-51
+26
 0
 0
 1
