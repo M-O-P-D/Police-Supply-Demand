@@ -356,6 +356,9 @@ to read-events-from-crims
       set event-paused false
       ;get the amount of units/time required to respond to resource from event info
       set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
+
+      print (word event-type "," event-suspect ","  event-resource-req-time )
+
       set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
       set event-priority convert-severity-to-event-priority event-severity
       set event-resource-req-total event-resource-req-amount * event-resource-req-time
@@ -423,10 +426,11 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   ;double severity if there's a suspect and divide by 50
   let s 1
   if suspect [set s 2]
-  let mean-time severity * s / 50
+  let mean-time severity * s / 100
 
   ; sample time and round up to nearest whole hour
   let time ceiling random-exponential mean-time
+
   ; show (word severity " ONS CSS - mean=" mean-time " -- time=" time)
   report time
 end
@@ -1122,12 +1126,12 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 190
-60
-438
-525
+65
+306
+635
 -1
 -1
-24.0
+10.8
 1
 10
 1
@@ -1140,7 +1144,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-18
+51
 0
 0
 1
@@ -1294,10 +1298,10 @@ NIL
 1
 
 TEXTBOX
-200
-630
-325
-707
+195
+645
+320
+722
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1633,100 +1637,100 @@ BurnInMonths
 Number
 
 SLIDER
-200
-715
-340
-748
+195
+730
+335
+763
 shift-1-response
 shift-1-response
 0
 300
-50.0
+70.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-200
-750
-340
-783
+195
+765
+335
+798
 shift-2-response
 shift-2-response
 0
 300
-50.0
+70.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-200
-785
-340
-818
+195
+800
+335
+833
 shift-3-response
 shift-3-response
 0
 300
-25.0
+70.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-345
-715
-450
-748
+340
+730
+445
+763
 shift-1-CID
 shift-1-CID
 0
 100
-30.0
+20.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-345
-750
-450
-783
+340
+765
+445
+798
 shift-2-CID
 shift-2-CID
 0
 100
-30.0
+20.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-345
-785
-450
-818
+340
+800
+445
+833
 shift-3-CID
 shift-3-CID
 0
 100
-5.0
+20.0
 5
 1
 NIL
 HORIZONTAL
 
 MONITOR
-340
-660
-445
-705
+335
+675
+440
+720
 Total Resources
 shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-CID + shift-3-CID
 17
