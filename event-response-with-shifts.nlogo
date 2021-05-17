@@ -268,9 +268,13 @@ to go-step
 
   ;assign resources - right now this is written events look for resources where in reality resources should look for events
 
-  ;Rudimentary triage - with RESPONSE and CID POOLS - currently priority 1 events responded to by CID, priority 2 & 3 Response officers
+  ;Rudimentary triage - with RESPONSE and CID POOLS - currently priority 1 events responded to by CID, priority 2 & 3 Response officers, priority 4 events without a suspect are resolved without response, with a suspect as priority 3
+  ;event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
 
-  ;pickup ongoing jobs that are paused first
+  ;first resolve priority 4 incidents without physical resposne
+  ask events with [event-priority = 4 and event-status = 1 ] [ resolve-without-response ]
+
+  ;pickup ongoing jobs that are paused first (after they lost all resources at change of shift)
   ask events with [event-priority = 1 and event-status = 1 and event-paused = true] [get-resources-CID]
   ;then jobs that have no one
   ask events with [event-priority = 1 and event-status = 1 and event-paused = false] [get-resources-CID]
@@ -438,17 +442,29 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
 end
 
 
-; return priority 1,2, or 3 based on severity - should implement THRIVE here
+; return priority 1,2,3,4 based on severity (and presenece of suspect) - should implement THRIVE here
+; Events 1000 or more severity - PRIORITY 1 - CID Response
+; Events 500 <> 999 - PRIORITY 2 - Response Officer Response
+; Events 499 <> 100 = PRIORITY 3 - Response Officer Response
+; Events < 100 with a SUSPECT = PRIORITY 3  - Response Officer Response
+; Events < 100 with NO SUSPECT = PRIORITY 4 - Resolved without response
 to-report convert-severity-to-event-priority [ severity ]
   let priority 0
-  ;if ONS Severity greater than 1000 - Priority 1; 1000 > x > 500 - Priority 2; x < 500 - Priority 3
+
   ifelse severity >= 1000
   [ set priority 1 ]
   [ ifelse severity >= 500
     [ set priority 2 ]
-    [ set priority 3 ]
+    [ ifelse severity >= 100
+      [set priority 3 ]
+      [ifelse event-suspect
+        [set priority 3]
+        [set priority 4]
+      ]
+    ]
   ]
   ; show (word severity " ONS CSS - priority=" priority)
+  show (word "severity:" severity " suspect:" event-suspect " = PRIORITY " priority)
   report priority
 end
 
@@ -539,8 +555,36 @@ to check-event-status
 
 
     ;if the job is complete write its details to the event output file
-    if event-file-out
-    [
+    if event-file-out [write-completed-event-out]
+
+    ;then destroy the object
+    die
+  ]
+  [
+    ;otherwise count the time spent thus far
+    set event-resource-counter (event-resource-counter - count current-resource)
+    ;show (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " resources allocated - " event-resource-counter " resource hours remaining")
+  ]
+
+
+
+end
+
+; event procedure that completes priority 4 events via virtual or without physical response (threshold for priority 4 events defined in convert-severity-to-priority)
+to resolve-without-response
+
+  set count-completed-events count-completed-events + 1
+  if VERBOSE [print (word EventID " - EVENT COMPLETE (without physical response) - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
+  if event-file-out [write-completed-without-response]
+  die
+
+end
+
+
+
+;write out info on a completed event
+to write-completed-event-out
+
       file-open event-summary-file
       file-print (word
         eventID ","
@@ -558,20 +602,31 @@ to check-event-status
         event-resource-req-amount ","
         event-resource-req-total
       )
-    ]
-
-    ;then destroy the object
-    die
-  ]
-  [
-    ;otherwise count the time spent thus far
-    set event-resource-counter (event-resource-counter - count current-resource)
-    ;show (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " resources allocated - " event-resource-counter " resource hours remaining")
-  ]
-
-
 
 end
+
+;write out info on an event completed without response
+to write-completed-without-response
+  file-open event-summary-file
+  file-print (word
+        eventID ","
+        "virtual-response,"
+        event-status ",\""
+        event-type "\",\""
+        event-class "\","
+        event-MSOA ","
+        (time:show dt "dd-MM-yyyy HH:mm") ","
+        (time:show dt "dd-MM-yyyy HH:mm")  ","
+        (time:show dt "dd-MM-yyyy HH:mm") ","
+        "0,"
+        "virtual,"
+        "0,"
+        "0,"
+        "0"
+    )
+
+end
+
 
 
 ;
