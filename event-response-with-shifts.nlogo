@@ -12,7 +12,7 @@ globals
   Shift-2
   Shift-3
 
-  count-crime-hour
+  count-crime-hour  ;a count of crimes occuring in the current hour
 
   ;file globals
   event-summary-file
@@ -358,15 +358,22 @@ to read-events-from-crims
       set event-start-dt dt
       set event-status 1 ;awaiting resource
       set event-paused false
+
       ;get the amount of units/time required to respond to resource from event info
+      ;generate the number of hours
       set event-resource-req-time convert-severity-to-resource-time event-severity event-suspect 1
 
-      print (word event-type "," event-suspect ","  event-resource-req-time )
+      ; generate the number of staff - this currently relies on single vs dual crewing (old method commented out)
+      ;set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
+      set event-resource-req-amount calculate-response-crewing
 
-      set event-resource-req-amount convert-severity-to-resource-amount event-resource-req-time
       set event-priority convert-severity-to-event-priority event-severity
       set event-resource-req-total event-resource-req-amount * event-resource-req-time
       set event-resource-counter event-resource-req-total
+
+      print (word ticks "," event-type "," event-suspect ","  event-resource-req-time "," event-resource-req-amount "," event-resource-req-total)
+
+
     ]
     ;once the event agent has been created delete it from the data file
     set event-data remove-item 0 event-data
@@ -414,6 +421,26 @@ to-report convert-severity-to-resource-amount  [ resource-time ]
   report amount
 end
 
+
+
+; Function that calculates number of response officers a case will need based on curent shift - day time - single officer, overnight - double crewing
+to-report calculate-response-crewing
+
+  ifelse Shift-3
+  [ print "Safe crewing job" report 2 ]
+  [ print "Single crewing job" report 1 ]
+
+end
+
+
+
+
+
+
+
+
+
+
 ; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect (NOT USED), and a weight which allows manipulation of how much resource is allocated to particular offences (NOT USED)
 ;to-report convert-severity-to-resource-time [ severity suspect weight ]
 ;  ;divide severity by 50 and round up to int to get mean hours
@@ -431,7 +458,7 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   let s 1
   if suspect [set s 2]
   ; sample lognormal
-  let mean-log-time ln(severity * s / 100)
+  let mean-log-time ln(severity * s / 200)
   let stdev-log-time 0.2
 
   ; sample time and round up to nearest whole hour
@@ -464,7 +491,7 @@ to-report convert-severity-to-event-priority [ severity ]
     ]
   ]
   ; show (word severity " ONS CSS - priority=" priority)
-  show (word "severity:" severity " suspect:" event-suspect " = PRIORITY " priority)
+  ;show (word "severity:" severity " suspect:" event-suspect " = PRIORITY " priority)
   report priority
 end
 
@@ -874,14 +901,15 @@ to update-all-plots
   set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
 
-  set-current-plot-pen "CID"
-  plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
+  if count resources with [resource-status = 1 and resource-type = 2] > 0
+  [
+    set-current-plot-pen "CID"
+    plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
+  ]
   set-current-plot-pen "RESPONSE"
   plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
 
   set-current-plot "Events Waiting"
-  set-current-plot-pen "waiting-total"
-  plot count events with [event-status = 1]
   set-current-plot-pen "waiting-1"
   plot count events with [event-status = 1 and event-priority = 1]
   set-current-plot-pen "waiting-2"
@@ -1184,11 +1212,11 @@ end
 GRAPHICS-WINDOW
 190
 65
-306
-365
+433
+567
 -1
 -1
-10.8
+23.5
 1
 10
 1
@@ -1201,7 +1229,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-26
+20
 0
 0
 1
@@ -1245,19 +1273,19 @@ NIL
 MONITOR
 550
 795
-690
+730
 840
-Resources Free
-count resources with [resource-status = 1]
+Response Officers Available
+count resources with [resource-status = 1 and resource-type = 1]
 17
 1
 11
 
 MONITOR
 550
-845
+905
 690
-890
+950
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -1266,9 +1294,9 @@ count events with [event-status = 1]
 
 MONITOR
 695
-845
+905
 835
-890
+950
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -1277,9 +1305,9 @@ count events with [event-status = 2]
 
 MONITOR
 840
-845
-978
-890
+905
+975
+950
 Events - Completed
 count-completed-events
 17
@@ -1287,9 +1315,9 @@ count-completed-events
 11
 
 PLOT
-820
-20
-1200
+455
+140
+1640
 260
 % Resource Usage
 time
@@ -1449,12 +1477,12 @@ VERBOSE
 -1000
 
 MONITOR
-695
+740
 795
-835
+940
 840
-Resources Responding
-count resources with [resource-status = 2]
+Response Officers Responding
+count resources with [resource-status = 2 and resource-type = 1]
 17
 1
 11
@@ -1471,10 +1499,10 @@ length event-data
 11
 
 PLOT
-1206
-20
-1635
-140
+990
+800
+1640
+920
 Events Waiting
 NIL
 NIL
@@ -1486,7 +1514,6 @@ true
 true
 "" ""
 PENS
-"waiting-total" 1.0 0 -16777216 true "" ""
 "waiting-1" 1.0 0 -2674135 true "" ""
 "waiting-2" 1.0 0 -955883 true "" ""
 "waiting-3" 1.0 0 -1184463 true "" ""
@@ -1504,9 +1531,9 @@ event-file-out
 
 MONITOR
 550
-895
+955
 690
-940
+1000
 priority 1 waiting
 count events with [event-status = 1 and event-priority = 1]
 17
@@ -1515,9 +1542,9 @@ count events with [event-status = 1 and event-priority = 1]
 
 MONITOR
 695
-895
+955
 835
-940
+1000
 priority 2 waiting
 count events with [event-status = 1 and event-priority = 2]
 17
@@ -1526,9 +1553,9 @@ count events with [event-status = 1 and event-priority = 2]
 
 MONITOR
 840
-895
+955
 975
-940
+1000
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
 17
@@ -1537,9 +1564,9 @@ count events with [event-status = 1 and event-priority = 3]
 
 PLOT
 455
-20
-815
-260
+10
+1640
+135
 Crime
 NIL
 NIL
@@ -1555,9 +1582,9 @@ PENS
 
 BUTTON
 10
-822
-170
-857
+825
+175
+860
 close files
 close-files
 NIL
@@ -1597,10 +1624,10 @@ Shift1-Shift2-Shift3
 11
 
 PLOT
-1206
-142
-1636
-262
+990
+925
+1640
+1045
 paused events
 NIL
 NIL
@@ -1617,7 +1644,7 @@ PENS
 SWITCH
 10
 867
-172
+175
 900
 color-by-priority
 color-by-priority
@@ -1702,7 +1729,7 @@ shift-1-response
 shift-1-response
 0
 300
-70.0
+50.0
 5
 1
 NIL
@@ -1717,7 +1744,7 @@ shift-2-response
 shift-2-response
 0
 300
-70.0
+50.0
 5
 1
 NIL
@@ -1732,7 +1759,7 @@ shift-3-response
 shift-3-response
 0
 300
-70.0
+45.0
 5
 1
 NIL
@@ -1747,7 +1774,7 @@ shift-1-CID
 shift-1-CID
 0
 100
-20.0
+30.0
 5
 1
 NIL
@@ -1762,7 +1789,7 @@ shift-2-CID
 shift-2-CID
 0
 100
-20.0
+30.0
 5
 1
 NIL
@@ -1777,7 +1804,7 @@ shift-3-CID
 shift-3-CID
 0
 100
-20.0
+5.0
 5
 1
 NIL
@@ -1823,9 +1850,9 @@ Resources
 
 TEXTBOX
 470
-845
+905
 525
-863
+923
 Events
 13
 0.0
@@ -1833,9 +1860,9 @@ Events
 
 TEXTBOX
 470
-895
+955
 530
-913
+973
 Backlog
 13
 0.0
@@ -1860,6 +1887,28 @@ MONITOR
 CID - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = 2]
 3
+1
+11
+
+MONITOR
+550
+845
+730
+890
+CID Officers Available
+count resources with [resource-status = 1 and resource-type = 2]
+17
+1
+11
+
+MONITOR
+740
+845
+940
+890
+CID Officers Responding
+count resources with [resource-status = 2 and resource-type = 2]
+17
 1
 11
 
