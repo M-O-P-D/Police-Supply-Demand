@@ -279,8 +279,8 @@ to go-step
 
   ;PRIORITY 1
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ;pickup priority 1 RESPONSE ongoing jobs that are paused first (after they lost all resources at change of shift) - THIS SHOULD NEVER HAPPEN AS INITIAL RESPONSE IS ONLY EVER 1 HOUR
-  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 2 and event-paused = true] [get-resources-response ]
+  ;pickup priority 1 RESPONSE ongoing jobs that are paused first (after they lost all resources at change of shift) - THIS CURRENTLY SHOULDN'T EVER HAPPEN AS INITIAL RESPONSE FOR PRIORITY 1 INCIDENTS IS ONLY EVER 1 HOUR
+  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response ]
   ;then jobs that have no one
   ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
   ;then jobs that are ongoing but under staffed - THIS SHOULD ALSO NEVER HAPPEN AS INITIAL RESPONSE IS ONLY EVER 1 HOUR
@@ -288,13 +288,13 @@ to go-step
 
   ;PRIORITY 2
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 2 and event-paused = true] [get-resources-response]
+  ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response]
   ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
   ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
 
   ;PRIORITY 3
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 2 and event-paused = true] [get-resources-response]
+  ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response]
   ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
   ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
 
@@ -302,16 +302,11 @@ to go-step
   ;CID ALLOCATION
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;Pickup CID ongoing jobs that are paused first (after they lost all resources at change of shift)
-  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = true] [get-resources-CID-parallel ]
+  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = true] [rejoin-job-CID ]
   ;then jobs that have no one
   ask events with [event-resource-type = 2 and event-status = 1 and event-paused = false] [get-resources-CID-parallel ]
   ;then jobs that are ongoing but under staffed
   ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-CID ]
-
-
-
-
-
 
 
   ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
@@ -337,7 +332,25 @@ to increment-time
   set dt time:plus dt 1 "hours"
 end
 
+to rejoin-job-CID
 
+  print EventID
+  ask current-resource [print self]
+
+  ask current-resource
+  [
+    if resource-status = 1
+    [
+      show (word " back online " [EventID] of current-event)
+      ask current-event [ set event-status 2 set event-paused false ]
+      set resource-status 2
+    ]
+
+  ]
+  ;set event-status 2
+  ;set event-paused false
+
+end
 
 
 
@@ -562,7 +575,7 @@ to roster-on [ shift ]
 
   ;as a shift changes roster on new staff - assumes that each shift has 1/3 of resources active - although there is overlap between shifts
 
-  if VERBOSE [ print (word "Shift " shift " - Rostering on ") ]
+  ;if VERBOSE [ print (word "Shift " shift " - Rostering on ") ]
   if shift = 1 [ ask resources with [resource-status = 0 and working-shift = 1] [set resource-status 1 ]]
   if shift = 2 [ ask resources with [resource-status = 0 and working-shift = 2] [set resource-status 1 ]]
   if shift = 3 [ ask resources with [resource-status = 0 and working-shift = 3] [set resource-status 1 ]]
@@ -576,29 +589,34 @@ end
 ;could implement overtime here such that officers worked longer, or finished their current job.
 to roster-off [ shift ]
 
-  if VERBOSE [ print (word "Shift " shift " - Rostering off") ]  ;" ends - currently there are " count resources with [ working-shift = shift] " working and " count resources with [resource-status = 1 and working-shift = shift] " officers not on a job to be easily rostered off")
-    shift-drop-events shift
-    ask resources with [working-shift = shift] [end-shift]
+  ;if VERBOSE [ print (word "Shift " shift " - Rostering off") ]  ;" ends - currently there are " count resources with [ working-shift = shift] " working and " count resources with [resource-status = 1 and working-shift = shift] " officers not on a job to be easily rostered off")
+  shift-drop-events-RESPONSE shift
+  shift-drop-events-CID shift
+  ask resources with [resource-type = 1 and working-shift = shift] [end-shift-RESPONSE]
+  ask resources with [resource-type = 2 and working-shift = shift] [end-shift-CID]
 
 end
 
 
 
-to end-shift
+to end-shift-RESPONSE
   set resource-status 0
   set current-event nobody
   set current-event-type ""
   set current-event-class ""
 end
 
+;CID maintain their current jobs from shift to shift
+to end-shift-CID
+  set resource-status 0
+end
 
 
 
 
-
-to shift-drop-events  [ shift ]
+to shift-drop-events-RESPONSE  [ shift ]
   ; All ongoing events can be transferred
-  ask events with [ event-status = 2 ]
+  ask events with [ event-status = 2 and event-resource-type = 1]
   [
     ;drop all units whose shift has just ended from those events
     if VERBOSE [print (word EventID " - HAND-OVER @ shift change - " count current-resource " staff prior to shift change")]
@@ -615,7 +633,23 @@ to shift-drop-events  [ shift ]
   ]
 end
 
+to shift-drop-events-CID  [ shift ]
+  ; All ongoing events can be transferred
+  ask events with [ event-status = 2 and event-resource-type = 2]
+  [
+    ;drop all units whose shift has just ended from those events
+    ;if VERBOSE [print (word EventID " - HAND-OVER @ shift change - " count current-resource " staff prior to shift change")]
+    ;set current-resource current-resource with [working-shift != shift]
+    ;if VERBOSE [print (word EventID " - staff remaining in active shift - " count current-resource)]
+    ;check if that leaves any resource left
 
+      ;if not pause the event and set its status back to 1
+      set event-status 1
+      set event-paused true
+      if VERBOSE [print (word eventID " - CID PAUSED - further " event-resource-counter " person hours required to complete this event")]
+
+  ]
+end
 
 
 
