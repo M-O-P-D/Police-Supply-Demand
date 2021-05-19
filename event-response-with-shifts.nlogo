@@ -302,11 +302,11 @@ to go-step
   ;CID ALLOCATION
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;Pickup CID ongoing jobs that are paused first (after they lost all resources at change of shift)
-  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = true] [get-resources-CID-parallel print "1"]
+  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = true] [get-resources-CID-parallel ]
   ;then jobs that have no one
-  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = false] [get-resources-CID-parallel print "2"]
+  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = false] [get-resources-CID-parallel ]
   ;then jobs that are ongoing but under staffed
-  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-CID print "3"]
+  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-CID ]
 
 
 
@@ -319,7 +319,9 @@ to go-step
   update-all-plots
 
   ;check status of ongoing events so those about to complete can be closed
-  ask events with [event-status = 2] [ check-event-status ]
+  ask events with [event-status = 2 and event-resource-type = 1] [ check-event-status ] ; RESPONSE EVENTS
+  ask events with [event-status = 2 and event-resource-type = 2] [ check-event-status ] ; CID EVENTS
+
 
   ;tick by one hour
   increment-time
@@ -367,7 +369,6 @@ to read-events-from-crims
     ;create an event agent
     create-events 1
     [
-      print "creating response event"
       set count-crime-hour count-crime-hour + 1
       ;make it invisible
       set hidden? true
@@ -415,7 +416,7 @@ to generate-event-requirements
     [set event-resource-req-officers 1]
     set event-resource-req-total   (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
-    print (word dt " RESPONSE-ID=" EventID ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
 
     ;then call CID and create a follow up event
     call-CID
@@ -433,7 +434,7 @@ to generate-event-requirements
     ;caluculate total person hours
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
-    print (word dt " RESPONSE-ID=" EventID ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
   ]
 
   ;PRIORITY 4 Events - NO PHYSICAL RESPONSE officers only
@@ -445,7 +446,7 @@ to generate-event-requirements
     set event-resource-req-officers 0
     set event-resource-req-total  0
     set event-resource-counter 0
-    print (word dt " VritualResponse-ID=" EventID ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    print (word EventID " VirtualResponse" ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
   ]
 
 end
@@ -467,7 +468,7 @@ to call-CID
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
 
-    print (word dt " CID-ID=" EventID ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", CID Hours=" event-resource-req-hours ", CID Officers=" event-resource-req-officers )
+    print (word EventID " CID-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", CID Hours=" event-resource-req-hours ", CID Officers=" event-resource-req-officers )
   ]
 end
 
@@ -607,7 +608,7 @@ to shift-drop-events  [ shift ]
     if count current-resource = 0
     [
       ;if not pause the event and set its status back to 1
-      ;set event-status 1
+      set event-status 1
       set event-paused true
       if VERBOSE [print (word eventID " - PAUSED due to lack of staff - further " event-resource-counter " person hours required to complete this event")]
     ]
@@ -627,17 +628,13 @@ to check-event-status
 
   ;alternative - check if no more resource hours are required
   ifelse event-resource-counter <= 0
-  ;check if the secdeuled event end date/time is now
-  ;ifelse time:is-equal event-response-end-dt dt
   [
     ; if it is this cycle - end the event, record that, relinquish resource(s), destroy the event agent
     ask current-resource [ relinquish ]
     ;count completion
     set count-completed-events count-completed-events + 1
 
-    if VERBOSE [print (word EventID " - EVENT COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
-
-    ;destroy event object
+    if VERBOSE [print (word EventID " - COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
 
     ;if the job is complete write its details to the event output file
     if event-file-out [write-completed-event-out]
@@ -651,15 +648,12 @@ to check-event-status
 
     let total sum [1 / workload] of current-resource
 
-    show eventID
-    ask current-resource
-    [
-      show (word self " contributing " (1 / workload) " p/h")
-    ]
+    type (word eventID " ")
+    ask current-resource [ type (word self " contributing " (1 / workload) " p/h") ]
 
-    set event-resource-counter (event-resource-counter - sum [1 / workload] of current-resource )
+    set event-resource-counter (event-resource-counter - (sum [1 / workload] of current-resource) )
 
-    show (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " resources allocated - " event-resource-counter " resource hours remaining")
+    print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" total " now " event-resource-counter " resource hours remaining")
   ]
 
 
@@ -1343,7 +1337,7 @@ GRAPHICS-WINDOW
 190
 65
 433
-567
+215
 -1
 -1
 23.5
@@ -1359,7 +1353,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-20
+5
 0
 0
 1
@@ -1859,7 +1853,7 @@ shift-1-response
 shift-1-response
 0
 300
-50.0
+15.0
 5
 1
 NIL
@@ -1874,7 +1868,7 @@ shift-2-response
 shift-2-response
 0
 300
-50.0
+15.0
 5
 1
 NIL
@@ -1889,7 +1883,7 @@ shift-3-response
 shift-3-response
 0
 300
-45.0
+15.0
 5
 1
 NIL
@@ -1904,7 +1898,7 @@ shift-1-CID
 shift-1-CID
 0
 100
-30.0
+5.0
 5
 1
 NIL
@@ -1919,7 +1913,7 @@ shift-2-CID
 shift-2-CID
 0
 100
-30.0
+5.0
 5
 1
 NIL
