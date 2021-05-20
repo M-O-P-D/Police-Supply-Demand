@@ -1,3 +1,7 @@
+;;FIX REQUIRED - RIGHT NOW DOUBLE CREWS WORK TWICE AS FAST (as the resource requirements don't change based on crewing) - BUT WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSEFERED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
+;IF 20 CID EVENTS IN SHIFT 1 should they all be distributed amongst the currently active CID officers - or should some from another shift be allocated jobs to start when their shift starts?
+
+
 extensions [csv table time pathdir py]
 
 globals
@@ -53,7 +57,7 @@ resources-own
 
   ;towards paralell processing of jobs by single agents - i.e. an officer can be responding to 2 incidents at the same time - this is beacuse much of the demand will be associated with investigations.
   ; should this functionality only apply to CID???? Speak to Lee
-  workload ; count the number of ongoing jobs an officer is dealing with currently
+  workload ; count the number of ongoing jobs an officer is dealing with currently - only used for CID
   max-resource-capacity ; expressed as float (0-1) represneting a % so that jobs can be split accross an individual - allows user to set that all officers spend x% of time doing something else
   current-resource-capacity ; expressed as float (0-1) represneting a % - current % taken up, based on max-resource-capcity. So if max-resource-capacity = 0.8 and working on 2 jobs, each gets 0.4 which equates to 24 min per hour.
 
@@ -265,35 +269,30 @@ to go-step
   ;read in current hour's events
   read-events-from-crims
 
-  ;assign resources - right now this is written events look for resources where in reality resources should look for events
+  ;TASKING AND CO-ORDINATING with RUDIMENTARY TRIAGE
+  ;Three types of response: (1) RESPONSE OFFICERS; (2) CID OFFICERS; (3) NON-PHYSICAL RESPONSE (i.e. resolved over phone or virtually)
+  ;Order priority 1, 2, 3, 4 (no response)
+  ;Within each priority - first ongoing paused incidents > new incidents > understaffed incidents.
+  ;Priority 1 incidents (with severity over 1000) are initially allocated
+  ;RESPONSE and CID allocated seperatley - currently priority 1 events responded to initially by RESPONSE then CID, priority 2 & 3 RESPONSE officers, priority 4 events without a suspect are resolved without response, with a suspect as priority 3
+  ;event-status - status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
 
-  ;Rudimentary triage - with RESPONSE and CID POOLS - currently priority 1 events responded to by CID, priority 2 & 3 Response officers, priority 4 events without a suspect are resolved without response, with a suspect as priority 3
-  ;event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
-
-  ;first resolve priority 4 incidents without physical resposne
-  ask events with [event-priority = 4 and event-status = 1 ] [ resolve-without-response ]
 
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;RESPONSE OFFICER ALLOCATIONS
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  ;PRIORITY 1
-  ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ;pickup priority 1 RESPONSE ongoing jobs that are paused first (after they lost all resources at change of shift) - THIS CURRENTLY SHOULDN'T EVER HAPPEN AS INITIAL RESPONSE FOR PRIORITY 1 INCIDENTS IS ONLY EVER 1 HOUR
-  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response ]
-  ;then jobs that have no one
-  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
-  ;then jobs that are ongoing but under staffed - THIS SHOULD ALSO NEVER HAPPEN AS INITIAL RESPONSE IS ONLY EVER 1 HOUR
-  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
+  ;PRIORITY 1 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response ] ;pickup priority 1 RESPONSE ongoing jobs that are paused first (after they lost all resources at change of shift) - THIS CURRENTLY SHOULDN'T EVER HAPPEN AS INITIAL RESPONSE FOR PRIORITY 1 INCIDENTS IS ONLY EVER 1 HOUR - SO CAN'T SPAN SHIFTS
+  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]   ;then jobs that have no one
+  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]   ;then jobs that are ongoing but under staffed - THIS SHOULD ALSO NEVER HAPPEN AS INITIAL RESPONSE IS ONLY EVER 1 HOUR
 
-  ;PRIORITY 2
-  ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  ;PRIORITY 2 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response]
   ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
   ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
 
-  ;PRIORITY 3
-  ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  ;PRIORITY 3 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response]
   ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
   ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
@@ -301,12 +300,15 @@ to go-step
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;CID ALLOCATION
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ;Pickup CID ongoing jobs that are paused first (after they lost all resources at change of shift)
-  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = true] [rejoin-job-CID ]
-  ;then jobs that have no one
-  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = false] [get-resources-CID-parallel ]
-  ;then jobs that are ongoing but under staffed
-  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-CID ]
+  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = true] [rejoin-job-CID ]   ;Pickup CID ongoing jobs that are paused first (after they lost all resources at change of shift)
+  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = false] [get-resources-CID-parallel ]   ;then jobs that have no one
+  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource with [resource-status = 2]) < event-resource-req-officers] [rejoin-job-CID] ;then jobs that are ongoing but under staffed - count of current-resource has to look who is active as off duty officers are still included (allowing CID officers to keep track of current cases)
+
+  ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  ;NO RESPONSE - PRIORITY 4
+  ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  ask events with [event-priority = 4 and event-status = 1 ] [ resolve-without-response ]   ;first resolve priority 4 incidents without physical resposne
+
 
 
   ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
@@ -317,11 +319,8 @@ to go-step
   ask events with [event-status = 2 and event-resource-type = 1] [ check-event-status ] ; RESPONSE EVENTS
   ask events with [event-status = 2 and event-resource-type = 2] [ check-event-status ] ; CID EVENTS
 
-
   ;tick by one hour
   increment-time
-
-  ;repeat
 
 end
 
@@ -331,28 +330,6 @@ to increment-time
   tick
   set dt time:plus dt 1 "hours"
 end
-
-to rejoin-job-CID
-
-  print EventID
-  ask current-resource [print self]
-
-  ask current-resource
-  [
-    if resource-status = 1
-    [
-      show (word " back online " [EventID] of current-event)
-      ask current-event [ set event-status 2 set event-paused false ]
-      set resource-status 2
-    ]
-
-  ]
-  ;set event-status 2
-  ;set event-paused false
-
-end
-
-
 
 
 
@@ -425,7 +402,7 @@ to generate-event-requirements
     ;get one hour of response officer(s) time for immediate response to priority1 events then handover to CID to complete job
     set event-resource-req-hours 1
     ifelse Shift-3 ;if shift 3 double crew, otherwise single crew
-    [set event-resource-req-officers 2]
+    [set event-resource-req-officers 2] ;FIX REQUIRED - RIGHT NOW DOUBLE CREWS WORK TWICE AS FAST (as the resource requirements don't change based on crewing) - BUT WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSEFERED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
     [set event-resource-req-officers 1]
     set event-resource-req-total   (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
@@ -442,7 +419,7 @@ to generate-event-requirements
     ;calculate hours required based on severity and presence/absence of suspect
     set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1
     ifelse Shift-3 ;if shift 3 double crew, otherwise single crew
-    [set event-resource-req-officers 2]
+    [set event-resource-req-officers 2] ;FIX REQUIRED - RIGHT NOW DOUBLE CREWS WORK TWICE AS FAST (as the resource requirements don't change based on crewing) - BUT WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSEFERED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
     [set event-resource-req-officers 1]
     ;caluculate total person hours
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
@@ -495,45 +472,15 @@ end
 
 
 
-;; Function that calculates number of officers a case will need based on amount of hours required.
-;to-report convert-severity-to-resource-amount  [ resource-time ]
-;  ;derive amount of staff required from amount of time required - if more than 8 hours divide up into additional officers
-;  let mean-amount ceiling (resource-time / 8)
-;  ;in this 'stupid' case just apply a random poisson to the mean amount to get the actual amount to return - and make sure it's a positive number with ABS and at least 1 - so that all events require a resource - HACK
-;  let amount 1 + (floor random-poisson mean-amount)
-;  if amount = 0 [ set amount 1 ] ;minimum of 1
-;  ;show (word resource-time " Hours needed - mean-amount=" mean-amount " -- Actual=" amount)
-;  report amount
-;end
-;
-
-;
-;; Function that calculates number of response officers a case will need based on curent shift - day time - single officer, overnight - double crewing
-;to-report calculate-response-crewing
-;
-;  ifelse Shift-3
-;  [ print "Safe crewing job" report 2 ]
-;  [ print "Single crewing job" report 1 ]
-;
-;end
-;
-;
-
-
-
-
-
-
-
 
 
 ; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect (NOT USED), and a weight which allows manipulation of how much resource is allocated to particular offences (NOT USED)
 to-report convert-severity-to-resource-time [ severity suspect weight ]
-  ;double severity if there's a suspect and divide by 200
+  ;double severity if there's a suspect and divide by 100
   let s 1
   if suspect [set s 2]
   ; sample lognormal
-  let mean-log-time ln(severity * s / 200)
+  let mean-log-time ln(severity * s / 100)
   let stdev-log-time 0.2
 
   ; sample time and round up to nearest whole hour
@@ -571,9 +518,12 @@ to-report convert-severity-to-event-priority [ severity ]
 end
 
 
+
+
+
 to roster-on [ shift ]
 
-  ;as a shift changes roster on new staff - assumes that each shift has 1/3 of resources active - although there is overlap between shifts
+  ;as a shift changes roster on new staff - shift sizes now specified by user - note overlap between shifts
 
   ;if VERBOSE [ print (word "Shift " shift " - Rostering on ") ]
   if shift = 1 [ ask resources with [resource-status = 0 and working-shift = 1] [set resource-status 1 ]]
@@ -585,43 +535,46 @@ end
 
 
 
-;procedure that takes all officers currently working off shift and places all ongoing jobs back onto the pile of current jobs to be icked up by the next officers
+;procedure that takes all officers currently working off shift and places all ongoing jobs back onto the pile of current jobs to be picked up by the next officers
 ;could implement overtime here such that officers worked longer, or finished their current job.
 to roster-off [ shift ]
 
-  ;if VERBOSE [ print (word "Shift " shift " - Rostering off") ]  ;" ends - currently there are " count resources with [ working-shift = shift] " working and " count resources with [resource-status = 1 and working-shift = shift] " officers not on a job to be easily rostered off")
+  ;ROSTER OFF RESPONSE COPS - THEY FORGET EVERYTHING
+  ask resources with [resource-type = 1 and working-shift = shift]
+  [
+    set resource-status 0
+    set current-event nobody
+    set current-event-type ""
+    set current-event-class ""
+    set workload 0
+  ]
+
   shift-drop-events-RESPONSE shift
+
+  ;ROSTER OFF CID COPS - THEY REMEMBER CURRENT CASE AND RETURN TO IT
+  ask resources with [resource-type = 2 and working-shift = shift]
+  [
+    set resource-status 0
+  ]
+
   shift-drop-events-CID shift
-  ask resources with [resource-type = 1 and working-shift = shift] [end-shift-RESPONSE]
-  ask resources with [resource-type = 2 and working-shift = shift] [end-shift-CID]
 
 end
 
 
 
-to end-shift-RESPONSE
-  set resource-status 0
-  set current-event nobody
-  set current-event-type ""
-  set current-event-class ""
-end
-
-;CID maintain their current jobs from shift to shift
-to end-shift-CID
-  set resource-status 0
-end
-
-
-
+;These two methods clean up events that will be affected by the availability of officers given a shift change.
+; RESPONSE officer jobs are simply transfered from officers in the closing shift to new officers in the starting shift - thus ensuring continuity of service
+; - note there is a special case whereby multiple officers have been assigned to a job from multiple shifts and this leaves a job ongoing but understaffed at shift change - this is picked up in tasking and coordinating
+; CID officers are allotted to a cases that occur during their active shift, when they leave work if an event has no active resource left it is paused until they return to work to pick it up
+; - this allows us to model the fact that CID officers will wrk a case until the end rather than just hand it between officers
 
 to shift-drop-events-RESPONSE  [ shift ]
-  ; All ongoing events can be transferred
+  ;look at all omngoing events
   ask events with [ event-status = 2 and event-resource-type = 1]
   [
-    ;drop all units whose shift has just ended from those events
-    if VERBOSE [print (word EventID " - HAND-OVER @ shift change - " count current-resource " staff prior to shift change")]
+    ; remove any officers that are about to roster off from the current resource
     set current-resource current-resource with [working-shift != shift]
-    if VERBOSE [print (word EventID " - staff remaining in active shift - " count current-resource)]
     ;check if that leaves any resource left
     if count current-resource = 0
     [
@@ -634,22 +587,30 @@ to shift-drop-events-RESPONSE  [ shift ]
 end
 
 to shift-drop-events-CID  [ shift ]
-  ; All ongoing events can be transferred
+
+  let next-shift shift + 1
+  if next-shift = 4 [set next-shift 1]
+
+  ;look at all omngoing events
   ask events with [ event-status = 2 and event-resource-type = 2]
   [
-    ;drop all units whose shift has just ended from those events
-    ;if VERBOSE [print (word EventID " - HAND-OVER @ shift change - " count current-resource " staff prior to shift change")]
-    ;set current-resource current-resource with [working-shift != shift]
-    ;if VERBOSE [print (word EventID " - staff remaining in active shift - " count current-resource)]
-    ;check if that leaves any resource left
-
-      ;if not pause the event and set its status back to 1
+    ;count how many staff will be left working on this event after specified shift ends
+    let available-resource count current-resource with [working-shift = next-shift]
+    print (word "available-resource count = " available-resource)
+    ; if it's 0 pause the event and wait for assigned officer to return to work (note that above - we dissasociate the event with the response officer as it will be picked up by another officer in the next shift, here we want CID officers to work on the same cases from start to finish when they are in work
+    if available-resource = 0
+    [
       set event-status 1
       set event-paused true
-      if VERBOSE [print (word eventID " - CID PAUSED - further " event-resource-counter " person hours required to complete this event")]
-
+      if VERBOSE [print (word eventID " - CID PAUSED - waiting for " [self] of current-resource " to return to work - " event-resource-counter " additional person hours required to complete this event")]
+    ]
   ]
 end
+
+
+
+
+
 
 
 
@@ -680,12 +641,12 @@ to check-event-status
     ;otherwise count the time spent thus far
     ;set event-resource-counter (event-resource-counter - count current-resource)
 
-    let total sum [1 / workload] of current-resource
+    let total sum [1 / workload] of current-resource with [resource-status = 2]
 
     type (word eventID " ")
-    ask current-resource [ type (word self " contributing " (1 / workload) " p/h") ]
+    ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
 
-    set event-resource-counter (event-resource-counter - (sum [1 / workload] of current-resource) )
+    set event-resource-counter (event-resource-counter - total)
 
     print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" total " now " event-resource-counter " resource hours remaining")
   ]
@@ -706,49 +667,6 @@ end
 
 
 
-;write out info on a completed event
-to write-completed-event-out
-
-      file-open event-summary-file
-      file-print (word
-        eventID ","
-        count current-resource ","
-        event-status ",\""
-        event-type "\",\""
-        event-class "\","
-        event-MSOA ","
-        (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
-        (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
-        (time:show dt "dd-MM-yyyy HH:mm") ","
-        event-resource-counter ","
-        event-resource-req-hours ","
-        event-resource-req-officers ","
-        event-resource-req-total
-      )
-
-end
-
-;write out info on an event completed without response
-to write-completed-without-response
-  file-open event-summary-file
-  file-print (word
-        eventID ","
-        "virtual-response,"
-        event-status ",\""
-        event-type "\",\""
-        event-class "\","
-        event-MSOA ","
-        (time:show dt "dd-MM-yyyy HH:mm") ","
-        (time:show dt "dd-MM-yyyy HH:mm")  ","
-        (time:show dt "dd-MM-yyyy HH:mm") ","
-        "0,"
-        "virtual,"
-        "0,"
-        "0,"
-        "0"
-    )
-
-end
 
 
 
@@ -757,46 +675,13 @@ to relinquish
 
   set workload workload - 1
   set events-completed events-completed + 1
-  if workload = 0 [set resource-status 1]
+  if workload = 0 [ if resource-status = 2 [set resource-status 1]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
+                                                                    ;- the check on resource status is for the edge case whereby a job is split between officers at multiple shifts
+                                                                    ;and one officer completes the job will the other is rostered off, in this case we should leave resource-status at 0
   set current-event-type ""
   set current-event-class ""
 
 end
-
-
-
-
-;; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
-;to get-resources-CID
-;
-;  ;check if the required number of CID resources are available
-;  if count resources with [resource-status = 1 and resource-type = 2] >= (event-resource-req-officers)
-;  [
-;    if VERBOSE [print (word EventID " - CID OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
-;    ;link resource to event
-;    set current-resource n-of event-resource-req-officers resources with [resource-status = 1 and resource-type = 2]
-;
-;    ;record start and end datetime of response
-;    if event-paused = false [set event-response-start-dt dt]
-;    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
-;    set event-status 2 ; mark the event as ongoing
-;
-;    ask current-resource
-;    [
-;      set current-event myself
-;      set current-event-type [event-type] of current-event
-;      set current-event-class [event-class] of current-event
-;      set resource-status 2
-;    ]
-;    set event-paused false
-;  ]
-;
-;
-;
-;end
-
-
-
 
 
 
@@ -858,10 +743,23 @@ end
 
 
 
+;method to check for CID Officers assigned to a job but currently offshift and reallocate them to their current job when they roster back on
+to rejoin-job-CID
+  type (word EventID " waiting for ")
+  ask current-resource with [resource-status != 2] [type (word self ",")]
+  print ""
 
-
-
-
+  ask current-resource
+  [
+    ;if one or more of my current-resource has just been rostered on - reallocate them
+    if resource-status = 1
+    [
+      print (word self " returning to " [EventID] of current-event)
+      ask current-event [ set event-status 2 set event-paused false ]
+      set resource-status 2
+    ]
+  ]
+end
 
 
 
@@ -909,40 +807,6 @@ end
 ; these functions just catch the special case described above.
 
 
-
-
-; event procedure to assess if sufficient CID resources are available to replenish an ongoing but understaffed current event (due to shift change) and if so allocate them to it
-to replenish-resources-CID
-
-  ;check if the required number of resources are available to replenish job
-  if count resources with [resource-status = 1 and resource-type = 2] >= (event-resource-req-officers - (count current-resource))
-  [
-    user-message "Replenishing CID - test this to accomodate for parallel allocation"
-    if VERBOSE [print (word EventID " - Adding CID officers to " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
-
-    ;link resource to event
-    ;print (word count current-resource " - pre replenish - paused - " event-paused )
-    set current-resource (turtle-set current-resource n-of (event-resource-req-officers - (count current-resource)) resources with [resource-status = 1 and resource-type = 2])
-    ;print (word count current-resource " - post replenish")
-
-    ;set event-response-end-dt time:plus dt (event-resource-req-time) "hours"
-    set event-status 2 ; mark the event as ongoing
-
-    ask current-resource
-    [
-      ;link event to resource
-      set current-event myself
-      set current-event-type [event-type] of current-event
-      set current-event-class [event-class] of current-event
-      set resource-status 2
-    ]
-
-  ]
-
-end
-
-
-
 ; event procedure to assess if sufficient RESPONSE resources are available to replenish an ongoing but understaffed current event (due to shift change)  and if so allocate them to it
 to replenish-resources-response
 
@@ -966,6 +830,7 @@ to replenish-resources-response
       set current-event-type [event-type] of current-event
       set current-event-class [event-class] of current-event
       set resource-status 2
+      set workload 1
     ]
 
   ]
@@ -1273,6 +1138,53 @@ to update-all-plots
 end
 
 
+
+;write out info on a completed event
+to write-completed-event-out
+
+      file-open event-summary-file
+      file-print (word
+        eventID ","
+        count current-resource ","
+        event-status ",\""
+        event-type "\",\""
+        event-class "\","
+        event-MSOA ","
+        (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
+        (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
+        (time:show dt "dd-MM-yyyy HH:mm") ","
+        event-resource-counter ","
+        event-resource-req-hours ","
+        event-resource-req-officers ","
+        event-resource-req-total
+      )
+
+end
+
+;write out info on an event completed without response
+to write-completed-without-response
+  file-open event-summary-file
+  file-print (word
+        eventID ","
+        "virtual-response,"
+        event-status ",\""
+        event-type "\",\""
+        event-class "\","
+        event-MSOA ","
+        (time:show dt "dd-MM-yyyy HH:mm") ","
+        (time:show dt "dd-MM-yyyy HH:mm")  ","
+        (time:show dt "dd-MM-yyyy HH:mm") ","
+        "0,"
+        "virtual,"
+        "0,"
+        "0,"
+        "0"
+    )
+
+end
+
+
+
 to-report equal-ignore-case? [ str1 str2 ]
 
   if (length str1 != length str2) [ report false ]
@@ -1368,13 +1280,13 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-190
-65
-433
-215
+192
+263
+579
+1177
 -1
 -1
-23.5
+30.1
 1
 10
 1
@@ -1387,7 +1299,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-5
+23
 0
 0
 1
@@ -1429,10 +1341,10 @@ NIL
 1
 
 MONITOR
-550
-795
-730
-840
+695
+803
+875
+848
 Response Officers Available
 count resources with [resource-status = 1 and resource-type = 1]
 17
@@ -1440,10 +1352,10 @@ count resources with [resource-status = 1 and resource-type = 1]
 11
 
 MONITOR
-550
-905
-690
-950
+695
+913
+835
+958
 Events - Awaiting
 count events with [event-status = 1]
 17
@@ -1451,10 +1363,10 @@ count events with [event-status = 1]
 11
 
 MONITOR
-695
-905
-835
-950
+840
+913
+980
+958
 Events - Ongoing
 count events with [event-status = 2]
 17
@@ -1462,10 +1374,10 @@ count events with [event-status = 2]
 11
 
 MONITOR
-840
-905
-975
-950
+985
+913
+1120
+958
 Events - Completed
 count-completed-events
 17
@@ -1473,10 +1385,10 @@ count-completed-events
 11
 
 PLOT
-455
-140
-1640
-260
+600
+148
+1785
+268
 % Resource Usage
 time
 %
@@ -1493,10 +1405,10 @@ PENS
 "RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
-455
-267
-1200
-526
+600
+275
+1345
+534
 active-events
 time
 count of events
@@ -1541,10 +1453,10 @@ NIL
 1
 
 TEXTBOX
-195
-645
-320
-722
+199
+68
+324
+145
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1553,7 +1465,7 @@ Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 MONITOR
 190
 15
-315
+330
 60
 Current DateTime
 time:show dt \"dd-MM-yyyy HH:mm\"
@@ -1562,10 +1474,10 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1205
-267
-1639
-787
+1350
+275
+1784
+795
 scatter
 count events
 count resource
@@ -1593,10 +1505,10 @@ PENS
 "Violence and sexual offences" 1.0 2 -5825686 true "" ""
 
 PLOT
-456
-531
-1201
-788
+602
+539
+1347
+796
 resources
 time
 resources
@@ -1635,10 +1547,10 @@ VERBOSE
 -1000
 
 MONITOR
-740
-795
-940
-840
+885
+803
+1085
+848
 Response Officers Responding
 count resources with [resource-status = 2 and resource-type = 1]
 17
@@ -1657,10 +1569,10 @@ length event-data
 11
 
 PLOT
-990
-800
-1640
-920
+1135
+808
+1785
+928
 Events Waiting
 NIL
 NIL
@@ -1688,10 +1600,10 @@ event-file-out
 -1000
 
 MONITOR
-550
-955
-690
-1000
+695
+963
+835
+1008
 priority 1 waiting
 count events with [event-status = 1 and event-priority = 1]
 17
@@ -1699,10 +1611,10 @@ count events with [event-status = 1 and event-priority = 1]
 11
 
 MONITOR
-695
-955
-835
-1000
+840
+963
+980
+1008
 priority 2 waiting
 count events with [event-status = 1 and event-priority = 2]
 17
@@ -1710,10 +1622,10 @@ count events with [event-status = 1 and event-priority = 2]
 11
 
 MONITOR
-840
-955
-975
-1000
+985
+963
+1120
+1008
 priority 3 waiting
 count events with [event-status = 1 and event-priority = 3]
 17
@@ -1721,10 +1633,10 @@ count events with [event-status = 1 and event-priority = 3]
 11
 
 PLOT
-455
-10
-1640
-135
+600
+18
+1785
+143
 Crime
 NIL
 NIL
@@ -1771,9 +1683,9 @@ NIL
 HORIZONTAL
 
 MONITOR
-320
+338
 15
-440
+483
 60
 Shift1-Shift2-Shift3
 (word Shift-1 \"-\" Shift-2 \"-\" Shift-3)
@@ -1782,10 +1694,10 @@ Shift1-Shift2-Shift3
 11
 
 PLOT
-990
-925
-1640
-1045
+1135
+933
+1785
+1053
 paused events
 NIL
 NIL
@@ -1818,7 +1730,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-43
+9
 
 INPUTBOX
 15
@@ -1879,100 +1791,100 @@ BurnInMonths
 Number
 
 SLIDER
-195
-730
-335
-763
+193
+148
+333
+181
 shift-1-response
 shift-1-response
 0
 300
-15.0
+50.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-195
-765
-335
-798
+193
+183
+333
+216
 shift-2-response
 shift-2-response
 0
 300
-15.0
+50.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-195
-800
-335
-833
+193
+218
+333
+251
 shift-3-response
 shift-3-response
 0
 300
-15.0
+50.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-340
-730
-445
-763
+338
+148
+443
+181
 shift-1-CID
 shift-1-CID
 0
 100
-5.0
+30.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-340
-765
-445
-798
+338
+183
+443
+216
 shift-2-CID
 shift-2-CID
 0
 100
-5.0
+30.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-340
-800
-445
-833
+338
+218
+443
+251
 shift-3-CID
 shift-3-CID
 0
 100
-5.0
+30.0
 5
 1
 NIL
 HORIZONTAL
 
 MONITOR
-335
-675
-440
-720
+339
+98
+444
+143
 Total Resources
 shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-CID + shift-3-CID
 17
@@ -1980,10 +1892,10 @@ shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-C
 11
 
 BUTTON
-200
-865
-305
-898
+339
+63
+444
+96
 visualise-shifts
 ask resources with [working-shift = 1] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 1]\n]\nask resources with [working-shift = 2] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 2]\n]\n\nask resources with [working-shift = 3]\n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 3]\n]
 NIL
@@ -1997,40 +1909,40 @@ NIL
 1
 
 TEXTBOX
-470
-800
-545
-818
+607
+810
+682
+828
 Resources
 13
 0.0
 1
 
 TEXTBOX
-470
-905
-525
-923
+630
+924
+685
+942
 Events
 13
 0.0
 1
 
 TEXTBOX
-470
-955
-530
-973
+623
+969
+683
+987
 Backlog
 13
 0.0
 1
 
 MONITOR
-200
-905
-455
-950
+697
+1074
+952
+1119
 Response - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = 1]
 3
@@ -2038,10 +1950,10 @@ mean [events-completed] of resources with [resource-type = 1]
 11
 
 MONITOR
-200
-955
-455
-1000
+697
+1124
+952
+1169
 CID - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = 2]
 3
@@ -2049,10 +1961,10 @@ mean [events-completed] of resources with [resource-type = 2]
 11
 
 MONITOR
-550
-845
-730
-890
+695
+853
+875
+898
 CID Officers Available
 count resources with [resource-status = 1 and resource-type = 2]
 17
@@ -2060,10 +1972,10 @@ count resources with [resource-status = 1 and resource-type = 2]
 11
 
 MONITOR
-740
-845
-940
-890
+885
+853
+1085
+898
 CID Officers Responding
 count resources with [resource-status = 2 and resource-type = 2]
 17
@@ -2071,10 +1983,10 @@ count resources with [resource-status = 2 and resource-type = 2]
 11
 
 MONITOR
-275
-1015
-415
-1060
+983
+1067
+1123
+1112
 Average CID Workload
 mean [workload] of resources with [(resource-status = 1 or resource-status = 2) and resource-type = 2]
 3
@@ -2082,10 +1994,10 @@ mean [workload] of resources with [(resource-status = 1 or resource-status = 2) 
 11
 
 MONITOR
-425
-1015
-552
-1060
+983
+1117
+1123
+1162
 Max CID Workload 
 max [workload] of resources with [(resource-status = 1 or resource-status = 2) and resource-type = 2]
 17
@@ -2093,26 +2005,33 @@ max [workload] of resources with [(resource-status = 1 or resource-status = 2) a
 11
 
 MONITOR
-425
-1065
-542
-1110
+983
+1168
+1123
+1213
 Min CID Workload
 min [workload] of resources with [(resource-status = 1 or resource-status = 2) and resource-type = 2]
 17
 1
 11
 
-MONITOR
-620
-1050
-892
-1095
+PLOT
+1134
+1062
+1783
+1212
+CID Mean Workload
 NIL
-(mean [count current-resource] of events)
-17
-1
-11
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [workload] of resources with [resource-type = 2]"
 
 @#$#@#$#@
 ## WHAT IS IT?
