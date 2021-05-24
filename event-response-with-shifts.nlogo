@@ -18,6 +18,9 @@ globals
 
   count-crime-hour  ;a count of crimes occurring in the current hour
 
+  CID-officers
+  RESPONSE-officers
+
   ;file globals
   event-summary-file
   active-event-trends-file
@@ -189,8 +192,10 @@ to setup
   ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type  2 ]
   ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type  2 ]
 
-  ; TODO think about burn-in, start logging only once burn-in period finished?
+  set CID-officers resources with [ resource-type = 2 ]
+  set RESPONSE-officers resources with [ resource-type = 1 ]
 
+  ; TODO think about burn-in, start logging only once burn-in period finished?
   ;if enabled start logging
   if event-file-out [start-file-out]
 
@@ -512,7 +517,7 @@ end
 to roster-off [ shift ]
 
   ;ROSTER OFF RESPONSE COPS - THEY FORGET EVERYTHING
-  ask resources with [resource-type = 1 and working-shift = shift]
+  ask RESPONSE-officers with [ working-shift = shift]
   [
     set resource-status 0
     set current-event nobody
@@ -524,7 +529,7 @@ to roster-off [ shift ]
   shift-drop-events-RESPONSE shift
 
   ;ROSTER OFF CID COPS - THEY REMEMBER CURRENT CASE AND RETURN TO IT
-  ask resources with [resource-type = 2 and working-shift = shift]
+  ask CID-officers with [working-shift = shift]
   [
     set resource-status 0
   ]
@@ -643,11 +648,11 @@ end
 ; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
 to get-resources-CID-parallel
   ;check if the required number of CID resources are available that are COMPLETELY FREE
-  ifelse count resources with [resource-status = 1 and resource-type = 2] >= (event-resource-req-officers)
+  ifelse count CID-officers with [resource-status = 1] >= (event-resource-req-officers)
   [
     if VERBOSE [print (word EventID " - CID OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
     ;link resource to event
-    set current-resource n-of event-resource-req-officers resources with [resource-status = 1 and resource-type = 2]
+    set current-resource n-of event-resource-req-officers CID-officers with [resource-status = 1]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -670,7 +675,7 @@ to get-resources-CID-parallel
 
     ;user-message "Not enough CID officers - job split needed"
     ;find the currently on shift but responding officers with the lowest current workload and assign them to the job
-    set current-resource min-n-of event-resource-req-officers resources with [resource-status = 2 and resource-type = 2 ] [workload]
+    set current-resource min-n-of event-resource-req-officers CID-officers with [resource-status = 2] [workload]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -716,11 +721,11 @@ end
 ; event procedure to assess if sufficient RESPONSE resources are available to respond to event and if so allocate them to it
 to get-resources-response
   ;check if the required number of CID resources are currently available if not event remains unalocated
-  if count resources with [resource-status = 1 and resource-type = 1] >= (event-resource-req-officers)
+  if count RESPONSE-officers with [resource-status = 1] >= (event-resource-req-officers)
   [
     if VERBOSE [print (word EventID " - RESPONSE OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total  " REMAINING = " event-resource-counter )]
     ;link responce resource to event
-    set current-resource n-of event-resource-req-officers resources with [resource-status = 1 and resource-type = 1]
+    set current-resource n-of event-resource-req-officers RESPONSE-officers with [resource-status = 1]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -754,12 +759,12 @@ end
 ; event procedure to assess if sufficient RESPONSE resources are available to replenish an ongoing but understaffed current event (due to shift change)  and if so allocate them to it
 to replenish-resources-response
   ;check if the required number of resources are available to replenish job
-  if count resources with [resource-status = 1 and resource-type = 1] >= (event-resource-req-officers - (count current-resource))
+  if count RESPONSE-officers with [resource-status = 1 ] >= (event-resource-req-officers - (count current-resource))
   [
     if VERBOSE [print (word EventID " - Adding RESPONSE officers to " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
 
     ;link new resources to event with the old resources
-    set current-resource (turtle-set (current-resource) n-of (event-resource-req-officers - (count current-resource)) resources with [resource-status = 1 and resource-type = 1])
+    set current-resource (turtle-set (current-resource) n-of (event-resource-req-officers - (count current-resource)) RESPONSE-officers with [resource-status = 1])
 
     ;relink new resource group back to event
     ask current-resource
@@ -811,7 +816,7 @@ end
 to update-all-plots
 
   ; file-open resource-usage-trends-file
-  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
+  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count CID-officers / count CID-officers with [resource-status = 1] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
 
   set-current-plot "Crime"
   set-current-plot-pen "total"
@@ -821,13 +826,13 @@ to update-all-plots
   set-current-plot-pen "TOTAL"
   plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
 
-  if count resources with [resource-status = 1 and resource-type = 2] > 0
+  if count CID-officers with [resource-status = 1] > 0
   [
     set-current-plot-pen "CID"
-    plot (count resources with [resource-type = 2 and resource-status = 2] / count resources with [resource-type = 2 and (resource-status = 2 or resource-status = 1)] ) * 100
+    plot (count CID-officers with [resource-status = 2] / count CID-officers with [resource-status = 2 or resource-status = 1] ) * 100
   ]
   set-current-plot-pen "RESPONSE"
-  plot (count resources with [resource-type = 1 and resource-status = 2] / count resources with [resource-type = 1 and (resource-status = 2 or resource-status = 1)] ) * 100
+  plot (count RESPONSE-officers with [resource-status = 2] / count RESPONSE-officers with [resource-status = 2 or resource-status = 1] ) * 100
 
   set-current-plot "Events Waiting"
   set-current-plot-pen "waiting-1"
