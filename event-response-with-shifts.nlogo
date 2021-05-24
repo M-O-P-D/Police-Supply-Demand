@@ -1,14 +1,13 @@
-; FIX REQUIRED - WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSEFERED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
+; FIX REQUIRED - WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSFERRED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
 ; IF 20 CID EVENTS IN SHIFT 1 should they all be distributed amongst the currently active CID officers - or should some from another shift be allocated jobs to start when their shift starts?
-; fix plotting to relfect double cunting of events etc ...
-; elminate event paused
+; fix plotting to reflect double counting of events etc ...
+; eliminate event paused
 
 extensions [csv table time pathdir py]
 
 globals
 [
   event-data ;data structure storing all demand events output from generator
-  event-reference ;data structure storing characteristics of event types - i.e. resource requirements - to be derived in first instance from ONS crime severity scores
   count-completed-events
 
   ;Globals to keep track of time
@@ -17,7 +16,7 @@ globals
   Shift-2
   Shift-3
 
-  count-crime-hour  ;a count of crimes occuring in the current hour
+  count-crime-hour  ;a count of crimes occurring in the current hour
 
   ;file globals
   event-summary-file
@@ -26,6 +25,8 @@ globals
   resource-summary-file
   resource-usage-trends-file
 
+
+  ; crims parameters
   loading-factor ; dynamic crime loading factor
 ]
 
@@ -40,27 +41,27 @@ breed [resources resource]
 resources-own
 [
   current-event ;the id of the event-agent(s) the resource-agent is responding to
+  ; TODO can these be removed (just refer to the event itself)
   current-event-type ;the type of event the resource-agent is responding to
   current-event-class ; broader crime class
 
-  ;splitresource agents into Response and CID pools
+  ;split resource agents into Response and CID pools
   ; resource-type = 1 RESPONSE
   ; resource-type = 2 C.I.D.
   resource-type
 
   ;status of resource agent
   resource-status ;represents the current state of the resource agent - coded: 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
-  resource-start-dt ; the date-time when the current job started
 
-  ;records what shift - if any - a resource is working on
+  ;records what shift a resource is working on
   working-shift
   events-completed ;measure of total number of incidents completed
 
-  ;towards paralell processing of jobs by single agents - i.e. an officer can be responding to 2 incidents at the same time - this is beacuse much of the demand will be associated with investigations.
+  ;towards parallel processing of jobs by single agents - i.e. an officer can be responding to 2 incidents at the same time - this is beacuse much of the demand will be associated with investigations.
   ; should this functionality only apply to CID???? Speak to Lee
+  ; TODO just use len(current-event)?
   workload ; count the number of ongoing jobs an officer is dealing with currently - only used for CID
-  max-resource-capacity ; expressed as float (0-1) represneting a % so that jobs can be split accross an individual - allows user to set that all officers spend x% of time doing something else
-  current-resource-capacity ; expressed as float (0-1) represneting a % - current % taken up, based on max-resource-capcity. So if max-resource-capacity = 0.8 and working on 2 jobs, each gets 0.4 which equates to 24 min per hour.
+  max-resource-capacity ; expressed as float (0-1) representing a % so that jobs can be split across an individual - allows user to set that all officers spend x% of time doing something else
 
 ]
 
@@ -69,26 +70,28 @@ resources-own
 ;DEMAND EVENT VARIABLES
 events-own
 [
+  ; event characteristics as passed by crims
   eventID ;link back to event data
-  event-resource-type ; split RESPONSE (event-resource-type = 1) and CID (event-resource-type = 2) events
-  current-resource ; the resource agent(s) (can be multiple) - if any - currently repsonding to this event
-  event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = completed
   event-type ;event type in this model - crime type - i.e. aggravated burglary
   event-class ;event broad class - i.e. burglary
   event-MSOA
   event-start-dt ;datetime event came in
-  event-response-start-dt ;datetime response to event started
-  event-response-end-dt ;when the event will be reconciled calculated once an event is assigned a resource.
-  event-resource-counter ;counts the amount of resource hours remaining before an event is finished
-  event-paused ; flags wether an event has previoiusly been acted on - this is used if events are passed between resources at shift change
+  event-severity ; ONS CSS associated with offence
+  event-suspect ; bool for presence of suspect
 
-  event-resource-req-hours ;amount of time resource required to repsond to event - drawn from event-reference
-  event-resource-req-officers ;number of resource units required to repsond to event - drawn from event-reference
+  event-resource-type ; split RESPONSE (event-resource-type = 1) and CID (event-resource-type = 2) events
+  current-resource ; the resource agent(s) (can be multiple) - if any - currently responding to this event
+  ; TODO merge event-paused into this
+  event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing
+  event-response-start-dt ;datetime response to event started
+  event-resource-counter ;counts the amount of resource hours remaining before an event is finished
+  event-paused ; flags wether an event has previously been acted on - this is used if events are passed between resources at shift change
+
+  event-resource-req-hours ;amount of time resource required to respond to event
+  event-resource-req-officers ;number of resource units required to respond to event
   event-resource-req-total
 
   event-priority ; variable that allows events to be triaged in terms of importance of response
-  event-severity ; ONS CSS associated with offence - as passed by crims
-  event-suspect ; bool for presence of suspect - as passed by crims
 
 ]
 
@@ -114,8 +117,10 @@ to setup
 
   ; if Force="TEST" canned data rather than the actual model will be used
   ; seed crims MC with replication
-  set BurnInMonths 1
-  py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " InitialLoading ", " BurnInMonths ")")
+  ; burn-in period currently hard-coded to 1 month at 100% loading
+  let initial-loading 1.0
+  let burn-in-months 1
+  py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " initial-loading ", " burn-in-months ")")
 
   ;adjust internal ABM date-time to match
   set dt time:create (word StartYear "/" StartMonth "/01 00:00")
@@ -136,8 +141,6 @@ to setup
   set active-resource-trends-file (word path model-config "active-resource-trends-file.csv")
   set resource-summary-file (word path model-config "officer-summary-file.csv")
   set resource-usage-trends-file (word path model-config "resource-usage-trends-file.csv")
-
-
 
   ;size the view window so that 1 patch equals 1 unit of resource - world is 10 resources wide - calculate height and resize
   ;let dim-resource-temp (ceiling (sqrt number-resources)) - 1
@@ -164,7 +167,6 @@ to setup
       set resource-type 1
 
       set max-resource-capacity 1
-      set current-resource-capacity 0
     ]
   ]
 
@@ -186,6 +188,8 @@ to setup
   ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type  2 ]
   ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type  2 ]
   ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type  2 ]
+
+  ; TODO think about burn-in, start logging only once burn-in period finished?
 
   ;if enabled start logging
   if event-file-out [start-file-out]
@@ -494,15 +498,9 @@ to-report convert-severity-to-event-priority [ severity ]
 end
 
 
-
-
-
 to roster-on [ shift ]
   ;as a shift changes roster on new staff - shift sizes now specified by user - note overlap between shifts
-
-  if shift = 1 [ ask resources with [resource-status = 0 and working-shift = 1] [set resource-status 1 ]]
-  if shift = 2 [ ask resources with [resource-status = 0 and working-shift = 2] [set resource-status 1 ]]
-  if shift = 3 [ ask resources with [resource-status = 0 and working-shift = 3] [set resource-status 1 ]]
+  ask resources with [resource-status = 0 and working-shift = shift] [set resource-status 1 ]
 
 end
 
@@ -544,7 +542,7 @@ end
 ; - this allows us to model the fact that CID officers will wrk a case until the end rather than just hand it between officers
 
 to shift-drop-events-RESPONSE  [ shift ]
-  ;look at all omngoing events
+  ;look at all ongoing events
   ask events with [ event-status = 2 and event-resource-type = 1]
   [
     ; remove any officers that are about to roster off from the current resource
@@ -571,7 +569,7 @@ to shift-drop-events-CID  [ shift ]
     ;count how many staff will be left working on this event after specified shift ends
     let available-resource count current-resource with [working-shift = next-shift]
     print (word "available-resource count = " available-resource)
-    ; if it's 0 pause the event and wait for assigned officer to return to work (note that above - we dissasociate the event with the response officer as it will be picked up by another officer in the next shift, here we want CID officers to work on the same cases from start to finish when they are in work
+    ; if it's 0 pause the event and wait for assigned officer to return to work (note that above - we dissociate the event with the response officer as it will be picked up by another officer in the next shift, here we want CID officers to work on the same cases from start to finish when they are in work
     if available-resource = 0
     [
       set event-status 1
@@ -580,14 +578,6 @@ to shift-drop-events-CID  [ shift ]
     ]
   ]
 end
-
-
-
-
-
-
-
-
 
 
 ; Main method to decrement requirements of ongoing events and close off events as they are completed
@@ -619,19 +609,6 @@ to check-event-status
   ]
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ; event procedure that completes priority 4 events via virtual or without physical response (threshold for priority 4 events defined in convert-severity-to-priority)
 to resolve-without-response
@@ -1236,7 +1213,7 @@ GRAPHICS-WINDOW
 192
 263
 501
-934
+1084
 -1
 -1
 30.1
@@ -1252,7 +1229,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-21
+26
 0
 0
 1
@@ -1683,7 +1660,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-9
+43
 
 INPUTBOX
 15
@@ -1706,21 +1683,6 @@ StartMonth
 1 2 3 4 5 6 7 8 9 10 11 12
 0
 
-SLIDER
-10
-95
-182
-128
-InitialLoading
-InitialLoading
-0.5
-1.5
-1.0
-0.01
-1
-NIL
-HORIZONTAL
-
 SWITCH
 10
 385
@@ -1732,17 +1694,6 @@ SetSeed
 1
 -1000
 
-INPUTBOX
-15
-315
-172
-375
-BurnInMonths
-1.0
-1
-0
-Number
-
 SLIDER
 193
 148
@@ -1752,7 +1703,7 @@ shift-1-response
 shift-1-response
 0
 300
-50.0
+55.0
 5
 1
 NIL
@@ -1767,7 +1718,7 @@ shift-2-response
 shift-2-response
 0
 300
-50.0
+75.0
 5
 1
 NIL
@@ -1797,7 +1748,7 @@ shift-1-CID
 shift-1-CID
 0
 100
-30.0
+35.0
 5
 1
 NIL
@@ -1812,7 +1763,7 @@ shift-2-CID
 shift-2-CID
 0
 100
-30.0
+45.0
 5
 1
 NIL
