@@ -10,7 +10,11 @@ globals
   count-completed-events
 
   ;Globals to keep track of time
-  dt ; current date-time
+  dt ;start date-time of current timestep
+  end-dt ;end date-time of the current timestep
+
+  timestep-length-minutes ; the timestep length in minutes - i.e. 1 tick in model time is equivalent to ...
+
   Shift-1
   Shift-2
   Shift-3
@@ -124,8 +128,10 @@ to setup
   let burn-in-months 1
   py:run (word "init_model(" replication ", '" Force "', " StartYear ", " StartMonth ", " initial-loading ", " burn-in-months ")")
 
-  ;adjust internal ABM date-time to match
+  ;adjust internal ABM date-time to match - and set default timestep to 1 hour
+  set timestep-length-minutes 60
   set dt time:create (word StartYear "/" StartMonth "/01 00:00")
+  set end-dt (time:plus dt timestep-length-minutes "minutes")
 
   set loading-factor table:from-list py:runresult "get_loading()"
 
@@ -210,7 +216,7 @@ end
 to go-step
 
   ;print the time
-  if VERBOSE [print time:show dt "dd-MM-yyyy HH:mm"]
+  if VERBOSE [print (word time:show dt "dd-MM-yyyy HH:mm" " to " time:show end-dt "dd-MM-yyyy HH:mm")]
 
   ;check what the current time is and proceed accordingly to roster shifts on and off
   check-shift
@@ -326,7 +332,8 @@ end
 ;increment internal tick clock and date time object - 1 tick = 1 hour
 to increment-time
   tick
-  set dt time:plus dt 1 "hours"
+  set dt end-dt
+  set end-dt (time:plus dt timestep-length-minutes "minutes")
 end
 
 
@@ -579,10 +586,8 @@ end
 ; Main method to decrement requirements of ongoing events and close off events as they are completed
 to check-event-status
 
-  ;First check if no more resource hours are required to complete event
-  ;otherwise count the time spent thus far
-  ;set event-resource-counter (event-resource-counter - count current-resource)
-  ; this allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event
+  ; Count up the work spent on current event this timstep - then remove it from the event-resource-counter
+  ; 1 / workload allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event - this assumes a CID with multiple cases devotes equal time to each.
   ; for CID officers workload can be > 1, for RESPONSE workload = 1 (thus, they devote all their time tocurrent event
   ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
   let work-done sum [1 / workload] of current-resource with [resource-status = 2]
@@ -591,48 +596,21 @@ to check-event-status
   ; now decrement this amount from the event-resource-counter
   set event-resource-counter (event-resource-counter - work-done)
 
-  print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")
+  if VERBOSE [print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")]
+
+  ;Now check if the event can be resolved this cycle?
   if event-resource-counter <= 0
   [
     ; if so - end the event, record that, relinquish resource(s), destroy the event agent
     ask current-resource [ relinquish ]
     set count-completed-events count-completed-events + 1
-    if VERBOSE [print (word EventID " - COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
+    if VERBOSE [print (word EventID " - COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show end-dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt end-dt "hours") " hours")]
     if event-file-out [write-completed-event-out]
     die
   ]
 
 end
 
-;; Main method to decrement requirements of ongoing events and close off events as they are completed
-;to check-event-status
-;
-;  ;First check if no more resource hours are required to complete event
-;  ifelse event-resource-counter <= 0
-;  [
-;    ; if so - end the event, record that, relinquish resource(s), destroy the event agent
-;    ask current-resource [ relinquish ]
-;    set count-completed-events count-completed-events + 1
-;    if VERBOSE [print (word EventID " - COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
-;    if event-file-out [write-completed-event-out]
-;    die
-;  ]
-;  [
-;    ;otherwise count the time spent thus far
-;    ;set event-resource-counter (event-resource-counter - count current-resource)
-;    ; this allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event
-;    ; for CID officers workload can be > 1, for RESPONSE workload = 1 (thus, they devote all their time tocurrent event
-;    ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
-;    let work-done sum [1 / workload] of current-resource with [resource-status = 2]
-;
-;    type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
-;    ; now decrement this amount from the event-resource-counter
-;    set event-resource-counter (event-resource-counter - work-done)
-;
-;    print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")
-;  ]
-;
-;end
 
 ; event procedure that completes priority 4 events via virtual or without physical response (threshold for priority 4 events defined in convert-severity-to-priority)
 to resolve-without-response
@@ -645,7 +623,6 @@ to resolve-without-response
 end
 
 
-;
 to relinquish
   ;reduce workload by 1
   set workload workload - 1
@@ -1105,7 +1082,7 @@ to write-completed-event-out
         event-MSOA ","
         (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
         (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
-        (time:show dt "dd-MM-yyyy HH:mm") ","
+        (time:show end-dt "dd-MM-yyyy HH:mm") ","
         event-resource-counter ","
         event-resource-req-hours ","
         event-resource-req-officers ","
@@ -1496,7 +1473,7 @@ SWITCH
 938
 VERBOSE
 VERBOSE
-1
+0
 1
 -1000
 
@@ -1533,9 +1510,9 @@ PENS
 
 SWITCH
 10
-460
+310
 175
-493
+343
 event-file-out
 event-file-out
 0
@@ -1612,9 +1589,9 @@ NIL
 
 SLIDER
 10
-425
+275
 175
-458
+308
 replication
 replication
 1
@@ -1667,19 +1644,19 @@ color-by-priority
 
 CHOOSER
 15
-200
+95
 175
-245
+140
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-43
+9
 
 INPUTBOX
 15
-250
+145
 80
-310
+205
 StartYear
 2021.0
 1
@@ -1688,9 +1665,9 @@ Number
 
 CHOOSER
 85
-250
+145
 177
-295
+190
 StartMonth
 StartMonth
 1 2 3 4 5 6 7 8 9 10 11 12
@@ -1698,9 +1675,9 @@ StartMonth
 
 SWITCH
 10
-385
+235
 175
-418
+268
 SetSeed
 SetSeed
 1
