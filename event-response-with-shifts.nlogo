@@ -7,16 +7,15 @@ extensions [csv table time pathdir py]
 
 globals
 [
-  event-data ;data structure storing all demand events output from generator
   count-completed-events
 
   ;Globals to keep track of time
-  dt
+  dt ; current date-time
   Shift-1
   Shift-2
   Shift-3
 
-  count-crime-hour  ;a count of crimes occurring in the current hour
+  count-crime-timestep  ;a count of crimes occurring in the current timestep
 
   CID-officers
   RESPONSE-officers
@@ -215,8 +214,8 @@ to go-step
 
   ;check what the current time is and proceed accordingly to roster shifts on and off
   check-shift
-  ;resent the hourly crime count
-  set count-crime-hour 0
+  ;reset the hourly crime count
+  set count-crime-timestep 0
   ;read in current hour's events
   read-events-from-crims
 
@@ -224,7 +223,7 @@ to go-step
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;TASKING AND CO-ORDINATING with RUDIMENTARY TRIAGE
   ;Three types of response: (1) RESPONSE OFFICERS; (2) CID OFFICERS; (3) NON-PHYSICAL RESPONSE (i.e. resolved over phone or virtually)
-  ;Order event priority 1 (RESPONSE & CID), 2 (RESPONSE), 3 (RESPONSE), 4 (with suspect > esculated to priority 3, with no suspect > virtual response)
+  ;Order event priority 1 (RESPONSE & CID), 2 (RESPONSE), 3 (RESPONSE), 4 (with suspect > escalated to priority 3, with no suspect > virtual response)
   ;Within each priority - first ongoing paused incidents > new incidents > understaffed incidents.
   ;event-status - status of demand event - coded 1 = awaiting supply, 2 = ongoing
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -335,6 +334,7 @@ end
 
 
 
+
 ; procedure to read in the events for the given time window / tick
 to read-events-from-crims
 
@@ -344,18 +344,18 @@ to read-events-from-crims
   ;0    E02004312   vehicle crime   45      Theft from vehicle                            2020-07-01 00:01:00   false       32.92067737
   ;12   E02004313   vehicle crime   48      Theft or unauthorised taking of motor vehicle 2020-07-01 00:16:00   true        128.4294318
 
-  set event-data csv:from-string pycrimes dt
+  let event-data csv:from-string pycrimes dt
+  ; remove header row
   set event-data remove-item 0 event-data
 
+  set count-crime-timestep count-crime-timestep + length event-data ; increment crime count
   while [length event-data > 0]
   [
     ; grab the first crime
     let temp item 0 event-data
-    ;print temp
     ;create an event agent
     create-events 1
     [
-      set count-crime-hour count-crime-hour + 1 ; increment crime count
       set hidden? true       ;make it invisible
       set event-resource-type 1  ;all events initially response
 
@@ -371,7 +371,7 @@ to read-events-from-crims
       set event-paused false
 
       ;get event priority based on severity
-      set event-priority convert-severity-to-event-priority event-severity
+      convert-severity-to-event-priority
       ;get requirements in terms of RESPONSE & CID hours/officers
       generate-event-requirements
 
@@ -387,6 +387,9 @@ end
 
 ; New method to identify requirements for Response and CID resources to events based on prioriy, severity, the presence of a suspect and the current shift (to accomodate safe crewing)
 to generate-event-requirements
+
+
+  ; TODO can 1/2/3 be dealt with in a single if block (+ if 1, call CID)
   ;PRIORITY 1 Events - RESPONSE & CID officers
   ;For priority 1 events we model an initial hour of RESPONSE OFFICER time (single or double crewed depending on shift) and then create a new knock on event for CID to deal with using call-CID
   if event-priority = 1
@@ -413,7 +416,7 @@ to generate-event-requirements
     ifelse Shift-3 ;if shift 3 double crew, otherwise single crew
     [set event-resource-req-officers 2]
     [set event-resource-req-officers 1]
-    ;caluculate total person hours
+    ;calculate total person hours
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
     print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
@@ -431,7 +434,6 @@ to generate-event-requirements
     print (word EventID " VirtualResponse" ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
   ]
 end
-
 
 
 ;Method called by priority 1 response events to create a knock on CID event
@@ -454,16 +456,6 @@ to call-CID
 end
 
 
-
-
-
-
-
-
-
-
-
-
 ; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect (NOT USED), and a weight which allows manipulation of how much resource is allocated to particular offences (NOT USED)
 to-report convert-severity-to-resource-time [ severity suspect weight ]
   ;double severity if there's a suspect and divide by 100
@@ -471,6 +463,8 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   if suspect [set s 2]
   ; sample lognormal
   let mean-log-time ln(severity * s / 100)
+
+  ; A fixed s.d. in log space translates to a proporational one in actual (time) space, e.g. for mean=10, 1 s.d.=(8.33-12) and for mean=100, 1 s.d.=(83.3-120)
   let stdev-log-time 0.2
 
   ; sample time and round up to nearest whole hour
@@ -487,19 +481,16 @@ end
 ; Events 499 <> 100 = PRIORITY 3 - Response Officer Response
 ; Events < 100 with a SUSPECT = PRIORITY 3  - Response Officer Response
 ; Events < 100 with NO SUSPECT = PRIORITY 4 - Resolved without response
-to-report convert-severity-to-event-priority [ severity ]
-  let priority 0
-
+to convert-severity-to-event-priority
   (ifelse
-    severity >= 1000 [ set priority 1 ]
-    severity >= 500 [ set priority 2 ]
-    severity >= 100 [set priority 3 ]
-    [ ifelse event-suspect [ set priority 3 ] [ set priority 4 ]] ;less than 100 see if suspect present if yes, escalate
+    event-severity >= 1000 [ set event-priority 1 ]
+    event-severity >= 500 [ set event-priority 2 ]
+    event-severity >= 100 [set event-priority 3 ]
+    [ ifelse event-suspect [ set event-priority 3 ] [ set event-priority 4 ]] ;less than 100 see if suspect present if yes, escalate
   )
 
-  ; show (word severity " ONS CSS - priority=" priority)
-  show (word event-type " severity:" severity " suspect:" event-suspect " = PRIORITY " priority)
-  report priority
+  ; show (word event-severity " ONS CSS - priority=" event-priority)
+  ; show (word event-type " severity:" event-severity " suspect:" event-suspect " = PRIORITY " event-priority)
 end
 
 
@@ -589,7 +580,19 @@ end
 to check-event-status
 
   ;First check if no more resource hours are required to complete event
-  ifelse event-resource-counter <= 0
+  ;otherwise count the time spent thus far
+  ;set event-resource-counter (event-resource-counter - count current-resource)
+  ; this allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event
+  ; for CID officers workload can be > 1, for RESPONSE workload = 1 (thus, they devote all their time tocurrent event
+  ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
+  let work-done sum [1 / workload] of current-resource with [resource-status = 2]
+
+  type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
+  ; now decrement this amount from the event-resource-counter
+  set event-resource-counter (event-resource-counter - work-done)
+
+  print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")
+  if event-resource-counter <= 0
   [
     ; if so - end the event, record that, relinquish resource(s), destroy the event agent
     ask current-resource [ relinquish ]
@@ -598,22 +601,38 @@ to check-event-status
     if event-file-out [write-completed-event-out]
     die
   ]
-  [
-    ;otherwise count the time spent thus far
-    ;set event-resource-counter (event-resource-counter - count current-resource)
-    ; this allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event
-    ; for CID officers workload can be > 1, for RESPONSE workload = 1 (thus, they devote all their time tocurrent event
-    ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
-    let total sum [1 / workload] of current-resource with [resource-status = 2]
-
-    type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
-    ; now decrement this amount from the event-resource-counter
-    set event-resource-counter (event-resource-counter - total)
-
-    print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" total " now " event-resource-counter " resource hours remaining")
-  ]
 
 end
+
+;; Main method to decrement requirements of ongoing events and close off events as they are completed
+;to check-event-status
+;
+;  ;First check if no more resource hours are required to complete event
+;  ifelse event-resource-counter <= 0
+;  [
+;    ; if so - end the event, record that, relinquish resource(s), destroy the event agent
+;    ask current-resource [ relinquish ]
+;    set count-completed-events count-completed-events + 1
+;    if VERBOSE [print (word EventID " - COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt dt "hours") " hours")]
+;    if event-file-out [write-completed-event-out]
+;    die
+;  ]
+;  [
+;    ;otherwise count the time spent thus far
+;    ;set event-resource-counter (event-resource-counter - count current-resource)
+;    ; this allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event
+;    ; for CID officers workload can be > 1, for RESPONSE workload = 1 (thus, they devote all their time tocurrent event
+;    ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
+;    let work-done sum [1 / workload] of current-resource with [resource-status = 2]
+;
+;    type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
+;    ; now decrement this amount from the event-resource-counter
+;    set event-resource-counter (event-resource-counter - work-done)
+;
+;    print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")
+;  ]
+;
+;end
 
 ; event procedure that completes priority 4 events via virtual or without physical response (threshold for priority 4 events defined in convert-severity-to-priority)
 to resolve-without-response
@@ -675,7 +694,7 @@ to get-resources-CID-parallel
 
     ;user-message "Not enough CID officers - job split needed"
     ;find the currently on shift but responding officers with the lowest current workload and assign them to the job
-    set current-resource min-n-of event-resource-req-officers CID-officers with [resource-status = 2] [workload]
+    set current-resource min-n-of event-resource-req-officers CID-officers with [resource-status = 1 or resource-status = 2] [workload]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -720,7 +739,7 @@ end
 
 ; event procedure to assess if sufficient RESPONSE resources are available to respond to event and if so allocate them to it
 to get-resources-response
-  ;check if the required number of CID resources are currently available if not event remains unalocated
+  ;check if the required number of CID resources are currently available if not event remains unallocated
   if count RESPONSE-officers with [resource-status = 1] >= (event-resource-req-officers)
   [
     if VERBOSE [print (word EventID " - RESPONSE OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total  " REMAINING = " event-resource-counter )]
@@ -820,7 +839,7 @@ to update-all-plots
 
   set-current-plot "Crime"
   set-current-plot-pen "total"
-  plot count-crime-hour
+  plot count-crime-timestep
 
   set-current-plot "% Resource Usage"
   set-current-plot-pen "TOTAL"
@@ -1488,17 +1507,6 @@ MONITOR
 848
 Response Officers Responding
 count resources with [resource-status = 2 and resource-type = 1]
-17
-1
-11
-
-MONITOR
-12
-147
-177
-192
-Events in Queue
-length event-data
 17
 1
 11
