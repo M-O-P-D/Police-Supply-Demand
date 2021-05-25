@@ -34,7 +34,36 @@ globals
 
   ; crims parameters
   loading-factor ; dynamic crime loading factor
+
+
+
+
+  ;ENUMERATIONS
+  ;Event-status
+
+
+
+  ;Resource-status - 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
+  OFF-DUTY
+  ON-DUTY-AVAILABLE
+  ON-DUTY-RESPONDING
+
+
+  ;Resource-type
+
+
+
+
+
+
+
 ]
+
+
+
+
+
+
 
 ;Events store demand - the things the police must respond to
 breed [events event]
@@ -102,12 +131,27 @@ events-own
 ]
 
 
+to set-enumerations
+
+  ;Resource-status - 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
+  set OFF-DUTY 0
+  set ON-DUTY-AVAILABLE 1
+  set ON-DUTY-RESPONDING 2
+
+end
+
+
+
 ;main setup procedure
 to setup
 
   ;clear stuff
   ca
   reset-ticks
+
+  ;set enumerations
+  set-enumerations
+
 
   ;if seeded set the seed from global replication
   if SetSeed [ random-seed replication ]
@@ -169,7 +213,7 @@ to setup
     [
       set shape "square"
       set color grey
-      set resource-status 0
+      set resource-status OFF-DUTY
       set events-completed 0
       ;initially specify all units as response officers
       set resource-type 1
@@ -253,7 +297,7 @@ to go-step
   ;CID ALLOCATION
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ask events with [event-resource-type = 2 and event-status = 1 and event-paused = true] [rejoin-job-CID]   ;Try to reallocate CID staff to their allotted cases when they roster back on - this catches jobs that have been paused as everyone rostered off
-  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource with [resource-status = 2]) < event-resource-req-officers] [rejoin-job-CID] ;then jobs that are ongoing but under staffed - count of current-resource has to look who is active as off duty officers are still included (allowing CID officers to keep track of current cases)
+  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource with [resource-status = ON-DUTY-RESPONDING]) < event-resource-req-officers] [rejoin-job-CID] ;then jobs that are ongoing but under staffed - count of current-resource has to look who is active as off duty officers are still included (allowing CID officers to keep track of current cases)
   ask events with [event-resource-type = 2 and event-status = 1 and event-paused = false] [get-resources-CID-parallel]   ;finally CID jobs that are currently unallocated - this order prevents officers as already assigned to particular jobs being assigned to new jobs prior to returning to their existing jobs
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;NO RESPONSE - PRIORITY 4
@@ -503,7 +547,7 @@ end
 
 to roster-on [ shift ]
   ;as a shift changes roster on new staff - shift sizes now specified by user - note overlap between shifts
-  ask resources with [resource-status = 0 and working-shift = shift] [set resource-status 1 ]
+  ask resources with [resource-status = OFF-DUTY and working-shift = shift] [set resource-status ON-DUTY-AVAILABLE ]
 
 end
 
@@ -517,7 +561,7 @@ to roster-off [ shift ]
   ;ROSTER OFF RESPONSE COPS - THEY FORGET EVERYTHING
   ask RESPONSE-officers with [ working-shift = shift]
   [
-    set resource-status 0
+    set resource-status OFF-DUTY
     set current-event nobody
     set current-event-type ""
     set current-event-class ""
@@ -529,7 +573,7 @@ to roster-off [ shift ]
   ;ROSTER OFF CID COPS - THEY REMEMBER CURRENT CASE AND RETURN TO IT
   ask CID-officers with [working-shift = shift]
   [
-    set resource-status 0
+    set resource-status OFF-DUTY
   ]
 
   shift-drop-events-CID shift
@@ -590,7 +634,7 @@ to check-event-status
   ; 1 / workload allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event - this assumes a CID with multiple cases devotes equal time to each.
   ; for CID officers workload can be > 1, for RESPONSE workload = 1 (thus, they devote all their time tocurrent event
   ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
-  let work-done sum [1 / workload] of current-resource with [resource-status = 2]
+  let work-done sum [1 / workload] of current-resource with [resource-status = ON-DUTY-RESPONDING]
 
   type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
   ; now decrement this amount from the event-resource-counter
@@ -629,7 +673,7 @@ to relinquish
   ;count a completed event for that individual officer
   set events-completed events-completed + 1
 
-  if workload = 0 [ if resource-status = 2 [set resource-status 1]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
+  if workload = 0 [ if resource-status = ON-DUTY-RESPONDING [set resource-status ON-DUTY-AVAILABLE]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
                                                                     ;- the check on resource status is for the edge case whereby a job is split between officers at multiple shifts
                                                                    ;and one officer completes the job while the other is rostered off, in this case we should leave resource-status at 0
   ;THIS NEEDS FIX AS OFFICERS WORKING ON MULTIPLE JOBS LOSE THE ABILITY TO RECORD WHAT SOMEONE IS WORKING ON HERE
@@ -644,11 +688,11 @@ end
 ; event procedure to assess if sufficient resources are available to respond to event and if so allocate them to it
 to get-resources-CID-parallel
   ;check if the required number of CID resources are available that are COMPLETELY FREE
-  ifelse count CID-officers with [resource-status = 1] >= (event-resource-req-officers)
+  ifelse count CID-officers with [resource-status = ON-DUTY-AVAILABLE] >= (event-resource-req-officers)
   [
     if VERBOSE [print (word EventID " - CID OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
     ;link resource to event
-    set current-resource n-of event-resource-req-officers CID-officers with [resource-status = 1]
+    set current-resource n-of event-resource-req-officers CID-officers with [resource-status = ON-DUTY-AVAILABLE]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -659,7 +703,7 @@ to get-resources-CID-parallel
       set current-event myself
       set current-event-type [event-type] of current-event
       set current-event-class [event-class] of current-event
-      set resource-status 2
+      set resource-status ON-DUTY-RESPONDING
       set workload 1
     ]
     set event-paused false
@@ -671,7 +715,7 @@ to get-resources-CID-parallel
 
     ;user-message "Not enough CID officers - job split needed"
     ;find the currently on shift but responding officers with the lowest current workload and assign them to the job
-    set current-resource min-n-of event-resource-req-officers CID-officers with [resource-status = 1 or resource-status = 2] [workload]
+    set current-resource min-n-of event-resource-req-officers CID-officers with [resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING] [workload]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -703,11 +747,11 @@ to rejoin-job-CID
   ask current-resource
   [
     ;if one or more of my current-resource has just been rostered on - reallocate them
-    if resource-status = 1
+    if resource-status = ON-DUTY-AVAILABLE
     [
       print (word self " returning to " [EventID] of current-event)
       ask current-event [ set event-status 2 set event-paused false ] ;if all staff have been rostered off the event will be paused - when you add 1 or more officers unpause it and set is as ongoing
-      set resource-status 2
+      set resource-status ON-DUTY-RESPONDING
     ]
   ]
 end
@@ -717,11 +761,11 @@ end
 ; event procedure to assess if sufficient RESPONSE resources are available to respond to event and if so allocate them to it
 to get-resources-response
   ;check if the required number of CID resources are currently available if not event remains unallocated
-  if count RESPONSE-officers with [resource-status = 1] >= (event-resource-req-officers)
+  if count RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE] >= (event-resource-req-officers)
   [
     if VERBOSE [print (word EventID " - RESPONSE OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total  " REMAINING = " event-resource-counter )]
     ;link responce resource to event
-    set current-resource n-of event-resource-req-officers RESPONSE-officers with [resource-status = 1]
+    set current-resource n-of event-resource-req-officers RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-paused = false [set event-response-start-dt dt]
@@ -735,7 +779,7 @@ to get-resources-response
       set current-event-type [event-type] of current-event
       set current-event-class [event-class] of current-event
       ;set as working on job
-      set resource-status 2
+      set resource-status ON-DUTY-RESPONDING
       set workload 1
     ]
     ;unpause any paused events as they have been allocated
@@ -755,12 +799,12 @@ end
 ; event procedure to assess if sufficient RESPONSE resources are available to replenish an ongoing but understaffed current event (due to shift change)  and if so allocate them to it
 to replenish-resources-response
   ;check if the required number of resources are available to replenish job
-  if count RESPONSE-officers with [resource-status = 1 ] >= (event-resource-req-officers - (count current-resource))
+  if count RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE ] >= (event-resource-req-officers - (count current-resource))
   [
     if VERBOSE [print (word EventID " - Adding RESPONSE officers to " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
 
     ;link new resources to event with the old resources
-    set current-resource (turtle-set (current-resource) n-of (event-resource-req-officers - (count current-resource)) RESPONSE-officers with [resource-status = 1])
+    set current-resource (turtle-set (current-resource) n-of (event-resource-req-officers - (count current-resource)) RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE])
 
     ;relink new resource group back to event
     ask current-resource
@@ -769,7 +813,7 @@ to replenish-resources-response
       set current-event myself
       set current-event-type [event-type] of current-event
       set current-event-class [event-class] of current-event
-      set resource-status 2
+      set resource-status ON-DUTY-RESPONDING
       set workload 1
     ]
   ]
@@ -785,9 +829,9 @@ to draw-resource-status
 
   ifelse color-by-priority
   [
-  if resource-status = 0 [ set color grey ] ; rostered off
-  if resource-status = 1 [ set color white ] ; active & available
-  if resource-status = 2
+  if resource-status = OFF-DUTY [ set color grey ] ; rostered off
+  if resource-status = ON-DUTY-AVAILABLE [ set color white ] ; active & available
+  if resource-status = ON-DUTY-RESPONDING
     [
       let tmp-priority [event-priority] of current-event
       if tmp-priority = 1 [set color red]
@@ -797,9 +841,9 @@ to draw-resource-status
 
   ]
   [
-  if resource-status = 0 [ set color grey ] ; rostered off
-  if resource-status = 1 [ set color white ] ; active & available
-  if resource-status = 2 [ set color blue ] ; active & on event
+  if resource-status = OFF-DUTY [ set color grey ] ; rostered off
+  if resource-status = ON-DUTY-AVAILABLE [ set color white ] ; active & available
+  if resource-status = ON-DUTY-RESPONDING [ set color blue ] ; active & on event
   ]
 
   ifelse show-workload [set plabel workload] [set plabel ""]
@@ -812,7 +856,7 @@ end
 to update-all-plots
 
   ; file-open resource-usage-trends-file
-  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count CID-officers / count CID-officers with [resource-status = 1] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
+  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count CID-officers / count CID-officers with [resource-status = ON-DUTY-AVAILABLE] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
 
   set-current-plot "Crime"
   set-current-plot-pen "total"
@@ -820,15 +864,15 @@ to update-all-plots
 
   set-current-plot "% Resource Usage"
   set-current-plot-pen "TOTAL"
-  plot (count resources with [resource-status = 2] / count resources with [resource-status = 2 or resource-status = 1] ) * 100
+  plot (count resources with [resource-status = ON-DUTY-RESPONDING] / count resources with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100
 
-  if count CID-officers with [resource-status = 1] > 0
+  if count CID-officers with [resource-status = ON-DUTY-AVAILABLE] > 0
   [
     set-current-plot-pen "CID"
-    plot (count CID-officers with [resource-status = 2] / count CID-officers with [resource-status = 2 or resource-status = 1] ) * 100
+    plot (count CID-officers with [resource-status = ON-DUTY-RESPONDING] / count CID-officers with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100
   ]
   set-current-plot-pen "RESPONSE"
-  plot (count RESPONSE-officers with [resource-status = 2] / count RESPONSE-officers with [resource-status = 2 or resource-status = 1] ) * 100
+  plot (count RESPONSE-officers with [resource-status = ON-DUTY-RESPONDING] / count RESPONSE-officers with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100
 
   set-current-plot "Events Waiting"
   set-current-plot-pen "waiting-1"
