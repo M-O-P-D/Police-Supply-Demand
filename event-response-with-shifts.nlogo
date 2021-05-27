@@ -621,7 +621,10 @@ to check-event-status
   ; 1 / workload allows CID agents with multiple cases to contribute sum proportion of person/hour per hour to a particular event - this assumes a CID with multiple cases devotes equal time to each.
   ; for CID officers workload can be > 1, for RESPONSE workload = 1 (thus, they devote all their time tocurrent event
   ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
-  let work-done sum [1 / workload] of current-resource with [resource-status = ON-DUTY-RESPONDING]
+
+  let work-done 0
+  if event-resource-type = CID [ set work-done sum [(1 - non-crime-%-CID) / workload] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
+  if event-resource-type = RESPONSE [ set work-done sum [(1 - non-crime-%-RESPONSE) / workload] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
 
   type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
   ; now decrement this amount from the event-resource-counter
@@ -1965,6 +1968,36 @@ show-workload
 1
 1
 -1000
+
+SLIDER
+5
+410
+180
+443
+non-crime-%-CID
+non-crime-%-CID
+0
+1
+0.0
+0.01
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+445
+180
+478
+non-crime-%-RESPONSE
+non-crime-%-RESPONSE
+0
+1
+0.0
+0.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
