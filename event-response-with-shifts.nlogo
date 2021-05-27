@@ -81,7 +81,7 @@ resources-own
   ;towards parallel processing of jobs by single agents - i.e. an officer can be responding to 2 incidents at the same time - this is beacuse much of the demand will be associated with investigations.
   ; should this functionality only apply to CID???? Speak to Lee
   ; TODO just use len(current-event)?
-  workload ; count the number of ongoing jobs an officer is dealing with currently - only used for CID
+  ;workload ; count the number of ongoing jobs an officer is dealing with currently - only used for CID
   max-resource-capacity ; expressed as float (0-1) representing a % so that jobs can be split across an individual - allows user to set that all officers spend x% of time doing something else
 ]
 
@@ -208,6 +208,7 @@ to setup
       set events-completed 0
       ;initially specify all units as response officers
       set resource-type RESPONSE
+      set current-event no-turtles
 
       set max-resource-capacity 1
     ]
@@ -551,10 +552,10 @@ to roster-off [ shift ]
   ask RESPONSE-officers with [ working-shift = shift]
   [
     set resource-status OFF-DUTY
-    set current-event nobody
+    set current-event no-turtles
     set current-event-type ""
     set current-event-class ""
-    set workload 0
+    ;set workload 0
   ]
 
   shift-drop-events-RESPONSE shift
@@ -623,10 +624,10 @@ to check-event-status
   ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
 
   let work-done 0
-  if event-resource-type = CID [ set work-done sum [(1 - non-crime-%-CID) / workload] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
-  if event-resource-type = RESPONSE [ set work-done sum [(1 - non-crime-%-RESPONSE) / workload] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
+  if event-resource-type = CID [ set work-done sum [(1 - non-crime-%-CID) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
+  if event-resource-type = RESPONSE [ set work-done sum [(1 - non-crime-%-RESPONSE) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
 
-  type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / workload) " p/h ") ]
+  type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / (count current-event)) " p/h ") ]
   ; now decrement this amount from the event-resource-counter
   set event-resource-counter (event-resource-counter - work-done)
 
@@ -659,11 +660,11 @@ end
 
 to relinquish
   ;reduce workload by 1
-  set workload workload - 1
+
   ;count a completed event for that individual officer
   set events-completed events-completed + 1
 
-  if workload = 0 [ if resource-status = ON-DUTY-RESPONDING [set resource-status ON-DUTY-AVAILABLE]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
+  if count current-event = 0 [ if resource-status = ON-DUTY-RESPONDING [set resource-status ON-DUTY-AVAILABLE]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
                                                                     ;- the check on resource status is for the edge case whereby a job is split between officers at multiple shifts
                                                                    ;and one officer completes the job while the other is rostered off, in this case we should leave resource-status at OFF-DUTY
   ;THIS NEEDS FIX AS OFFICERS WORKING ON MULTIPLE JOBS LOSE THE ABILITY TO RECORD WHAT SOMEONE IS WORKING ON HERE
@@ -690,11 +691,11 @@ to get-resources-CID-parallel
 
     ask current-resource
     [
-      set current-event myself
+      set current-event (turtle-set current-event myself)
       set current-event-type [event-type] of current-event
       set current-event-class [event-class] of current-event
       set resource-status ON-DUTY-RESPONDING
-      set workload 1
+      ;set workload 1
     ]
   ]
 
@@ -704,7 +705,7 @@ to get-resources-CID-parallel
 
     ;user-message "Not enough CID officers - job split needed"
     ;find the currently on shift but responding officers with the lowest current workload and assign them to the job
-    set current-resource min-n-of event-resource-req-officers CID-officers with [resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING] [workload]
+    set current-resource min-n-of event-resource-req-officers CID-officers with [resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING] [(count current-event)]
 
     ;if this is a new event (not one that is paused) record start datetime of response
     if event-status = AWAITING-SUPPLY [set event-response-start-dt dt]
@@ -716,7 +717,7 @@ to get-resources-CID-parallel
       set current-event (turtle-set current-event myself)
       ;set current-event-type [event-type] of current-event
       ;set current-event-class [event-class] of current-event
-      set workload workload + 1 ;increase  workload
+      ;set workload workload + 1 ;increase  workload
     ]
 
 
@@ -764,12 +765,12 @@ to get-resources-response
     ask current-resource
     [
       ;link back to the event
-      set current-event myself
+      set current-event (turtle-set current-event myself)
       set current-event-type [event-type] of current-event
       set current-event-class [event-class] of current-event
       ;set as working on job
       set resource-status ON-DUTY-RESPONDING
-      set workload 1
+      ;set workload 1
     ]
   ]
 end
@@ -797,11 +798,11 @@ to replenish-resources-response
     ask current-resource
     [
       ;link event to resource
-      set current-event myself
+      set current-event (turtle-set current-event myself)
       set current-event-type [event-type] of current-event
       set current-event-class [event-class] of current-event
       set resource-status ON-DUTY-RESPONDING
-      set workload 1
+      ;set workload 1
     ]
   ]
 end
@@ -833,7 +834,7 @@ to draw-resource-status
   if resource-status = ON-DUTY-RESPONDING [ set color blue ] ; active & on event
   ]
 
-  ifelse show-workload [set plabel workload] [set plabel ""]
+  ifelse show-workload [set plabel (count current-event)] [set plabel ""]
 
 end
 
@@ -1644,24 +1645,6 @@ Shift1-Shift2-Shift3
 1
 11
 
-PLOT
-1060
-930
-1710
-1050
-paused events
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot count events with [event-paused = true]"
-
 SWITCH
 10
 867
@@ -1913,7 +1896,7 @@ MONITOR
 1048
 1109
 Average CID Workload
-mean [workload] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
+mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 3
 1
 11
@@ -1924,7 +1907,7 @@ MONITOR
 1048
 1159
 Max CID Workload 
-max [workload] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
+max [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 17
 1
 11
@@ -1935,16 +1918,16 @@ MONITOR
 1048
 1210
 Min CID Workload
-min [workload] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
+min [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 17
 1
 11
 
 PLOT
-1059
-1059
-1708
-1209
+1060
+930
+1709
+1080
 CID Mean Workload
 NIL
 NIL
@@ -1956,7 +1939,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot mean [workload] of resources with [resource-type = CID]"
+"default" 1.0 0 -16777216 true "" "plot mean [(count current-event)] of resources with [resource-type = CID]"
 
 SWITCH
 10
