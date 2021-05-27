@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
   import pandas as pd
 
-  init_model(0, "City of London", 2020, 1, 1.0, 2)
+  init_model(0, "Wiltshire", 2020, 1, 1.0, 1)
   #init_canned_data(2020,1)
   print(model.crimes.head())
 

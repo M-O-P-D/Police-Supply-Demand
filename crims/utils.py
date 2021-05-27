@@ -170,6 +170,9 @@ def get_category_subtypes():
   raw = raw[~raw["Force Name"].isin(non_geographic)].drop(["Financial Year", "Financial Quarter", "Offence Subgroup"], axis=1) \
     .rename({"Force Name": "force", "Offence Group": "category", "Offence Description": "description", "Offence Code": "code_original", "Offence Count": "count"}, axis=1)
 
+  # WORKAROUND for -ve values in data. See issue #14
+  raw["count"] = np.abs(raw["count"])
+  
   # duplicate code column and modify values that don't match the codes in the severity scores
   raw["code_severity"] = raw.code_original.apply(map_code)
 
