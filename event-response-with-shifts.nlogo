@@ -35,27 +35,20 @@ globals
   ; crims parameters
   loading-factor ; dynamic crime loading factor
 
+  ; ENUMERATIONS
+  ; event-status: status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = paused
+  AWAITING-SUPPLY
+  ONGOING
+  PAUSED
 
-
-
-  ;ENUMERATIONS
-  ;Event-status
-
-
-
-  ;Resource-status - 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
+  ; resource-status - 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
   OFF-DUTY
   ON-DUTY-AVAILABLE
   ON-DUTY-RESPONDING
 
-
-  ;Resource-type
-
-
-
-
-
-
+  ; resource-type
+  RESPONSE
+  CID
 
 ]
 
@@ -80,13 +73,11 @@ resources-own
   current-event-type ;the type of event the resource-agent is responding to
   current-event-class ; broader crime class
 
-  ;split resource agents into Response and CID pools
-  ; resource-type = 1 RESPONSE
-  ; resource-type = 2 C.I.D.
+  ;split resource agents into Response and CID pools, see enumeration declared in globals
   resource-type
 
   ;status of resource agent
-  resource-status ;represents the current state of the resource agent - coded: 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
+  resource-status ;represents the current state of the resource agent, see enumeration declared in globals
 
   ;records what shift a resource is working on
   working-shift
@@ -97,7 +88,6 @@ resources-own
   ; TODO just use len(current-event)?
   workload ; count the number of ongoing jobs an officer is dealing with currently - only used for CID
   max-resource-capacity ; expressed as float (0-1) representing a % so that jobs can be split across an individual - allows user to set that all officers spend x% of time doing something else
-
 ]
 
 
@@ -114,7 +104,7 @@ events-own
   event-severity ; ONS CSS associated with offence
   event-suspect ; bool for presence of suspect
 
-  event-resource-type ; split RESPONSE (event-resource-type = 1) and CID (event-resource-type = 2) events
+  event-resource-type ; split RESPONSE and CID events
   current-resource ; the resource agent(s) (can be multiple) - if any - currently responding to this event
   ; TODO merge event-paused into this
   event-status ;status of demand event - coded 1 = awaiting supply, 2 = ongoing
@@ -127,19 +117,26 @@ events-own
   event-resource-req-total
 
   event-priority ; variable that allows events to be triaged in terms of importance of response
-
 ]
 
 
 to set-enumerations
 
-  ;Resource-status - 0 = off duty, 1 - on duty and available, 2 = on duty and responding to an event
+  ; resource-status
   set OFF-DUTY 0
   set ON-DUTY-AVAILABLE 1
   set ON-DUTY-RESPONDING 2
 
-end
+  ; event-status
+  set AWAITING-SUPPLY 1
+  set ONGOING 2
+  set PAUSED 3
 
+  ; resource-type 
+  set RESPONSE 1
+  set CID 2
+
+end
 
 
 ;main setup procedure
@@ -216,7 +213,7 @@ to setup
       set resource-status OFF-DUTY
       set events-completed 0
       ;initially specify all units as response officers
-      set resource-type 1
+      set resource-type RESPONSE
 
       set max-resource-capacity 1
     ]
@@ -235,14 +232,14 @@ to setup
   ask resources with [ycor >= shift-1-split and ycor < (shift-1-split + shift-2-split)] [ set working-shift 2]
   ask resources with [ycor >= (shift-1-split + shift-2-split) and ycor < shift-1-split + shift-2-split + shift-3-split] [ set working-shift 3]
 
-  ; Split police resources into 2 pools - response officers (resource-type = 1) who deal with lower level incidents and CID  (resource-type = 2) who deal with more serious offences
+  ; Split police resources into 2 pools - response officers (resource-type = RESPONSE) who deal with lower level incidents and CID who deal with more serious offences
   ; Global vars specify counts of each across shifts shift-1-response, shift-1-CID, shift-2-response, shift-2-CID, shift-3-response, shift-3-CID
-  ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type  2 ]
-  ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type  2 ]
-  ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type  2 ]
+  ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type CID ]
+  ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type CID ]
+  ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type CID ]
 
-  set CID-officers resources with [ resource-type = 2 ]
-  set RESPONSE-officers resources with [ resource-type = 1 ]
+  set CID-officers resources with [ resource-type = CID ]
+  set RESPONSE-officers resources with [ resource-type = RESPONSE ]
 
   ; TODO think about burn-in, start logging only once burn-in period finished?
   ;if enabled start logging
@@ -280,29 +277,29 @@ to go-step
   ;RESPONSE OFFICER ALLOCATIONS
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;PRIORITY 1 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response ] ;pickup priority 1 RESPONSE ongoing jobs that are paused first (after they lost all resources at change of shift) - THIS CURRENTLY SHOULDN'T EVER HAPPEN AS INITIAL RESPONSE FOR PRIORITY 1 INCIDENTS IS ONLY EVER 1 HOUR - SO CAN'T SPAN SHIFTS
-  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]   ;then new jobs
-  ask events with [event-priority = 1 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]   ;then jobs that are ongoing but under staffed - THIS SHOULD ALSO NEVER HAPPEN AS INITIAL RESPONSE IS ONLY EVER 1 HOUR
+  ask events with [event-priority = 1 and event-resource-type = RESPONSE and event-status = AWAITING-SUPPLY and event-paused = true] [get-resources-response ] ;pickup priority 1 RESPONSE ongoing jobs that are paused first (after they lost all resources at change of shift) - THIS CURRENTLY SHOULDN'T EVER HAPPEN AS INITIAL RESPONSE FOR PRIORITY 1 INCIDENTS IS ONLY EVER 1 HOUR - SO CAN'T SPAN SHIFTS
+  ask events with [event-priority = 1 and event-resource-type = RESPONSE and event-status = AWAITING-SUPPLY and event-paused = false] [get-resources-response]   ;then new jobs
+  ask events with [event-priority = 1 and event-resource-type = RESPONSE and event-status = ONGOING and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]   ;then jobs that are ongoing but under staffed - THIS SHOULD ALSO NEVER HAPPEN AS INITIAL RESPONSE IS ONLY EVER 1 HOUR
 
   ;PRIORITY 2 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response]
-  ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
-  ask events with [event-priority = 2 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
+  ask events with [event-priority = 2 and event-resource-type = RESPONSE and event-status = AWAITING-SUPPLY and event-paused = true] [get-resources-response]
+  ask events with [event-priority = 2 and event-resource-type = RESPONSE and event-status = AWAITING-SUPPLY and event-paused = false] [get-resources-response]
+  ask events with [event-priority = 2 and event-resource-type = RESPONSE and event-status = ONGOING and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
 
   ;PRIORITY 3 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 1 and event-paused = true] [get-resources-response]
-  ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 1 and event-paused = false] [get-resources-response]
-  ask events with [event-priority = 3 and event-resource-type = 1 and event-status = 2 and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
+  ask events with [event-priority = 3 and event-resource-type = RESPONSE and event-status = AWAITING-SUPPLY and event-paused = true] [get-resources-response]
+  ask events with [event-priority = 3 and event-resource-type = RESPONSE and event-status = AWAITING-SUPPLY and event-paused = false] [get-resources-response]
+  ask events with [event-priority = 3 and event-resource-type = RESPONSE and event-status = ONGOING and event-paused = false and (count current-resource) < event-resource-req-officers] [replenish-resources-response]
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;CID ALLOCATION
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = true] [rejoin-job-CID]   ;Try to reallocate CID staff to their allotted cases when they roster back on - this catches jobs that have been paused as everyone rostered off
-  ask events with [event-resource-type = 2 and event-status = 2 and event-paused = false and (count current-resource with [resource-status = ON-DUTY-RESPONDING]) < event-resource-req-officers] [rejoin-job-CID] ;then jobs that are ongoing but under staffed - count of current-resource has to look who is active as off duty officers are still included (allowing CID officers to keep track of current cases)
-  ask events with [event-resource-type = 2 and event-status = 1 and event-paused = false] [get-resources-CID-parallel]   ;finally CID jobs that are currently unallocated - this order prevents officers as already assigned to particular jobs being assigned to new jobs prior to returning to their existing jobs
+  ask events with [event-resource-type = CID and event-status = AWAITING-SUPPLY and event-paused = true] [rejoin-job-CID]   ;Try to reallocate CID staff to their allotted cases when they roster back on - this catches jobs that have been paused as everyone rostered off
+  ask events with [event-resource-type = CID and event-status = ONGOING and event-paused = false and (count current-resource with [resource-status = ON-DUTY-RESPONDING]) < event-resource-req-officers] [rejoin-job-CID] ;then jobs that are ongoing but under staffed - count of current-resource has to look who is active as off duty officers are still included (allowing CID officers to keep track of current cases)
+  ask events with [event-resource-type = CID and event-status = AWAITING-SUPPLY and event-paused = false] [get-resources-CID-parallel]   ;finally CID jobs that are currently unallocated - this order prevents officers as already assigned to particular jobs being assigned to new jobs prior to returning to their existing jobs
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ;NO RESPONSE - PRIORITY 4
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ask events with [event-priority = 4 and event-status = 1 ] [ resolve-without-response ]   ;first resolve priority 4 incidents without physical resposne
+  ask events with [event-priority = 4 and event-status = AWAITING-SUPPLY ] [ resolve-without-response ]   ;first resolve priority 4 incidents without physical resposne
 
 
 
@@ -311,8 +308,8 @@ to go-step
   update-all-plots
 
   ;check status of ongoing events so those about to complete can be closed
-  ask events with [event-status = 2 and event-resource-type = 1] [ check-event-status ] ; RESPONSE EVENTS
-  ask events with [event-status = 2 and event-resource-type = 2] [ check-event-status ] ; CID EVENTS
+  ask events with [event-status = ONGOING and event-resource-type = RESPONSE] [ check-event-status ] ; RESPONSE EVENTS
+  ask events with [event-status = ONGOING and event-resource-type = CID] [ check-event-status ] ; CID EVENTS
 
   ;tick by one hour
   increment-time
@@ -408,7 +405,7 @@ to read-events-from-crims
     create-events 1
     [
       set hidden? true       ;make it invisible
-      set event-resource-type 1  ;all events initially response
+      set event-resource-type RESPONSE  ;all events initially response
 
       ;fill in relevant details for event from crims data
       set eventID item 0 temp
@@ -493,8 +490,7 @@ to call-CID
   [
     ;give it a unique ID
     set eventID (word eventID "-CID")
-    ;set event-resource-type to 2 for CID
-    set event-resource-type 2
+    set event-resource-type CID
     ;one CID officer - no double crewing for CID
     set event-resource-req-officers 1
     ;calculate hours required based on severity and presence/absence of suspect (final parameter an optional weight to over/under concentrate on case - increase/decrease hours = hardcoded to 1 no effect)
@@ -590,7 +586,7 @@ end
 
 to shift-drop-events-RESPONSE  [ shift ]
   ;look at all ongoing events
-  ask events with [ event-status = 2 and event-resource-type = 1]
+  ask events with [ event-status = ONGOING and event-resource-type = RESPONSE]
   [
     ; remove any officers that are about to roster off from the current resource
     set current-resource current-resource with [working-shift != shift]
@@ -611,7 +607,7 @@ to shift-drop-events-CID  [ shift ]
   if next-shift = 4 [set next-shift 1]
 
   ;look at all omngoing events
-  ask events with [ event-status = 2 and event-resource-type = 2]
+  ask events with [ event-status = ONGOING and event-resource-type = CID]
   [
     ;count how many staff will be left working on this event after specified shift ends
     let available-resource count current-resource with [working-shift = next-shift]
@@ -675,7 +671,7 @@ to relinquish
 
   if workload = 0 [ if resource-status = ON-DUTY-RESPONDING [set resource-status ON-DUTY-AVAILABLE]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
                                                                     ;- the check on resource status is for the edge case whereby a job is split between officers at multiple shifts
-                                                                   ;and one officer completes the job while the other is rostered off, in this case we should leave resource-status at 0
+                                                                   ;and one officer completes the job while the other is rostered off, in this case we should leave resource-status at OFF-DUTY
   ;THIS NEEDS FIX AS OFFICERS WORKING ON MULTIPLE JOBS LOSE THE ABILITY TO RECORD WHAT SOMEONE IS WORKING ON HERE
   set current-event-type ""
   set current-event-class ""
@@ -856,7 +852,7 @@ end
 to update-all-plots
 
   ; file-open resource-usage-trends-file
-  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count CID-officers / count CID-officers with [resource-status = ON-DUTY-AVAILABLE] ) * 100) "," (count events with [event-status = 2]) "," (count events with [event-status = 1]) "," (count events with [event-status = 1 and event-priority = 1]) "," (count events with [event-status = 1 and event-priority = 2]) "," (count events with [event-status = 1 and event-priority = 3]))
+  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count CID-officers / count CID-officers with [resource-status = ON-DUTY-AVAILABLE] ) * 100) "," (count events with [event-status = ONGOING]) "," (count events with [event-status = AWAITING-SUPPLY]) "," (count events with [event-status = AWAITING-SUPPLY and event-priority = 1]) "," (count events with [event-status = AWAITING-SUPPLY and event-priority = 2]) "," (count events with [event-status = AWAITING-SUPPLY and event-priority = 3]))
 
   set-current-plot "Crime"
   set-current-plot-pen "total"
@@ -876,11 +872,11 @@ to update-all-plots
 
   set-current-plot "Events Waiting"
   set-current-plot-pen "waiting-1"
-  plot count events with [event-status = 1 and event-priority = 1]
+  plot count events with [event-status = AWAITING-SUPPLY and event-priority = 1]
   set-current-plot-pen "waiting-2"
-  plot count events with [event-status = 1 and event-priority = 2]
+  plot count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
   set-current-plot-pen "waiting-3"
-  plot count events with [event-status = 1 and event-priority = 3]
+  plot count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 
 
   ;------------------------------------------------------------------------------------------------------------------------------
@@ -889,7 +885,7 @@ to update-all-plots
   set-current-plot "active-events"
   file-open active-event-trends-file
   ;only look at active events
-  let current-events events with [event-status = 2]
+  let current-events events with [event-status = ONGOING]
   let out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
 
   set-current-plot-pen "Anti-social behaviour"
@@ -1049,33 +1045,33 @@ to update-all-plots
   set-current-plot "scatter"
   ;clear-plot
   set-current-plot-pen "Anti-social behaviour"
-  plotxy (count events with [event-class = "anti-social behaviour" and event-status = 2]) (count resources with [current-event-class = "anti-social behaviour"])
+  plotxy (count events with [event-class = "anti-social behaviour" and event-status = ONGOING]) (count resources with [current-event-class = "anti-social behaviour"])
   set-current-plot-pen "Bicycle theft"
-  plotxy (count events with [event-class = "bicycle theft" and event-status = 2]) (count resources with [current-event-class = "bicycle theft"])
+  plotxy (count events with [event-class = "bicycle theft" and event-status = ONGOING]) (count resources with [current-event-class = "bicycle theft"])
   set-current-plot-pen "Burglary"
-  plotxy (count events with [event-class = "burglary" and event-status = 2]) (count resources with [current-event-class = "burglary"])
+  plotxy (count events with [event-class = "burglary" and event-status = ONGOING]) (count resources with [current-event-class = "burglary"])
   set-current-plot-pen "Criminal damage and arson"
-  plotxy (count events with [event-class = "criminal damage and arson" and event-status = 2]) (count resources with [current-event-class = "criminal damage and arson"])
+  plotxy (count events with [event-class = "criminal damage and arson" and event-status = ONGOING]) (count resources with [current-event-class = "criminal damage and arson"])
   set-current-plot-pen "Drugs"
-  plotxy (count events with [event-class = "drugs" and event-status = 2]) (count resources with [current-event-class = "drugs"])
+  plotxy (count events with [event-class = "drugs" and event-status = ONGOING]) (count resources with [current-event-class = "drugs"])
   set-current-plot-pen "Other crime"
-  plotxy (count events with [event-class = "other crime" and event-status = 2]) (count resources with [current-event-class = "other crime"])
+  plotxy (count events with [event-class = "other crime" and event-status = ONGOING]) (count resources with [current-event-class = "other crime"])
   set-current-plot-pen "Other theft"
-  plotxy (count events with [event-class = "other theft" and event-status = 2]) (count resources with [current-event-class = "other theft"])
+  plotxy (count events with [event-class = "other theft" and event-status = ONGOING]) (count resources with [current-event-class = "other theft"])
   set-current-plot-pen "Possession of weapons"
-  plotxy (count events with [event-class = "possession of weapons" and event-status = 2]) (count resources with [current-event-class = "possession of weapons"])
+  plotxy (count events with [event-class = "possession of weapons" and event-status = ONGOING]) (count resources with [current-event-class = "possession of weapons"])
   set-current-plot-pen "Public order"
-  plotxy (count events with [event-class = "public order" and event-status = 2]) (count resources with [current-event-class = "public order"])
+  plotxy (count events with [event-class = "public order" and event-status = ONGOING]) (count resources with [current-event-class = "public order"])
   set-current-plot-pen "Robbery"
-  plotxy (count events with [event-class = "robbery" and event-status = 2]) (count resources with [current-event-class = "robbery"])
+  plotxy (count events with [event-class = "robbery" and event-status = ONGOING]) (count resources with [current-event-class = "robbery"])
   set-current-plot-pen "Shoplifting"
-  plotxy (count events with [event-class = "shoplifting" and event-status = 2]) (count resources with [current-event-class = "shoplifting"])
+  plotxy (count events with [event-class = "shoplifting" and event-status = ONGOING]) (count resources with [current-event-class = "shoplifting"])
   set-current-plot-pen "Theft from the person"
-  plotxy (count events with [event-class = "theft from the person" and event-status = 2]) (count resources with [current-event-class = "theft from the person"])
+  plotxy (count events with [event-class = "theft from the person" and event-status = ONGOING]) (count resources with [current-event-class = "theft from the person"])
   set-current-plot-pen "Vehicle crime"
-  plotxy (count events with [event-class = "vehicle crime" and event-status = 2]) (count resources with [current-event-class = "vehicle crime"])
+  plotxy (count events with [event-class = "vehicle crime" and event-status = ONGOING]) (count resources with [current-event-class = "vehicle crime"])
   set-current-plot-pen "Violence and sexual offences"
-  plotxy (count events with [event-class = "violence and sexual offences" and event-status = 2]) (count resources with [current-event-class = "violence and sexual offences"])
+  plotxy (count events with [event-class = "violence and sexual offences" and event-status = ONGOING]) (count resources with [current-event-class = "violence and sexual offences"])
 
 end
 
@@ -1321,7 +1317,7 @@ MONITOR
 875
 848
 Response Officers Available
-count resources with [resource-status = 1 and resource-type = 1]
+count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = RESPONSE]
 17
 1
 11
@@ -1332,7 +1328,7 @@ MONITOR
 835
 958
 Events - Awaiting
-count events with [event-status = 1]
+count events with [event-status = AWAITING-SUPPLY]
 17
 1
 11
@@ -1343,7 +1339,7 @@ MONITOR
 980
 958
 Events - Ongoing
-count events with [event-status = 2]
+count events with [event-status = ONGOING]
 17
 1
 11
@@ -1527,7 +1523,7 @@ MONITOR
 1085
 848
 Response Officers Responding
-count resources with [resource-status = 2 and resource-type = 1]
+count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = RESPONSE]
 17
 1
 11
@@ -1569,7 +1565,7 @@ MONITOR
 835
 1008
 priority 1 waiting
-count events with [event-status = 1 and event-priority = 1]
+count events with [event-status = AWAITING-SUPPLY and event-priority = 1]
 17
 1
 11
@@ -1580,7 +1576,7 @@ MONITOR
 980
 1008
 priority 2 waiting
-count events with [event-status = 1 and event-priority = 2]
+count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
 17
 1
 11
@@ -1591,7 +1587,7 @@ MONITOR
 1120
 1008
 priority 3 waiting
-count events with [event-status = 1 and event-priority = 3]
+count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 17
 1
 11
@@ -1882,7 +1878,7 @@ MONITOR
 952
 1119
 Response - mean #jobs completed p/officer
-mean [events-completed] of resources with [resource-type = 1]
+mean [events-completed] of resources with [resource-type = RESPONSE]
 3
 1
 11
@@ -1893,7 +1889,7 @@ MONITOR
 952
 1169
 CID - mean #jobs completed p/officer
-mean [events-completed] of resources with [resource-type = 2]
+mean [events-completed] of resources with [resource-type = CID]
 3
 1
 11
@@ -1904,7 +1900,7 @@ MONITOR
 875
 898
 CID Officers Available
-count resources with [resource-status = 1 and resource-type = 2]
+count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = CID]
 17
 1
 11
@@ -1915,7 +1911,7 @@ MONITOR
 1085
 898
 CID Officers Responding
-count resources with [resource-status = 2 and resource-type = 2]
+count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = CID]
 17
 1
 11
@@ -1926,7 +1922,7 @@ MONITOR
 1123
 1112
 Average CID Workload
-mean [workload] of resources with [(resource-status = 1 or resource-status = 2) and resource-type = 2]
+mean [workload] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 3
 1
 11
@@ -1937,7 +1933,7 @@ MONITOR
 1123
 1162
 Max CID Workload 
-max [workload] of resources with [(resource-status = 1 or resource-status = 2) and resource-type = 2]
+max [workload] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 17
 1
 11
@@ -1948,7 +1944,7 @@ MONITOR
 1123
 1213
 Min CID Workload
-min [workload] of resources with [(resource-status = 1 or resource-status = 2) and resource-type = 2]
+min [workload] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 17
 1
 11
@@ -1969,7 +1965,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot mean [workload] of resources with [resource-type = 2]"
+"default" 1.0 0 -16777216 true "" "plot mean [workload] of resources with [resource-type = CID]"
 
 SWITCH
 10
