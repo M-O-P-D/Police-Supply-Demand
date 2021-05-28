@@ -244,6 +244,8 @@ to setup
   set Shift-3 TRUE
   roster-on 3
 
+  output-print "Model Initialised"
+
 end
 
 
@@ -252,7 +254,7 @@ end
 to go-step
 
   ;print the time
-  if VERBOSE [print (word time:show dt "dd-MM-yyyy HH:mm" " to " time:show end-dt "dd-MM-yyyy HH:mm")]
+  if VERBOSE [output-print (word time:show dt "dd-MM-yyyy HH:mm" " to " time:show end-dt "dd-MM-yyyy HH:mm")]
 
   ;check what the current time is and proceed accordingly to roster shifts on and off
   check-shift
@@ -443,7 +445,7 @@ to generate-event-requirements
     [set event-resource-req-officers 1]
     set event-resource-req-total (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
-    print (word EventID " INITIAL-RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    output-print (word EventID " INITIAL-RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
 
     ;then call CID and create a follow up event
     call-CID
@@ -461,7 +463,7 @@ to generate-event-requirements
     ;calculate total person hours
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
-    print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    output-print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
   ]
 
   ;PRIORITY 4 Events - NO PHYSICAL RESPONSE officers only
@@ -473,7 +475,7 @@ to generate-event-requirements
     set event-resource-req-officers 0
     set event-resource-req-total  0
     set event-resource-counter 0
-    print (word EventID " VirtualResponse" ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    output-print (word EventID " VirtualResponse" ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
   ]
 end
 
@@ -492,7 +494,7 @@ to call-CID
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
 
-    print (word EventID " FOLLOWUP-CID-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", CID Hours=" event-resource-req-hours ", CID Officers=" event-resource-req-officers )
+    output-print (word EventID " FOLLOWUP-CID-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", CID Hours=" event-resource-req-hours ", CID Officers=" event-resource-req-officers )
   ]
 end
 
@@ -589,7 +591,7 @@ to shift-drop-events-RESPONSE  [ shift ]
     [
       ;if not pause the event and set its status back to 1
       set event-status PAUSED
-      if VERBOSE [print (word eventID " - PAUSED due to lack of staff - further " event-resource-counter " person hours required to complete this event")]
+      if VERBOSE [output-print (word eventID " - PAUSED due to lack of staff - further " event-resource-counter " person hours required to complete this event")]
     ]
   ]
 end
@@ -604,12 +606,12 @@ to shift-drop-events-CID  [ shift ]
   [
     ;count how many staff will be left working on this event after specified shift ends
     let available-resource count current-resource with [working-shift = next-shift]
-    print (word "available-resource count = " available-resource)
+    output-print (word "available-resource count = " available-resource)
     ; if it's 0 pause the event and wait for assigned officer to return to work (note that above - we dissociate the event with the response officer as it will be picked up by another officer in the next shift, here we want CID officers to work on the same cases from start to finish when they are in work
     if available-resource = 0
     [
       set event-status PAUSED
-      if VERBOSE [print (word eventID " - CID PAUSED - waiting for " [self] of current-resource " to return to work - " event-resource-counter " additional person hours required to complete this event")]
+      if VERBOSE [output-print (word eventID " - CID PAUSED - waiting for " [self] of current-resource " to return to work - " event-resource-counter " additional person hours required to complete this event")]
     ]
   ]
 end
@@ -627,11 +629,11 @@ to check-event-status
   if event-resource-type = CID [ set work-done sum [(1 - non-crime-%-CID) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
   if event-resource-type = RESPONSE [ set work-done sum [(1 - non-crime-%-RESPONSE) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
 
-  type (word eventID " ") ask current-resource [ type (word self " contributing " (1 / (count current-event)) " p/h ") ]
+  output-type (word eventID " ") ask current-resource [ output-type (word self " contributing " (1 / (count current-event)) " p/h ") ]
   ; now decrement this amount from the event-resource-counter
   set event-resource-counter (event-resource-counter - work-done)
 
-  if VERBOSE [print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")]
+  if VERBOSE [output-print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")]
 
   ;Now check if the event can be resolved this cycle?
   if event-resource-counter <= 0
@@ -639,7 +641,7 @@ to check-event-status
     ; if so - end the event, record that, relinquish resource(s), destroy the event agent
     ask current-resource [ relinquish ]
     set count-completed-events count-completed-events + 1
-    if VERBOSE [print (word EventID " - COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show end-dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt end-dt "hours") " hours")]
+    if VERBOSE [output-print (word EventID " - COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show end-dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt end-dt "hours") " hours")]
     if event-file-out [write-completed-event-out]
     die
   ]
@@ -651,7 +653,7 @@ end
 to resolve-without-response
 
   set count-completed-events count-completed-events + 1
-  if VERBOSE [print (word EventID " - EVENT COMPLETE (without physical response) - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between dt dt "hours") " hours")]
+  if VERBOSE [output-print (word EventID " - EVENT COMPLETE (without physical response) - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between dt dt "hours") " hours")]
   if event-file-out [write-completed-without-response]
   die
 
@@ -681,7 +683,7 @@ to get-resources-CID-parallel
   ;check if the required number of CID resources are available that are COMPLETELY FREE
   ifelse count CID-officers with [resource-status = ON-DUTY-AVAILABLE] >= (event-resource-req-officers)
   [
-    if VERBOSE [print (word EventID " - CID OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
+    if VERBOSE [output-print (word EventID " - CID OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
     ;link resource to event
     set current-resource n-of event-resource-req-officers CID-officers with [resource-status = ON-DUTY-AVAILABLE]
 
@@ -701,7 +703,7 @@ to get-resources-CID-parallel
 
   ;in this scenario there are not enough complelety free CID resources - but an event must be responded to so start to split jobs
   [
-    if VERBOSE [print (word EventID " - active CID OFFICERS being partially allocated to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
+    if VERBOSE [output-print (word EventID " - active CID OFFICERS being partially allocated to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total " REMAINING = " event-resource-counter )]
 
     ;user-message "Not enough CID officers - job split needed"
     ;find the currently on shift but responding officers with the lowest current workload and assign them to the job
@@ -728,9 +730,9 @@ end
 
 ;method to check for CID Officers assigned to a job but currently offshift and reallocate them to their current job when they roster back on
 to rejoin-job-CID
-  type (word EventID " waiting for ")
+  output-type (word EventID " waiting for ")
   ask current-resource with [resource-status != 2] [type (word self ",")]
-  print ""
+  output-print ""
 
   ; for CID Jobs current-resource contains a list of all agents who are assigned to the job - this can include officers who are currently rostered off
   ; - when they are rostered back on this catches them and reallocated them to their ongoing job
@@ -739,7 +741,7 @@ to rejoin-job-CID
     ;if one or more of my current-resource has just been rostered on - reallocate them
     if resource-status = ON-DUTY-AVAILABLE
     [
-      print (word self " returning to " [EventID] of current-event)
+      output-print (word self " returning to " [EventID] of current-event)
       ask current-event [ set event-status ONGOING ] ;if all staff have been rostered off the event will be paused - when you add 1 or more officers unpause it and set is as ongoing
       set resource-status ON-DUTY-RESPONDING
     ]
@@ -753,7 +755,7 @@ to get-resources-response
   ;check if the required number of CID resources are currently available if not event remains unallocated
   if count RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE] >= (event-resource-req-officers)
   [
-    if VERBOSE [print (word EventID " - RESPONSE OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total  " REMAINING = " event-resource-counter )]
+    if VERBOSE [output-print (word EventID " - RESPONSE OFFICERS responding to priority " event-priority " " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total  " REMAINING = " event-resource-counter )]
     ;link responce resource to event
     set current-resource n-of event-resource-req-officers RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE]
 
@@ -789,7 +791,7 @@ to replenish-resources-response
   ;check if the required number of resources are available to replenish job
   if count RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE ] >= (event-resource-req-officers - (count current-resource))
   [
-    if VERBOSE [print (word EventID " - Adding RESPONSE officers to " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
+    if VERBOSE [output-print (word EventID " - Adding RESPONSE officers to " event-type " event - " event-resource-req-officers " unit(s) required for " event-resource-req-hours " hour(s) - TOTAL RESOURCE REQ = " event-resource-req-total)]
 
     ;link new resources to event with the old resources
     set current-resource (turtle-set (current-resource) n-of (event-resource-req-officers - (count current-resource)) RESPONSE-officers with [resource-status = ON-DUTY-AVAILABLE])
@@ -1272,10 +1274,10 @@ ticks
 BUTTON
 10
 15
-80
+77
 48
-NIL
-setup\n
+setup
+\nsetup\n
 NIL
 1
 T
@@ -1547,7 +1549,7 @@ SWITCH
 343
 event-file-out
 event-file-out
-0
+1
 1
 -1000
 
@@ -1847,10 +1849,10 @@ Backlog
 1
 
 MONITOR
-622
-1071
-877
-1116
+620
+1015
+875
+1060
 Response - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = RESPONSE]
 3
@@ -1858,10 +1860,10 @@ mean [events-completed] of resources with [resource-type = RESPONSE]
 11
 
 MONITOR
-622
-1121
-877
-1166
+620
+1065
+875
+1110
 CID - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = CID]
 3
@@ -1891,10 +1893,10 @@ count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = C
 11
 
 MONITOR
-908
-1064
-1048
-1109
+905
+1015
+1045
+1060
 Average CID Workload
 mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 3
@@ -1902,10 +1904,10 @@ mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAIL
 11
 
 MONITOR
-908
-1114
-1048
-1159
+905
+1065
+1045
+1110
 Max CID Workload 
 max [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 17
@@ -1913,10 +1915,10 @@ max [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILA
 11
 
 MONITOR
-908
-1165
-1048
-1210
+906
+1119
+1046
+1164
 Min CID Workload
 min [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = 2) and resource-type = CID]
 17
@@ -1981,6 +1983,30 @@ non-crime-%-RESPONSE
 1
 NIL
 HORIZONTAL
+
+BUTTON
+10
+775
+175
+808
+REGRESSION-TEST
+set StartYear 2021\nset SetSeed true\nset replication 1\nset VERBOSE true\n\nset StartMonth 1\nset Force \"TEST\"\n\nset shift-1-CID 20\nset shift-2-CID 20\nset shift-3-CID 20\n\nset shift-1-response 20\nset shift-2-response 20\nset shift-3-response 20\n\nset non-crime-%-CID 0\nset non-crime-%-RESPONSE 0\n\nset color-by-priority false\n\nset show-workload false\nset event-file-out false\n\nsetup \nrepeat 800 [ go-step ]\n\nexport-output user-new-file
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+OUTPUT
+1720
+15
+2495
+1080
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
