@@ -199,6 +199,10 @@ def get_category_subtypes():
     .set_index(["force", "POLICE_UK_CAT_MAP_category"])
   cats = cats.append(asb)
 
+  # WORKAROUND for -ve values in data: floor the aggregated count at zero
+  # See https://github.com/M-O-P-D/Police-Supply-Demand/issues/14 for more info
+  cats["count"] = cats["count"].clip(0, None)
+  
   # turn counts into per-category proportions
   cat_totals = cats[["count"]].groupby(level=[0,1]).sum()
   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_total"])
