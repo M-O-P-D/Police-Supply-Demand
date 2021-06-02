@@ -165,10 +165,14 @@ def get_category_subtypes():
   else:
     raw = pd.read_csv(cached_data)
 
+  # The publishers of the above data change it periodically, including column names(!)
+  expected_columns = ["Force Name", "Offence Description", "Offence Group", "Offence Subgroup", "Offence Code", "Offence Count", "Number of Offences"]
+  assert all(c in raw.columns for c in expected_columns)
+
   # remove extraneous and rename for consistency
   non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'UK Finance']
   raw = raw[~raw["Force Name"].isin(non_geographic)].drop(["Financial Year", "Financial Quarter", "Offence Subgroup"], axis=1) \
-    .rename({"Force Name": "force", "Offence Group": "category", "Offence Description": "description", "Offence Code": "code_original", "Offence Count": "count"}, axis=1)
+    .rename({"Force Name": "force", "Offence Group": "category", "Offence Description": "description", "Offence Code": "code_original", "Number of Offences": "count"}, axis=1)
 
   # duplicate code column and modify values that don't match the codes in the severity scores
   raw["code_severity"] = raw.code_original.apply(map_code)
@@ -207,6 +211,8 @@ def get_category_subtypes():
   cat_totals = cats[["count"]].groupby(level=[0,1]).sum()
   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_total"])
   cats["proportion"] = cats["count"] / cats.count_total
+
+  cats.to_csv("wiltshire.csv") # blank entries in count/proportion
 
   return cats.drop(["count", "count_total"], axis=1)
 
