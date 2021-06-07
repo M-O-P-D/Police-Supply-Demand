@@ -50,6 +50,25 @@ globals
   RESPONSE
   CID
 
+
+  ;globals for counting current demand by offence type & non-crime
+  asb-demand ;if event-type = "Anti-social behaviour"
+  bike-demand ;if event-type = "Bicycle theft"
+  burg-demand ;if event-type = "Burglary"
+  damage-demand;if event-type = "Criminal damage and arson"
+  drug-demand;if event-type = "Drugs"
+  other-demand;if event-type = "Other crime"
+  theft-demand;if event-type = "Other theft"
+  weapons-demand;if event-type = "Possession of weapons"
+  po-demand;if event-type = "Public order"
+  robb-demand;if event-type = "Robbery"
+  shop-demand;if event-type = "Shoplifting"
+  tfp-demand;if event-type = "Theft from the person"
+  veh-demand;if event-type = "Vehicle crime"
+  viol-sex-demand;if event-type = "Violence and sexual offences"
+  crime-demand
+  non-crime-demand
+
 ]
 
 
@@ -129,6 +148,48 @@ to set-enumerations
   ; resource-type
   set RESPONSE 1
   set CID 2
+
+end
+
+
+to reset-demand-globals
+  set viol-sex-demand 0
+  set asb-demand 0
+  set bike-demand 0
+  set burg-demand 0
+  set damage-demand 0
+  set drug-demand 0
+  set other-demand 0
+  set theft-demand 0
+  set weapons-demand 0
+  set po-demand 0
+  set robb-demand 0
+  set shop-demand 0
+  set tfp-demand 0
+  set veh-demand 0
+  set non-crime-demand 0
+  set crime-demand 0
+
+end
+
+
+
+
+to print-demand-globals
+    print (word "asb-demand = " asb-demand  )
+    print (word "bike-demand = " bike-demand  )
+    print (word "burg-demand = " burg-demand  )
+    print (word "damage-demand = " damage-demand )
+    print (word "drug-demand = " drug-demand  )
+    print (word "other-demand = " other-demand )
+    print (word "theft-demand = " theft-demand )
+    print (word "weapons-demand = " weapons-demand )
+    print (word "po-demand = " po-demand)
+    print (word "robb-demand = " robb-demand )
+    print (word "shop-demand = " shop-demand )
+    print (word "tfp-demand = " tfp-demand)
+    print (word "veh-demand = " veh-demand)
+    print (word "viol-sex-demand = " viol-sex-demand   )
 
 end
 
@@ -244,6 +305,9 @@ to setup
   set Shift-3 TRUE
   roster-on 3
 
+
+  reset-demand-globals
+
   output-print "Model Initialised"
 
 end
@@ -260,6 +324,7 @@ to go-step
   check-shift
   ;reset the hourly crime count
   set count-crime-timestep 0
+  reset-demand-globals
   ;read in current hour's events
 
   output-print ("--- TASKING & CO-ORDINATING -----------------------\n")
@@ -304,13 +369,17 @@ to go-step
 
   ;update visualisations - do this after resources have been allocated and before jobs have finished - so that plots reflect actual resource usage 'mid-hour' as it were
   ask resources [  draw-resource-status ]
-  update-all-plots
+
 
   ;check status of ongoing events so those about to complete can be closed
   ask events with [event-status = ONGOING and event-resource-type = RESPONSE] [ check-event-status ] ; RESPONSE EVENTS
   ask events with [event-status = ONGOING and event-resource-type = CID] [ check-event-status ] ; CID EVENTS
 
+  update-all-plots
+
   ;tick by one hour
+
+  ;print-demand-globals
   increment-time
 
 end
@@ -628,12 +697,46 @@ to check-event-status
   ; total is the sum contribution accross all officers currently allocated to the event - the 1 in this equation could be parameterised to reflect that officers only have some proporition of time each hour for crime-related activity - i.e. at 0.5 time able to be spent on crime halves.
 
   let work-done 0
-  if event-resource-type = CID [ set work-done sum [(1 - non-crime-%-CID) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
-  if event-resource-type = RESPONSE [ set work-done sum [(1 - non-crime-%-RESPONSE) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]]
+  if event-resource-type = CID
+  [
+    set work-done sum [(1 - non-crime-%-CID) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]
+    ;add to global counter of non-crime-demand this hour
+    set non-crime-demand non-crime-demand + (1 - non-crime-%-CID)
+  ]
+  if event-resource-type = RESPONSE
+  [
+    set work-done sum [(1 - non-crime-%-RESPONSE) / (count current-event)] of current-resource with [resource-status = ON-DUTY-RESPONDING]
+    ;add to global counter of non-crime-demand this hour
+    set non-crime-demand non-crime-demand + (1 - non-crime-%-RESPONSE)
+  ]
 
   if VERBOSE [output-type (word eventID " ") ask current-resource [ output-type (word self " contributing " (1 / (count current-event)) " p/h ") ]]
   ; now decrement this amount from the event-resource-counter
   set event-resource-counter (event-resource-counter - work-done)
+
+
+  ;log demand - this is not very efficient - ordering the case statement by frequency of offences will presumably help a little - but still
+  (ifelse
+    event-class = "violence and sexual offences" [ set viol-sex-demand  viol-sex-demand + work-done ]
+    event-class = "anti-social behaviour" [ set asb-demand  asb-demand  + work-done ]
+    event-class = "bicycle theft" [ set bike-demand  bike-demand  + work-done ]
+    event-class = "burglary" [ set burg-demand  burg-demand  + work-done ]
+    event-class = "criminal damage and arson" [ set damage-demand  damage-demand + work-done ]
+    event-class = "drugs" [ set drug-demand  drug-demand + work-done ]
+    event-class = "other crime" [ set other-demand other-demand + work-done ]
+    event-class = "other theft" [ set theft-demand theft-demand + work-done ]
+    event-class = "possession of weapons" [ set weapons-demand  weapons-demand + work-done ]
+    event-class = "public order" [ set po-demand po-demand + work-done ]
+    event-class = "robbery" [ set robb-demand robb-demand + work-done ]
+    event-class = "shoplifting" [ set shop-demand shop-demand + work-done ]
+    event-class = "theft from the person" [ set tfp-demand tfp-demand + work-done ]
+    event-class = "vehicle crime" [ set veh-demand veh-demand + work-done ]
+  )
+
+
+
+
+
 
   if VERBOSE [output-print (word "Job ongoing - requires = " event-resource-req-total " --- currently " count current-resource " officers allocated - total p/h=" work-done " now " event-resource-counter " resource hours remaining")]
 
@@ -966,72 +1069,72 @@ to update-all-plots
   set out-string (word (time:show dt "dd-MM-yyyy HH:mm") ",")
 
   set-current-plot-pen "Anti-social behaviour"
-  set x count resources with [current-event-class = "anti-social behaviour"]
+  set x asb-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Bicycle theft"
-  set x count resources with [current-event-class = "bicycle theft"]
+  set x bike-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Burglary"
-  set x count resources with [current-event-class = "burglary"]
+  set x burg-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Criminal damage and arson"
-  set x count resources with [current-event-class = "criminal damage and arson"]
+  set x damage-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Drugs"
-  set x count resources with [current-event-class = "drugs"]
+  set x drug-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other crime"
-  set x count resources with [current-event-class = "other crime"]
+  set x other-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Other theft"
-  set x count resources with [current-event-class = "other theft"]
+  set x theft-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Possession of weapons"
-  set x count resources with [current-event-class = "possession of weapons"]
+  set x weapons-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Public order"
-  set x count resources with [current-event-class = "public order"]
+  set x po-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Robbery"
-  set x count resources with [current-event-class = "robbery"]
+  set x robb-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Shoplifting"
-  set x count resources with [current-event-class = "shoplifting"]
+  set x shop-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Theft from the person"
-  set x count resources with [current-event-class = "theft from the person"]
+  set x tfp-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Vehicle crime"
-  set x count resources with [current-event-class = "vehicle crime"]
+  set x veh-demand
   plot x
   set out-string (word out-string x ",")
 
   set-current-plot-pen "Violence and sexual offences"
-  set x count resources with [current-event-class = "violence and sexual offences"]
+  set x viol-sex-demand
   plot x
   set out-string (word out-string x)
 
@@ -1152,6 +1255,66 @@ end
 
 
 
+;to calc-resource-split-by-hr
+;
+;
+;
+;  let othertheft sum ask resources [time-spent-on-offence "Other-theft"]
+;
+;
+;end
+;
+;
+;
+;
+;
+;; agent method to return how much time spent on specified offence in the last hour
+;to-report time-spent-on-offence [ offence ]
+;
+;  let tmp ""
+;  let num-jobs count current-event ; how many jobs is this officer working on - this dictates how much can be devoted to each per hour
+;
+;  (ifelse
+;    num-jobs = 0 [ report 0 ] ; no jobs SHOULDN@T NEED THIS - COULD JUST ASK RESPONDING OFFICERS TO CALL THIS
+;
+;    num-jobs = 1
+;    [
+;      print "just one job"
+;      ;current event should a single agent agentset
+;      ask current-event
+;      [
+;        set tmp event-type
+;        print tmp
+;        print offence
+;      ]
+;      ifelse tmp = offence
+;      [ report 1 ]
+;      [ report 0 ]
+;    ]
+;
+;    num-jobs > 1
+;    [
+;      print "more than one job"
+;      let count_offence 0 ; to count the number of jobs with type 'offence' - i.e. an officer might be working on 3 crimes all of the same type or some mix
+;
+;      let workload 1 / num-jobs ; how much per hour per job - 4 concurrent jobs = 1/4hr per job
+;
+;      ;this should be a multi agent agentset
+;      ask current-event
+;      [
+;        set tmp event-type
+;        print tmp
+;        print offence
+;        if tmp = offence
+;        [ set count_offence count_offence + 1 ]
+;      ]
+;      report count_offence * workload ; times the number of instances of that crime by the workload per hour per job  - so 3 jobs - workload = 1/3 hour, 2 that match offence - thus report 2/3
+;    ]
+;  )
+;
+;end
+
+
 
 ;to-report equal-ignore-case? [ str1 str2 ]
 ;
@@ -1251,7 +1414,7 @@ GRAPHICS-WINDOW
 192
 263
 484
-896
+897
 -1
 -1
 28.42
@@ -1355,7 +1518,7 @@ count-completed-events
 PLOT
 520
 145
-1705
+1165
 265
 % Resource Usage
 time
@@ -1445,7 +1608,7 @@ PLOT
 1270
 272
 1704
-792
+532
 scatter
 count events
 count resource
@@ -1592,7 +1755,7 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 PLOT
 520
 15
-1705
+1140
 140
 Crime
 NIL
@@ -1602,7 +1765,7 @@ NIL
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
 "total" 1.0 0 -16777216 true "" ""
@@ -1669,7 +1832,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-22
+9
 
 INPUTBOX
 15
@@ -1966,7 +2129,7 @@ non-crime-%-CID
 non-crime-%-CID
 0
 1
-0.85
+0.2
 0.01
 1
 NIL
@@ -1981,7 +2144,7 @@ non-crime-%-RESPONSE
 non-crime-%-RESPONSE
 0
 1
-0.12
+0.2
 0.01
 1
 NIL
@@ -2014,10 +2177,43 @@ OUTPUT
 MONITOR
 130
 1110
-912
+1042
 1155
 NIL
-sum ( 1 / ([(count current-event)]) of resources with [resource-status = ON-DUTY-RESPONDING and resource-type = CID] )
+sum ( [1 / count current-event] of resources with [resource-status = ON-DUTY-RESPONDING and [event-type] of current-event = [\"Other theft\"]])
+17
+1
+11
+
+MONITOR
+1275
+540
+1392
+585
+NIL
+viol-sex-demand
+17
+1
+11
+
+MONITOR
+1395
+540
+1510
+585
+NIL
+burg-demand
+17
+1
+11
+
+MONITOR
+1275
+590
+1390
+635
+NIL
+asb-demand
 17
 1
 11
