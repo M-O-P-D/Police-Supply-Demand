@@ -1,12 +1,9 @@
 #crime.py
 
 from zipfile import ZipFile
-from pathlib import Path
 import requests
 import numpy as np
 import pandas as pd
-import geopandas as gpd
-from shapely.geometry import Polygon
 from scipy import stats
 # appears that this is no longer working
 #from police_api import PoliceAPI
