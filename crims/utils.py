@@ -166,7 +166,7 @@ def get_category_subtypes():
     raw = pd.read_csv(cached_data)
 
   # The publishers of the above data change it periodically, including column names(!)
-  expected_columns = ["Force Name", "Offence Description", "Offence Group", "Offence Subgroup", "Offence Code", "Offence Count", "Number of Offences"]
+  expected_columns = ["Force Name", "Offence Description", "Offence Group", "Offence Subgroup", "Offence Code", "Number of Offences"]
   assert all(c in raw.columns for c in expected_columns)
 
   # remove extraneous and rename for consistency
@@ -183,10 +183,6 @@ def get_category_subtypes():
   # manual match of police.uk to ONS crime descriptions -> codes
   cat_mapping = pd.read_csv(get_data_path("policeuk-ons-code-join.csv"))[["POLICE_UK_CAT_MAP_category", "ONS_COUNTS_code", "ONS_SEVERITY_weight"]]
   cat_mapping.POLICE_UK_CAT_MAP_category = cat_mapping.POLICE_UK_CAT_MAP_category.apply(standardise_category_name)
-
-  #print(cat_mapping.head())
-
-  #raw["POLICE_UK_CAT_MAP_category"] = raw.code_original.apply()
 
   cats = raw.groupby(["force", "category", "description", "code_original"]).sum().reset_index()
 
@@ -216,32 +212,3 @@ def get_category_subtypes():
 
   return cats.drop(["count", "count_total"], axis=1)
 
-# # Using Alex's original data
-# def get_category_subtypes():
-#   # TODO get original data and process it, see https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods
-#   # and https://github.com/M-O_P-D/crime_sim_toolkit/blob/master/data_manipulation/MappingCrimeCat2CrimeDes.ipynb
-#   file = "./data/prc-pfa-201718_new.csv"
-
-#   raw = pd.read_csv(file).rename({"Force_Name": "force",  "Policeuk_Cat": "category", "Offence_Description": "description"}, axis=1)
-
-#   non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'Financial Fraud Action UK', 'UK Finance']
-#   raw = raw[~raw["force"].isin(non_geographic)]
-#   #print(raw.force.unique())
-
-#   # add antisocial behaviour
-#   asb = pd.DataFrame(data={"force": raw.force.unique(), "category": "Anti-social behaviour", "description": "Anti-social behaviour", "Number_of_Offences": 1})
-#   raw = raw.append(asb)
-
-#   raw.force = raw.force.apply(standardise_force_name)
-#   raw.category = raw.category.apply(standardise_category_name)
-
-#   cats = raw.groupby(["force", "category", "description"]).sum() \
-#     .drop(["Unnamed: 0", "Financial_Quarter"], axis=1) \
-#     .rename({"Number_of_Offences": "offences"}, axis=1)
-
-#   cat_totals = cats.groupby(level=[0,1]).sum()
-
-#   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_cat"])
-#   cats["proportion"] = cats.offences / cats.offences_cat
-
-#   return cats
