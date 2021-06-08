@@ -1,7 +1,7 @@
 ; FIX REQUIRED - WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSFERRED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
 ; IF 20 CID EVENTS IN SHIFT 1 should they all be distributed amongst the currently active CID officers - or should some from another shift be allocated jobs to start when their shift starts?
 ; fix plotting to reflect double counting of events etc ...
-; eliminate event paused
+
 
 extensions [csv table time pathdir py]
 
@@ -506,14 +506,14 @@ to generate-event-requirements
 
   ; TODO can 1/2/3 be dealt with in a single if block (+ if 1, call CID)
   ;PRIORITY 1 Events - RESPONSE & CID officers
-  ;For priority 1 events we model an initial hour of RESPONSE OFFICER time (single or double crewed depending on shift) and then create a new knock on event for CID to deal with using call-CID
+  ;For priority 1 events we model an initial hour of RESPONSE OFFICER time (single or double crewed depending on shift and options) and then create a new knock on event for CID to deal with using call-CID
   if event-priority = 1
   [
     ;get one hour of response officer(s) time for immediate response to priority 1 events then handover to CID to complete job
     set event-resource-req-hours 1
-    ifelse Shift-3 ;if shift 3 double crew, otherwise single crew
-    [set event-resource-req-officers 2]
-    [set event-resource-req-officers 1]
+    ifelse Shift-3 ;Night (shift 3) or Day (shifts 1,2) - check double crewing options
+    [ifelse response-safe-crewing-NIGHT [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
+    [ifelse response-safe-crewing-DAY [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
     set event-resource-req-total (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
     output-print (word EventID " INITIAL-RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
@@ -523,14 +523,14 @@ to generate-event-requirements
   ]
 
   ;PRIORITY 2 & 3 Events - RESPONSE officers only
-  ;For priority 2 & 3 events we calculate RESPONSE OFFICER time only (single or double crewed depending on shift)
+  ;For priority 2 & 3 events we calculate RESPONSE OFFICER time only (single or double crewed depending on shift and options)
   if (event-priority = 2 or event-priority = 3)
   [
     ;calculate hours required based on severity and presence/absence of suspect (final parameter an optional weight to over/under concentrate on case - increase/decrease hours = hardcoded to 1 no effect)
     set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1
-    ifelse Shift-3 ;if shift 3 double crew, otherwise single crew
-    [set event-resource-req-officers 2]
-    [set event-resource-req-officers 1]
+    ifelse Shift-3 ;Night (shift 3) or Day (shifts 1,2) - check double crewing options
+    [ifelse response-safe-crewing-NIGHT [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
+    [ifelse response-safe-crewing-DAY [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
     ;calculate total person hours
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
@@ -923,25 +923,9 @@ end
 ; color resource agents based on current state - blue for responding - grey for available
 to draw-resource-status
 
-  ifelse color-by-priority
-  [
-  if resource-status = OFF-DUTY [ set color grey ] ; rostered off
-  if resource-status = ON-DUTY-AVAILABLE [ set color white ] ; active & available
-  if resource-status = ON-DUTY-RESPONDING
-    [
-      let tmp-priority [event-priority] of current-event
-      if tmp-priority = 1 [set color red]
-      if tmp-priority = 2 [set color blue]
-      if tmp-priority = 3 [set color yellow]
-    ] ; active & on event
-
-  ]
-  [
   if resource-status = OFF-DUTY [ set color grey ] ; rostered off
   if resource-status = ON-DUTY-AVAILABLE [ set color white ] ; active & available
   if resource-status = ON-DUTY-RESPONDING [ set color blue ] ; active & on event
-  ]
-
   ifelse show-workload [set plabel (count current-event)] [set plabel ""]
 
 end
@@ -1411,10 +1395,10 @@ end
 ;plot count events with [event-type = "Violence and sexual offences"]
 @#$#@#$#@
 GRAPHICS-WINDOW
-192
-263
-484
-897
+190
+355
+482
+989
 -1
 -1
 28.42
@@ -1668,9 +1652,9 @@ PENS
 
 SWITCH
 10
-905
+865
 175
-938
+898
 VERBOSE
 VERBOSE
 1
@@ -1755,7 +1739,7 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 PLOT
 520
 15
-1140
+1135
 140
 Crime
 NIL
@@ -1813,17 +1797,6 @@ Shift1-Shift2-Shift3
 1
 11
 
-SWITCH
-10
-867
-175
-900
-color-by-priority
-color-by-priority
-1
-1
--1000
-
 CHOOSER
 15
 95
@@ -1832,7 +1805,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-9
+43
 
 INPUTBOX
 15
@@ -2111,9 +2084,9 @@ PENS
 
 SWITCH
 10
-940
+900
 175
-973
+933
 show-workload
 show-workload
 1
@@ -2144,7 +2117,7 @@ non-crime-%-RESPONSE
 non-crime-%-RESPONSE
 0
 1
-0.2
+0.0
 0.01
 1
 NIL
@@ -2156,7 +2129,7 @@ BUTTON
 175
 808
 REGRESSION-TEST
-set StartYear 2021\nset SetSeed true\nset replication 1\nset VERBOSE false\n\nset StartMonth 1\nset Force \"City of London\"\n\nset shift-1-CID 20\nset shift-2-CID 20\nset shift-3-CID 20\n\nset shift-1-response 20\nset shift-2-response 20\nset shift-3-response 20\n\nset non-crime-%-CID 0\nset non-crime-%-RESPONSE 0\n\nset color-by-priority false\n\nset show-workload false\nset event-file-out false\n\nsetup \nrepeat 1000 [ go-step ]\n\nexport-output user-new-file
+set StartYear 2021\nset SetSeed true\nset replication 1\nset VERBOSE false\n\nset StartMonth 1\nset Force \"City of London\"\n\nset shift-1-CID 20\nset shift-2-CID 20\nset shift-3-CID 20\n\nset shift-1-response 20\nset shift-2-response 20\nset shift-3-response 20\n\nset non-crime-%-CID 0\nset non-crime-%-RESPONSE 0\n\n\nset show-workload false\nset event-file-out false\n\nsetup \nrepeat 1000 [ go-step ]\n\nexport-output user-new-file
 NIL
 1
 T
@@ -2172,17 +2145,6 @@ OUTPUT
 15
 2490
 1080
-11
-
-MONITOR
-130
-1110
-1042
-1155
-NIL
-sum ( [1 / count current-event] of resources with [resource-status = ON-DUTY-RESPONDING and [event-type] of current-event = [\"Other theft\"]])
-17
-1
 11
 
 MONITOR
@@ -2217,6 +2179,28 @@ asb-demand
 17
 1
 11
+
+SWITCH
+195
+260
+440
+293
+response-safe-crewing-DAY
+response-safe-crewing-DAY
+0
+1
+-1000
+
+SWITCH
+195
+300
+442
+333
+response-safe-crewing-NIGHT
+response-safe-crewing-NIGHT
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
