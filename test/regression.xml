@@ -1,0 +1,32 @@
+<experiments>
+  <experiment name="regression-test" repetitions="1" runMetricsEveryStep="true">
+    <setup>
+      set StartYear 2021
+      set SetSeed true
+      set replication 1
+      set VERBOSE false
+
+      set StartMonth 1
+      set Force "City of London"
+
+      set shift-1-CID 20
+      set shift-2-CID 20
+      set shift-3-CID 20
+
+      set shift-1-response 20
+      set shift-2-response 20
+      set shift-3-response 20
+
+      set non-crime-%-CID 0
+      set non-crime-%-RESPONSE 0
+
+      set show-workload false
+      set event-file-out false
+
+      setup 
+    </setup>
+    <go>go-step</go>
+    <!--final>export-output user-new-file</final-->
+    <timeLimit steps="1000"/>
+  </experiment>
+</experiments>

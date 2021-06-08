@@ -84,9 +84,9 @@ def get_crimes(start, end):
 
   # NB model time is the start of the *next* (as yet unsampled) timestep
   if ts >= model.timeline().time():
-    no.log("%s Sampling crimes in %s for month beginning %s..." % (datetime.now(), model.force_area(), model.timeline().time()))
+    no.log("Sampling crimes in %s for month beginning %s..." % (model.force_area(), model.timeline().time()))
     no.run(model)
-    no.log("%s sampling complete" % datetime.now())
+    no.log("Sampling complete")
 
   #no.log("%s -> %s: %d" % (ts, te, len(model.crimes[(model.crimes.time >= ts) & (model.crimes.time < te)])))
 

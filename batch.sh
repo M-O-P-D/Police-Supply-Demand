@@ -1,5 +1,7 @@
 #!/bin/bash
 
+##### THIS IS FOR RUNNING ON ARC4 ONLY #####
+
 #$ -m be
 #$ -M a.p.smith@leeds.ac.uk
 #$ -cwd -V
