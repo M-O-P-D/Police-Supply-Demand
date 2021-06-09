@@ -1,25 +1,25 @@
 
+import os
 import subprocess
 #import filecmp
 #from io import BytesIO
+from pathlib import Path
 
 # TODO make NETLOGO_HOME an env var
-NETLOGO="/home/az/NetLogo 6.2.0/netlogo-headless.sh"
 
 BASELINE="test/regression-baseline.txt"
 
-
 def test_regression():
 
-  result = subprocess.run([NETLOGO, "--model", "event-response-with-shifts.nlogo", "--setup-file", "test/regression.xml"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  #result = subprocess.run(["ls", "-l", "crims"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  netlogo_dir = os.getenv("NETLOGO_HOME")
+  assert netlogo_dir, "NETLOGO_HOME is not set"
+  netlogo = Path(netlogo_dir) / "netlogo-headless.sh"
+  assert netlogo.is_file(), "%s not found, check NETLOGO_HOME is set correctly" % netlogo
 
-  # print(result.returncode)
-  # print(result.stdout)
-  # print(result.stderr)
+  result = subprocess.run([str(netlogo), "--model", "event-response-with-shifts.nlogo", "--setup-file", "test/regression.xml"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-  assert result.returncode == 0
-  assert len(result.stderr) == 0
+  assert result.returncode == 0, "Script returned error code: %d" % result.returncode
+  assert len(result.stderr) == 0, "Script generated errors:\n%s" % result.stderr
 
   # skip blank at end
   output = result.stdout.decode("utf-8").split("\n")[:-1]
@@ -39,8 +39,8 @@ def test_regression():
     with open (BASELINE, "wb") as fd:
       fd.write(result.stdout)
 
-  assert not diff
- 
+  assert not diff, "Files differ - check and update if necessary"
+
 
 if __name__ == "__main__":
   test_regression()
