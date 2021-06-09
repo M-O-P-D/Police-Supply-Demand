@@ -1805,7 +1805,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-43
+22
 
 INPUTBOX
 15
@@ -2122,30 +2122,6 @@ non-crime-%-RESPONSE
 1
 NIL
 HORIZONTAL
-
-BUTTON
-10
-775
-175
-808
-REGRESSION-TEST
-set StartYear 2021\nset SetSeed true\nset replication 1\nset VERBOSE false\n\nset StartMonth 1\nset Force \"City of London\"\n\nset shift-1-CID 20\nset shift-2-CID 20\nset shift-3-CID 20\n\nset shift-1-response 20\nset shift-2-response 20\nset shift-3-response 20\n\nset non-crime-%-CID 0\nset non-crime-%-RESPONSE 0\n\n\nset show-workload false\nset event-file-out false\n\nsetup \nrepeat 1000 [ go-step ]\n\nexport-output user-new-file
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
-OUTPUT
-1715
-15
-2490
-1080
-11
 
 MONITOR
 1275
