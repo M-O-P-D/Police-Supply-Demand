@@ -1,11 +1,11 @@
 
 import os
 import subprocess
-#import filecmp
-#from io import BytesIO
 from pathlib import Path
 
-# TODO make NETLOGO_HOME an env var
+from dotenv import load_dotenv
+load_dotenv() # for NETLOGO_HOME
+
 
 BASELINE="test/regression-baseline.txt"
 

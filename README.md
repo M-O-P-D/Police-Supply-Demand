@@ -33,13 +33,13 @@ To run the integrated model, you must start netlogo from within your python env 
 
 To run the integrated model in headless mode on a compute cluster, see [batch](./doc/batch.md)
 
-To regression test both the ABM and crims models, run:
+To regression test both the ABM and crims models, first set `NETLOGO_HOME` in `.env` (or manually on command line) to your NetLogo installation path, then run:
 
 ```
 pytest
 ```
 
-Any output differences will cause a failure and the baseline output file `test/regression-baseline.txt` will be updated. Manually confirm the changes are ok before committing!
+setting the path as appropriate. You can define it in . Any output differences will cause a failure and the baseline output file `test/regression-baseline.txt` will be updated. Manually confirm the changes are ok before committing!
 
 ## Docker container
 
