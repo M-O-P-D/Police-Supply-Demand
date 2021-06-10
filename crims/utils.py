@@ -208,7 +208,5 @@ def get_category_subtypes():
   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_total"])
   cats["proportion"] = cats["count"] / cats.count_total
 
-  cats.to_csv("wiltshire.csv") # blank entries in count/proportion
-
   return cats.drop(["count", "count_total"], axis=1)
 

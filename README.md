@@ -41,6 +41,8 @@ pytest
 
 setting the path as appropriate. You can define it in . Any output differences will cause a failure and the baseline output file `test/regression-baseline.txt` will be updated. Manually confirm the changes are ok before committing!
 
+NOTE: if the output changes, the reference file will be overwritten automatically, so that changes can be reviewed and committed (or reverted). This means that running the regression test a second time will *always pass*, so be careful!
+
 ## Docker container
 
 Alternatively, you can pull a self-contained image from docker-hub:
