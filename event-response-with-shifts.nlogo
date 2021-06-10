@@ -771,7 +771,8 @@ to relinquish
   ;count a completed event for that individual officer
   set events-completed events-completed + 1
 
-  if count current-event = 0 [ if resource-status = ON-DUTY-RESPONDING [set resource-status ON-DUTY-AVAILABLE]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
+  ;if destroying this event agent will leave your count-events at 0 (the event will die after relinquish has run)
+  if (count current-event) - 1 = 0 [ if resource-status = ON-DUTY-RESPONDING [set resource-status ON-DUTY-AVAILABLE]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
                                                                     ;- the check on resource status is for the edge case whereby a job is split between officers at multiple shifts
                                                                    ;and one officer completes the job while the other is rostered off, in this case we should leave resource-status at OFF-DUTY
   ;THIS NEEDS FIX AS OFFICERS WORKING ON MULTIPLE JOBS LOSE THE ABILITY TO RECORD WHAT SOMEONE IS WORKING ON HERE
@@ -1657,7 +1658,7 @@ SWITCH
 898
 VERBOSE
 VERBOSE
-0
+1
 1
 -1000
 
@@ -2102,7 +2103,7 @@ non-crime-%-CID
 non-crime-%-CID
 0
 1
-0.2
+0.0
 0.01
 1
 NIL
