@@ -8,38 +8,59 @@
     <go>go-step</go>
     <final>close-files</final>
     <timeLimit steps="9504"/>
-    <!--enumeratedValueSet variable="event-characteristics">
-      <value value="&quot;Experimental&quot;"/>
-    </enumeratedValueSet-->
     <steppedValueSet variable="replication" first="1" step="1" last="10"/>
+    <enumeratedValueSet variable="non-crime-%-RESPONSE">
+      <value value="0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-1-response">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-3-CID">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-2-CID">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-1-CID">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="non-crime-%-CID">
+      <value value="0.2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-2-response">
+      <value value="50"/>
+    </enumeratedValueSet>
     <enumeratedValueSet variable="Force">
       <value value="&quot;Durham&quot;"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="StartYear">
-      <value value="2020"/>
+    <enumeratedValueSet variable="event-file-out">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="show-workload">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="replication">
+      <value value="1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="response-safe-crewing-DAY">
+      <value value="true"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-3-response">
+      <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="StartMonth">
       <value value="12"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="BurnInMonths">
-      <value value="1"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="color-by-priority">
-      <value value="false"/>
-    </enumeratedValueSet>
-    <enumeratedValueSet variable="number-resources">
-      <value value="1860"/>
-    </enumeratedValueSet>
     <enumeratedValueSet variable="VERBOSE">
       <value value="false"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="Shifts">
+    <enumeratedValueSet variable="SetSeed">
       <value value="true"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="event-file-out">
-      <value value="true"/>
+    <enumeratedValueSet variable="StartYear">
+      <value value="2020"/>
     </enumeratedValueSet>
-    <enumeratedValueSet variable="triage-events">
+    <enumeratedValueSet variable="response-safe-crewing-NIGHT">
       <value value="true"/>
     </enumeratedValueSet>
   </experiment>
