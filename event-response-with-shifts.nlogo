@@ -308,7 +308,7 @@ to setup
 
   reset-demand-globals
 
-  output-print "Model Initialised"
+  if not HEADLESS [ output-print "Model Initialised" ]
 
 end
 
@@ -318,7 +318,7 @@ end
 to go-step
 
   ;print the time
-  output-print (word "\n\n***  " (time:show dt "dd-MM-yyyy HH:mm") " to " (time:show end-dt "dd-MM-yyyy HH:mm") "  *******************************************************************************\n" )
+  if not HEADLESS [ output-print (word "\n\n***  " (time:show dt "dd-MM-yyyy HH:mm") " to " (time:show end-dt "dd-MM-yyyy HH:mm") "  *******************************************************************************\n" ) ]
 
   ;check what the current time is and proceed accordingly to roster shifts on and off
   check-shift
@@ -327,7 +327,7 @@ to go-step
   reset-demand-globals
   ;read in current hour's events
 
-  output-print ("--- TASKING & CO-ORDINATING -----------------------\n")
+  if not HEADLESS [ output-print ("--- TASKING & CO-ORDINATING -----------------------\n") ]
 
   read-events-from-crims
 
@@ -341,7 +341,7 @@ to go-step
   ;RESPONSE OFFICER ALLOCATIONS
   ;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-  output-print ("\n--- EVENT OUTCOMES -----------------------\n")
+  if not HEADLESS [ output-print ("\n--- EVENT OUTCOMES -----------------------\n") ]
   ;PRIORITY 1 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   ask events with [event-priority = 1 and event-resource-type = RESPONSE and event-status = PAUSED] [get-resources-response] ;pickup priority 1 RESPONSE ongoing jobs that are paused first (after they lost all resources at change of shift) - THIS CURRENTLY SHOULDN'T EVER HAPPEN AS INITIAL RESPONSE FOR PRIORITY 1 INCIDENTS IS ONLY EVER 1 HOUR - SO CAN'T SPAN SHIFTS
   ask events with [event-priority = 1 and event-resource-type = RESPONSE and event-status = AWAITING-SUPPLY] [get-resources-response]   ;then new jobs
@@ -516,7 +516,7 @@ to generate-event-requirements
     [ifelse response-safe-crewing-DAY [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
     set event-resource-req-total (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
-    output-print (word EventID " INITIAL-RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    if not HEADLESS [ output-print (word EventID " INITIAL-RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers ) ]
 
     ;then call CID and create a follow up event
     call-CID
@@ -534,7 +534,7 @@ to generate-event-requirements
     ;calculate total person hours
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
-    output-print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    if not HEADLESS [ output-print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers ) ]
   ]
 
   ;PRIORITY 4 Events - NO PHYSICAL RESPONSE officers only
@@ -546,7 +546,7 @@ to generate-event-requirements
     set event-resource-req-officers 0
     set event-resource-req-total  0
     set event-resource-counter 0
-    output-print (word EventID " VIRTUAL-RESPONSE " ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers )
+    if not HEADLESS [ output-print (word EventID " VIRTUAL-RESPONSE " ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers ) ]
   ]
 end
 
@@ -565,7 +565,7 @@ to call-CID
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
 
-    output-print (word EventID " FOLLOWUP-CID-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", CID Hours=" event-resource-req-hours ", CID Officers=" event-resource-req-officers )
+    if not HEADLESS [ output-print (word EventID " FOLLOWUP-CID-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", CID Hours=" event-resource-req-hours ", CID Officers=" event-resource-req-officers ) ]
   ]
 end
 
@@ -746,7 +746,7 @@ to check-event-status
     ; if so - end the event, record that, relinquish resource(s), destroy the event agent
     ask current-resource [ relinquish ]
     set count-completed-events count-completed-events + 1
-    output-print (word EventID " - EVENT COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show end-dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt end-dt "hours") " hours")
+    if not HEADLESS [ output-print (word EventID " - EVENT COMPLETE - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show event-start-dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show event-response-start-dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show end-dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between event-response-start-dt end-dt "hours") " hours") ]
     if event-file-out [write-completed-event-out]
     die
   ]
@@ -758,7 +758,7 @@ end
 to resolve-without-response
 
   set count-completed-events count-completed-events + 1
-  output-print (word EventID " - EVENT COMPLETE (without physical response) - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between dt dt "hours") " hours")
+  if not HEADLESS [ output-print (word EventID " - EVENT COMPLETE (without physical response) - " event-type " - Priority=" event-priority ", Event-Arrival=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Start=" (time:show dt "dd-MM-yyyy HH:mm") ", Response-Complete=" (time:show dt "dd-MM-yyyy HH:mm") ", Timetaken=" (time:difference-between dt dt "hours") " hours") ]
   if event-file-out [write-completed-without-response]
   die
 
@@ -1657,7 +1657,7 @@ SWITCH
 898
 VERBOSE
 VERBOSE
-1
+0
 1
 -1000
 
@@ -2084,12 +2084,12 @@ PENS
 
 SWITCH
 10
-900
+905
 175
-933
+938
 show-workload
 show-workload
-1
+0
 1
 -1000
 
@@ -2175,6 +2175,17 @@ SWITCH
 response-safe-crewing-NIGHT
 response-safe-crewing-NIGHT
 0
+1
+-1000
+
+SWITCH
+10
+945
+175
+978
+HEADLESS
+HEADLESS
+1
 1
 -1000
 
