@@ -26,4 +26,5 @@ log/
 NetLogo*/
 NetLogo-*.tgz
 
-
+# mac cruft
+.DS_Store
