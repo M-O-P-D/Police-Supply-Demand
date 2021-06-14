@@ -1,0 +1,79 @@
+<experiments>
+  <experiment name="more_response_control" repetitions="1" runMetricsEveryStep="true">
+    <setup>
+      setup
+    </setup>
+    <go>go-step</go>
+    <final>close-files</final>
+    <timeLimit steps="9504"/>
+    
+    <steppedValueSet variable="replication" first="1" step="1" last="10"/>
+
+    <enumeratedValueSet variable="SetSeed">
+      <value value="true"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="Force">
+      <value value="&quot;Durham&quot;"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="StartYear">
+      <value value="2020"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="StartMonth">
+      <value value="12"/>
+    </enumeratedValueSet>
+    
+    <enumeratedValueSet variable="shift-1-response">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-2-response">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-3-response">
+      <value value="50"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="shift-1-CID">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-2-CID">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="shift-3-CID">
+      <value value="30"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="response-safe-crewing-DAY">
+      <value value="false"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="response-safe-crewing-NIGHT">
+      <value value="true"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="non-crime-%-RESPONSE">
+      <value value="0.0"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="non-crime-%-CID">
+      <value value="0.0"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="event-file-out">
+      <value value="true"/>
+    </enumeratedValueSet>
+
+    <enumeratedValueSet variable="show-workload">
+      <value value="false"/>
+    </enumeratedValueSet>
+    
+    <enumeratedValueSet variable="VERBOSE">
+      <value value="false"/>
+    </enumeratedValueSet>
+    
+    <enumeratedValueSet variable="HEADLESS">
+      <value value="true"/>
+    </enumeratedValueSet>
+    
+
+  </experiment>
+</experiments>
