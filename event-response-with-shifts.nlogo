@@ -1169,7 +1169,7 @@ to start-file-out
 
   if file-exists? event-summary-file [file-delete event-summary-file]
   file-open event-summary-file
-  file-print "eventID,count-resources,event-status,event-type,event-class,event-LSOA,event-start-dt,event-response-start-dt,event-response-end-dt,event-resource-counter,event-resource-type,event-resource-req-time,event-resource-req-amount,event-resource-req-total"
+  file-print "eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,resource-counter,count-resources,status,hours-required,count-officers,total-requirement"
 
   if file-exists? active-event-trends-file [file-delete active-event-trends-file]
   file-open active-event-trends-file
@@ -1197,22 +1197,35 @@ end
 ;write out info on a completed event
 to write-completed-event-out
 
-      file-open event-summary-file
-      file-print (word
-        eventID ","
-        count current-resource ","
-        event-status ",\""
-        event-type "\",\""
-        event-class "\","
-        event-MSOA ","
-        (time:show event-start-dt "dd-MM-yyyy HH:mm") ","
-        (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  ","
-        (time:show end-dt "dd-MM-yyyy HH:mm") ","
-        event-resource-counter ","
-        event-resource-req-hours ","
-        event-resource-req-officers ","
-        event-resource-req-total
-      )
+  ;"eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,resource-counter,count-resources,status,hours-required,count-officers,total-requirement"
+
+  file-open event-summary-file
+  file-print (word
+    eventID ","   													      ;eventID,													
+    event-priority "," 				  								;priority,	
+    "Physical,"														;response-type,
+    event-type "\",\""  											;event-type,
+    event-class "\","  												;event-class,
+    event-MSOA ","  												;event-LSOA,
+
+    (time:show event-start-dt "dd-MM-yyyy HH:mm") ","  				;event-start-dt,
+    (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  "," 	;event-response-start-dt,
+    (time:show end-dt "dd-MM-yyyy HH:mm") ","  						;event-response-end-dt,
+
+    time:difference-between (event-start-dt) (dt) "hours" 				;total-hours,
+    time:difference-between (event-response-start-dt) (dt) "hours"		;response-start-to-end-hours
+    time:difference-between (event-start-dt) (event-response-start-dt) "hours"				;wait-prior-to-start-hours
+
+    event-resource-counter ","  									;event-resource-counter,
+
+    count current-resource ","			 							;count-resources,							
+    event-status ","  												;event-status,
+
+    event-resource-req-hours ","  									;hours-required,
+    event-resource-req-officers ","  								;count-officers,
+    event-resource-req-total  										;total-requirement,
+    																	
+  )  																
 
 end
 
@@ -1220,21 +1233,27 @@ end
 to write-completed-without-response
   file-open event-summary-file
   file-print (word
-        eventID ","
-        "virtual-response,"
-        event-status ",\""
-        event-type "\",\""
-        event-class "\","
-        event-MSOA ","
-        (time:show dt "dd-MM-yyyy HH:mm") ","
-        (time:show dt "dd-MM-yyyy HH:mm")  ","
-        (time:show dt "dd-MM-yyyy HH:mm") ","
-        "0,"
-        "virtual,"
-        "0,"
-        "0,"
-        "0"
-    )
+    eventID ","   													;eventID,													
+    event-priority "," 				  								;priority,	
+    "Virtual,"														;response-type,
+    event-type "\",\""  											;event-type,
+    event-class "\","  												;event-class,
+    event-MSOA ","  												;event-LSOA,
+
+    (time:show dt "dd-MM-yyyy HH:mm") "," 							;total-hours,
+    (time:show dt "dd-MM-yyyy HH:mm") ","							;response-start-to-end-hours
+    (time:show dt "dd-MM-yyyy HH:mm") ","							;wait-prior-to-start-hours
+
+    		"0,"															;total-hours,
+    		"0,"															;response-start-to-end-hours
+    		"0,"															;wait-prior-to-start-hours
+
+    		"0,"        											;count-resources,		
+    		"0," 															;event-status,
+    		"0," 															;hours-required,
+    		"0," 															;count-officers,
+    		"0" 															;total-requirement,
+  )
 
 end
 
