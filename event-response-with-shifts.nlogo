@@ -1,6 +1,6 @@
 ; FIX REQUIRED - WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSFERRED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
 ; IF 20 CID EVENTS IN SHIFT 1 should they all be distributed amongst the currently active CID officers - or should some from another shift be allocated jobs to start when their shift starts?
-; fix plotting to reflect double counting of events etc ...
+
 
 
 extensions [csv table time pathdir py]
@@ -271,7 +271,7 @@ to setup
       set resource-type RESPONSE
       set current-event no-turtles
 
-      set max-resource-capacity 1
+      set max-resource-capacity 1 - non-crime-%-RESPONSE
     ]
   ]
 
@@ -290,9 +290,9 @@ to setup
 
   ; Split police resources into 2 pools - response officers (resource-type = RESPONSE) who deal with lower level incidents and CID who deal with more serious offences
   ; Global vars specify counts of each across shifts shift-1-response, shift-1-CID, shift-2-response, shift-2-CID, shift-3-response, shift-3-CID
-  ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type CID ]
-  ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type CID ]
-  ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type CID ]
+  ask n-of (shift-1-CID) resources with [working-shift = 1] [ set shape "star" set resource-type CID set max-resource-capacity 1 - non-crime-%-CID ]
+  ask n-of (shift-2-CID) resources with [working-shift = 2] [ set shape "star" set resource-type CID set max-resource-capacity 1 - non-crime-%-CID ]
+  ask n-of (shift-3-CID) resources with [working-shift = 3] [ set shape "star" set resource-type CID set max-resource-capacity 1 - non-crime-%-CID ]
 
   set CID-officers resources with [ resource-type = CID ]
   set RESPONSE-officers resources with [ resource-type = RESPONSE ]
@@ -936,8 +936,20 @@ end
 ;plot update commands
 to update-all-plots
 
-  ; file-open resource-usage-trends-file
-  ; file-print (word (time:show dt "dd-MM-yyyy HH:mm") "," ((count CID-officers / count CID-officers with [resource-status = ON-DUTY-AVAILABLE] ) * 100) "," (count events with [event-status = ONGOING]) "," (count events with [event-status = AWAITING-SUPPLY]) "," (count events with [event-status = AWAITING-SUPPLY and event-priority = 1]) "," (count events with [event-status = AWAITING-SUPPLY and event-priority = 2]) "," (count events with [event-status = AWAITING-SUPPLY and event-priority = 3]))
+  ;"date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
+
+  file-open resource-usage-trends-file
+  file-print (word (time:show dt "dd-MM-yyyy HH:mm") ","
+    ((count CID-officers with [resource-status = ON-DUTY-RESPONDING] / count CID-officers with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100) ","            ;% Usage CID
+    ((count RESPONSE-officers with [resource-status = ON-DUTY-RESPONDING] / count RESPONSE-officers with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100) ","  ;% Usage RESPONSE
+    (count events with [event-status = ONGOING and event-priority = 1]) ","                    ; Count Ongoing Priority 1 Jobs
+    (count events with [event-status = ONGOING and event-priority = 2]) ","                    ; Count Ongoing Priority 2 Jobs
+    (count events with [event-status = ONGOING and event-priority = 3]) ","                    ; Count Ongoing Priority 3 Jobs
+    (count events with [event-status = AWAITING-SUPPLY and event-priority = 1]) ","            ; Count Waiting Priority 1 Jobs
+    (count events with [event-status = AWAITING-SUPPLY and event-priority = 2]) ","            ; Count Waiting Priority 2 Jobs
+    (count events with [event-status = AWAITING-SUPPLY and event-priority = 3]) ","            ; Count Waiting Priority 3 Jobs
+    mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID] ;mean CID officer workload
+  )
 
   set-current-plot "Crime"
   set-current-plot-pen "total"
@@ -1181,15 +1193,20 @@ to start-file-out
 
   if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
   file-open resource-usage-trends-file
-  file-print "date-time,usage%,events-ongoing,events-waiting,piority1-waiting,piority2-waiting,piority3-waiting"
+  file-print "date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
+
 
 end
 
 to close-files
+
+  ;its the end of teh simulation so write out histories of agents
   if file-exists? resource-summary-file [file-delete resource-summary-file]
   file-open resource-summary-file
-  file-print "resourceID, resource-type, events-completed"
-  ask resources [ file-print (word who "," resource-type "," events-completed) ]
+  file-print "resourceID, resource_type, shift, max_capacity, events_completed"
+  ask resources [ file-print (word who "," resource-type "," working-shift "," max-resource-capacity "," events-completed) ]
+
+  ;then close all the files
   file-close-all
 end
 
@@ -1418,7 +1435,7 @@ GRAPHICS-WINDOW
 190
 355
 482
-989
+1045
 -1
 -1
 28.42
@@ -1434,7 +1451,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-21
+23
 0
 0
 1
@@ -1800,7 +1817,7 @@ replication
 replication
 1
 100
-1.0
+3.0
 1
 1
 NIL
@@ -1825,7 +1842,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-22
+9
 
 INPUTBOX
 15
@@ -1943,7 +1960,7 @@ shift-3-CID
 shift-3-CID
 0
 100
-10.0
+30.0
 5
 1
 NIL
@@ -2109,7 +2126,7 @@ SWITCH
 938
 show-workload
 show-workload
-0
+1
 1
 -1000
 
@@ -2122,7 +2139,7 @@ non-crime-%-CID
 non-crime-%-CID
 0
 1
-0.0
+0.5
 0.01
 1
 NIL
@@ -2137,7 +2154,7 @@ non-crime-%-RESPONSE
 non-crime-%-RESPONSE
 0
 1
-0.0
+0.5
 0.01
 1
 NIL
@@ -2183,7 +2200,7 @@ SWITCH
 293
 response-safe-crewing-DAY
 response-safe-crewing-DAY
-0
+1
 1
 -1000
 
