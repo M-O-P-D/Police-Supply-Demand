@@ -82,10 +82,7 @@ breed [resources resource]
 ;POLICE RESOURCE VARIABLES
 resources-own
 [
-  current-event ;the id of the event-agent(s) the resource-agent is responding to
-  ; TODO can these be removed (just refer to the event itself)
-  current-event-type ;the type of event the resource-agent is responding to
-  current-event-class ; broader crime class
+  current-event ;the id of the event-agent(s) the resource-agent is responding to - FOR CID this can be multiple events in parallel
 
   ;split resource agents into Response and CID pools, see enumeration declared in globals
   resource-type
@@ -626,9 +623,6 @@ to roster-off [ shift ]
   [
     set resource-status OFF-DUTY
     set current-event no-turtles
-    set current-event-type ""
-    set current-event-class ""
-    ;set workload 0
   ]
 
   shift-drop-events-RESPONSE shift
@@ -775,9 +769,6 @@ to relinquish
   if (count current-event) - 1 = 0 [ if resource-status = ON-DUTY-RESPONDING [set resource-status ON-DUTY-AVAILABLE]] ;if relinquishing this job sets your workload to 0 and you are currently rostered on make yourself availble
                                                                     ;- the check on resource status is for the edge case whereby a job is split between officers at multiple shifts
                                                                    ;and one officer completes the job while the other is rostered off, in this case we should leave resource-status at OFF-DUTY
-  ;THIS NEEDS FIX AS OFFICERS WORKING ON MULTIPLE JOBS LOSE THE ABILITY TO RECORD WHAT SOMEONE IS WORKING ON HERE
-  set current-event-type ""
-  set current-event-class ""
 end
 
 
@@ -800,10 +791,7 @@ to get-resources-CID-parallel
     ask current-resource
     [
       set current-event (turtle-set current-event myself)
-      set current-event-type [event-type] of current-event
-      set current-event-class [event-class] of current-event
       set resource-status ON-DUTY-RESPONDING
-      ;set workload 1
     ]
   ]
 
@@ -875,11 +863,8 @@ to get-resources-response
     [
       ;link back to the event
       set current-event (turtle-set current-event myself)
-      set current-event-type [event-type] of current-event
-      set current-event-class [event-class] of current-event
       ;set as working on job
       set resource-status ON-DUTY-RESPONDING
-      ;set workload 1
     ]
   ]
 end
@@ -908,10 +893,7 @@ to replenish-resources-response
     [
       ;link event to resource
       set current-event (turtle-set current-event myself)
-      set current-event-type [event-type] of current-event
-      set current-event-class [event-class] of current-event
       set resource-status ON-DUTY-RESPONDING
-      ;set workload 1
     ]
   ]
 end
@@ -1139,36 +1121,36 @@ to update-all-plots
 
   ;--------------------------------------------------------------------------------------------------------------------------------------------
 
-  set-current-plot "scatter"
-  ;clear-plot
-  set-current-plot-pen "Anti-social behaviour"
-  plotxy (count events with [event-class = "anti-social behaviour" and event-status = ONGOING]) (count resources with [current-event-class = "anti-social behaviour"])
-  set-current-plot-pen "Bicycle theft"
-  plotxy (count events with [event-class = "bicycle theft" and event-status = ONGOING]) (count resources with [current-event-class = "bicycle theft"])
-  set-current-plot-pen "Burglary"
-  plotxy (count events with [event-class = "burglary" and event-status = ONGOING]) (count resources with [current-event-class = "burglary"])
-  set-current-plot-pen "Criminal damage and arson"
-  plotxy (count events with [event-class = "criminal damage and arson" and event-status = ONGOING]) (count resources with [current-event-class = "criminal damage and arson"])
-  set-current-plot-pen "Drugs"
-  plotxy (count events with [event-class = "drugs" and event-status = ONGOING]) (count resources with [current-event-class = "drugs"])
-  set-current-plot-pen "Other crime"
-  plotxy (count events with [event-class = "other crime" and event-status = ONGOING]) (count resources with [current-event-class = "other crime"])
-  set-current-plot-pen "Other theft"
-  plotxy (count events with [event-class = "other theft" and event-status = ONGOING]) (count resources with [current-event-class = "other theft"])
-  set-current-plot-pen "Possession of weapons"
-  plotxy (count events with [event-class = "possession of weapons" and event-status = ONGOING]) (count resources with [current-event-class = "possession of weapons"])
-  set-current-plot-pen "Public order"
-  plotxy (count events with [event-class = "public order" and event-status = ONGOING]) (count resources with [current-event-class = "public order"])
-  set-current-plot-pen "Robbery"
-  plotxy (count events with [event-class = "robbery" and event-status = ONGOING]) (count resources with [current-event-class = "robbery"])
-  set-current-plot-pen "Shoplifting"
-  plotxy (count events with [event-class = "shoplifting" and event-status = ONGOING]) (count resources with [current-event-class = "shoplifting"])
-  set-current-plot-pen "Theft from the person"
-  plotxy (count events with [event-class = "theft from the person" and event-status = ONGOING]) (count resources with [current-event-class = "theft from the person"])
-  set-current-plot-pen "Vehicle crime"
-  plotxy (count events with [event-class = "vehicle crime" and event-status = ONGOING]) (count resources with [current-event-class = "vehicle crime"])
-  set-current-plot-pen "Violence and sexual offences"
-  plotxy (count events with [event-class = "violence and sexual offences" and event-status = ONGOING]) (count resources with [current-event-class = "violence and sexual offences"])
+;  set-current-plot "scatter"
+;  ;clear-plot
+;  set-current-plot-pen "Anti-social behaviour"
+;  plotxy (count events with [event-class = "anti-social behaviour" and event-status = ONGOING]) (count resources with [current-event-class = "anti-social behaviour"])
+;  set-current-plot-pen "Bicycle theft"
+;  plotxy (count events with [event-class = "bicycle theft" and event-status = ONGOING]) (count resources with [current-event-class = "bicycle theft"])
+;  set-current-plot-pen "Burglary"
+;  plotxy (count events with [event-class = "burglary" and event-status = ONGOING]) (count resources with [current-event-class = "burglary"])
+;  set-current-plot-pen "Criminal damage and arson"
+;  plotxy (count events with [event-class = "criminal damage and arson" and event-status = ONGOING]) (count resources with [current-event-class = "criminal damage and arson"])
+;  set-current-plot-pen "Drugs"
+;  plotxy (count events with [event-class = "drugs" and event-status = ONGOING]) (count resources with [current-event-class = "drugs"])
+;  set-current-plot-pen "Other crime"
+;  plotxy (count events with [event-class = "other crime" and event-status = ONGOING]) (count resources with [current-event-class = "other crime"])
+;  set-current-plot-pen "Other theft"
+;  plotxy (count events with [event-class = "other theft" and event-status = ONGOING]) (count resources with [current-event-class = "other theft"])
+;  set-current-plot-pen "Possession of weapons"
+;  plotxy (count events with [event-class = "possession of weapons" and event-status = ONGOING]) (count resources with [current-event-class = "possession of weapons"])
+;  set-current-plot-pen "Public order"
+;  plotxy (count events with [event-class = "public order" and event-status = ONGOING]) (count resources with [current-event-class = "public order"])
+;  set-current-plot-pen "Robbery"
+;  plotxy (count events with [event-class = "robbery" and event-status = ONGOING]) (count resources with [current-event-class = "robbery"])
+;  set-current-plot-pen "Shoplifting"
+;  plotxy (count events with [event-class = "shoplifting" and event-status = ONGOING]) (count resources with [current-event-class = "shoplifting"])
+;  set-current-plot-pen "Theft from the person"
+;  plotxy (count events with [event-class = "theft from the person" and event-status = ONGOING]) (count resources with [current-event-class = "theft from the person"])
+;  set-current-plot-pen "Vehicle crime"
+;  plotxy (count events with [event-class = "vehicle crime" and event-status = ONGOING]) (count resources with [current-event-class = "vehicle crime"])
+;  set-current-plot-pen "Violence and sexual offences"
+;  plotxy (count events with [event-class = "violence and sexual offences" and event-status = ONGOING]) (count resources with [current-event-class = "violence and sexual offences"])
 
 end
 
@@ -1435,7 +1417,7 @@ GRAPHICS-WINDOW
 190
 355
 482
-1045
+1046
 -1
 -1
 28.42
