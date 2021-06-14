@@ -15,9 +15,9 @@ globals
 
   timestep-length-minutes ; the timestep length in minutes - i.e. 1 tick in model time is equivalent to ...
 
-  Shift-1
-  Shift-2
-  Shift-3
+  shift-1
+  shift-2
+  shift-3
 
   count-crime-timestep  ;a count of crimes occurring in the current timestep
 
@@ -251,9 +251,9 @@ to setup
   resize-world 0 9 0 y-dim-resource-temp
 
   ;initialize shift bools
-  set Shift-1 false
-  set Shift-2 false
-  set Shift-3 false
+  set shift-1 false
+  set shift-2 false
+  set shift-3 false
 
   ; create police resoruce agents - one per patch -
   ask n-of (number-resources) patches
@@ -398,15 +398,15 @@ to check-shift
   let hour time:get "hour" dt
 
   ;Shift 1
-  if hour = 7 [ set Shift-1 TRUE set Shift-3 FALSE roster-on 1 roster-off 3]
-  if hour = 17 [ set Shift-1 FALSE  roster-off 1 ]
+  if hour = 7 [ set shift-1 TRUE set Shift-3 FALSE roster-on 1 roster-off 3]
+  if hour = 17 [ set shift-1 FALSE  roster-off 1 ]
 
   ;Shift 2
-  if hour = 14 [ set Shift-2 TRUE roster-on 2 ]
-  if hour = 0 [ set Shift-2 FALSE roster-off 2]
+  if hour = 14 [ set shift-2 TRUE roster-on 2 ]
+  if hour = 0 [ set shift-2 FALSE roster-off 2]
 
   ;Shift 3
-  if hour = 22 [ set Shift-3 TRUE roster-on 3]
+  if hour = 22 [ set shift-3 TRUE roster-on 3]
 
 end
 
@@ -922,6 +922,9 @@ to update-all-plots
 
   file-open resource-usage-trends-file
   file-print (word (time:show dt "dd-MM-yyyy HH:mm") ","
+    shift-1 ","
+    shift-2 ","
+    shift-3 ","
     ((count CID-officers with [resource-status = ON-DUTY-RESPONDING] / count CID-officers with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100) ","            ;% Usage CID
     ((count RESPONSE-officers with [resource-status = ON-DUTY-RESPONDING] / count RESPONSE-officers with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100) ","  ;% Usage RESPONSE
     (count events with [event-status = ONGOING and event-priority = 1]) ","                    ; Count Ongoing Priority 1 Jobs
@@ -1175,7 +1178,7 @@ to start-file-out
 
   if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
   file-open resource-usage-trends-file
-  file-print "date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
+  file-print "date_time,shift1,shift2,shift3,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
 
 
 end
