@@ -127,6 +127,10 @@ events-own
   event-resource-req-total
 
   event-priority ; variable that allows events to be triaged in terms of importance of response
+
+
+  event-requires-CID? ; bool for if event requires CID - flag to initial event as CID requirement can either be specified through expert elicited list or as a function of severity > x.
+
 ]
 
 
@@ -299,7 +303,7 @@ to setup
   if event-file-out [start-file-out]
 
   ;midnight so roster shift 3 on
-  set Shift-3 TRUE
+  set shift-3 TRUE
   roster-on 3
 
 
@@ -484,12 +488,20 @@ to read-events-from-crims
 
       ;get event priority based on severity
       convert-severity-to-event-priority
+
+
+      ;lookup if you need jut RESPONSE or RESPONSE & CID based on expert insight
+      set event-requires-CID? get-CID-requirements Expert-CID-Allocation event-type
+
       ;get requirements in terms of RESPONSE & CID hours/officers
       generate-event-requirements
+
+
 
     ]
     ;once the event agent has been created delete it from the data file
     set event-data remove-item 0 event-data
+
   ]
 
 end
@@ -499,6 +511,7 @@ end
 
 ; New method to identify requirements for Response and CID resources to events based on prioriy, severity, the presence of a suspect and the current shift (to accomodate safe crewing)
 to generate-event-requirements
+
 
 
   ; TODO can 1/2/3 be dealt with in a single if block (+ if 1, call CID)
@@ -515,8 +528,8 @@ to generate-event-requirements
     set event-resource-counter event-resource-req-total
     if not HEADLESS [ output-print (word EventID " INITIAL-RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers ) ]
 
-    ;then call CID and create a follow up event
-    call-CID
+    ;if the event requires a CID response - then call CID and create a follow up event
+    if event-requires-CID? [ call-CID ]
   ]
 
   ;PRIORITY 2 & 3 Events - RESPONSE officers only
@@ -524,7 +537,7 @@ to generate-event-requirements
   if (event-priority = 2 or event-priority = 3)
   [
     ;calculate hours required based on severity and presence/absence of suspect (final parameter an optional weight to over/under concentrate on case - increase/decrease hours = hardcoded to 1 no effect)
-    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1
+    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1 RESPONSE-RESOURCE-LINEAR
     ifelse Shift-3 ;Night (shift 3) or Day (shifts 1,2) - check double crewing options
     [ifelse response-safe-crewing-NIGHT [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
     [ifelse response-safe-crewing-DAY [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
@@ -532,9 +545,13 @@ to generate-event-requirements
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
     if not HEADLESS [ output-print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers ) ]
+
+    ;if the event requires a CID response - then call CID and create a follow up event
+    if event-requires-CID? [ call-CID ]
+
   ]
 
-  ;PRIORITY 4 Events - NO PHYSICAL RESPONSE officers only
+  ;PRIORITY 4 Events - NO PHYSICAL RESPONSE
   ;For priority 4 events - virtual or no physical response
   if (event-priority = 4)
   [
@@ -558,7 +575,7 @@ to call-CID
     ;one CID officer - no double crewing for CID
     set event-resource-req-officers 1
     ;calculate hours required based on severity and presence/absence of suspect (final parameter an optional weight to over/under concentrate on case - increase/decrease hours = hardcoded to 1 no effect)
-    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1
+    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1 CID-RESOURCE-LINEAR
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
 
@@ -567,16 +584,32 @@ to call-CID
 end
 
 
-; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect (NOT USED), and a weight which allows manipulation of how much resource is allocated to particular offences (NOT USED)
-to-report convert-severity-to-resource-time [ severity suspect weight ]
+
+
+
+; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect, a weight which allows manipulation of
+; how much resource is allocated to particular offences (NOT USED), and a GUI Flag (linear) which specifies which formula should be used for calculating the severity > hours relationship
+to-report convert-severity-to-resource-time [ severity suspect weight linear ]
   ;double severity if there's a suspect and divide by 100
   let s 1
   if suspect [set s 2]
-  ; sample lognormal
-  let mean-log-time ln(severity * s / 100)
+  let mean-log-time 0
+
+  ifelse linear
+  [
+    ;LINEAR
+    ; sample lognormal
+    set mean-log-time ln(severity * s / 200)
+  ]
+
+  [
+    ;NON-LINEAR
+    ;calibrated an exponential growth in time asscociated with offences above a certain severity - here we calibrate such that the linear method above and the exponential method meet at severity = 1000 (the threshold for priority 4 incidents)
+    set mean-log-time 2 * ln((severity) * s / 440)
+  ]
 
   ; A fixed s.d. in log space translates to a proporational one in actual (time) space, e.g. for mean=10, 1 s.d.=(8.33-12) and for mean=100, 1 s.d.=(83.3-120)
-  let stdev-log-time 0.2
+  let stdev-log-time 0.2 ;* sqrt(ln(severity))
 
   ; sample time and round up to nearest whole hour
   let time ceiling exp(random-normal mean-log-time stdev-log-time)
@@ -584,6 +617,17 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   ; show (word severity " ONS CSS - mean=" exp(mean-time) " -- time=" time)
   report time
 end
+
+
+
+
+
+
+
+
+
+
+
 
 
 ; return priority 1,2,3,4 based on severity (and presenece of suspect) - should implement THRIVE here
@@ -1261,6 +1305,194 @@ end
 
 
 
+
+
+
+; function to return bool if offence needs a CID response
+; two ways of doing this (specified via expert-insight? parameter)
+; if expert-insight? is true we use a lookup table specified by talking to experts
+; if not we defer to all offences with a severity of 1000 or more
+
+to-report get-CID-requirements [ expert-insight? offence ]
+
+  let requires-CID? 0
+
+  ifelse expert-insight?
+  [
+
+    ;note the list below sets three safeguarding dealt with offences (<13 sexual offences) to RESPONSE ONLY as we do not model safeguarding.
+
+    (ifelse
+      offence = "Murder"                                                                                      [ set requires-CID? true ]
+      offence = "Corporate manslaughter"                                                                      [ set requires-CID? true ]
+      offence = "Manslaughter"                                                                                [ set requires-CID? true ]
+      offence = "Infanticide"                                                                                 [ set requires-CID? true ]
+      offence = "Attempted murder"                                                                            [ set requires-CID? true ]
+      offence = "Rape of a male child under 16"                                                               [ set requires-CID? true ]
+      offence = "Rape of a female child under 16"                                                             [ set requires-CID? true ]
+      offence = "Intentional destruction of a viable unborn child"                                            [ set requires-CID? true ]
+      offence = "Rape of a Female - Multiple Undefined Offenders"                                             [ set requires-CID? true ]
+      offence = "Rape of a female child under 13"                                                             [ set requires-CID? false ] ; Safeguarding response
+      offence = "Rape of a male aged 16 and over"                                                             [ set requires-CID? true ]
+      offence = "Rape of a Male - Multiple Undefined Offenders"                                               [ set requires-CID? true ]
+      offence = "Rape of a female aged 16 and over"                                                           [ set requires-CID? true ]
+      offence = "Rape of a male child under 13"                                                               [ set requires-CID? false ]
+      offence = "Aggravated burglary in a dwelling (outcome only)"                                            [ set requires-CID? true ]
+      offence = "Aggravated Burglary Residential"                                                             [ set requires-CID? true ]
+      offence = "Assault with intent to cause serious harm"                                                   [ set requires-CID? true ]
+      offence = "Conspiracy to murder"                                                                        [ set requires-CID? true ]
+      offence = "Aggravated burglary in a building other than a dwelling(outcome only)"                       [ set requires-CID? true ]
+      offence = "Aggravated Burglary Business and Community"                                                  [ set requires-CID? true ]
+      offence = "Trafficking for sexual exploitation"                                                         [ set requires-CID? true ]
+      offence = "Causing death by careless driving under influence of drink or drugs"                         [ set requires-CID? false ]
+      offence = "Endangering life"                                                                            [ set requires-CID? true ]
+      offence = "Sexual activity etc with a person with a mental disorder"                                    [ set requires-CID? true ]
+      offence = "Other firearms offences"                                                                     [ set requires-CID? true ]
+      offence = "Kidnapping"                                                                                  [ set requires-CID? true ]
+      offence = "Sexual assault on a female child under 13"                                                   [ set requires-CID? false ]
+      offence = "Incest or familial sexual offences"                                                          [ set requires-CID? true ]
+      offence = "Modern slavery"                                                                              [ set requires-CID? true ]
+      offence = "Procuring illegal abortion"                                                                  [ set requires-CID? true ]
+      offence = "Causing sexual activity without consent"                                                     [ set requires-CID? true ]
+      offence = "Other miscellaneous sexual offences"                                                         [ set requires-CID? true ]
+      offence = "Causing death or serious injury by dangerous driving"                                        [ set requires-CID? false ]
+      offence = "Causing or allowing death of child or vulnerable person"                                     [ set requires-CID? true ]
+      offence = "Abuse of children through sexual exploitation"                                               [ set requires-CID? "Maybe" ]
+      offence = "Sexual assault on a male child under 13"                                                     [ set requires-CID? false ]
+      offence = "Arson endangering life"                                                                      [ set requires-CID? true ]
+      offence = "Sexual activity involving a child under 13"                                                  [ set requires-CID? "Maybe" ]
+      offence = "Aiding suicide"                                                                              [ set requires-CID? true ]
+      offence = "Robbery of business property"                                                                [ set requires-CID? true ]
+      offence = "Robbery of personal property"                                                                [ set requires-CID? true ]
+      offence = "Blackmail"                                                                                   [ set requires-CID? true ]
+      offence = "Sexual assault on a male aged 13 and over"                                                   [ set requires-CID? true ]
+      offence = "Sexual activity involving child under 16"                                                    [ set requires-CID? true ]
+      offence = "Possession of firearms with intent"                                                          [ set requires-CID? true ]
+      offence = "Causing death by aggravated vehicle taking"                                                  [ set requires-CID? true ]
+      offence = "Trafficking in controlled drugs"                                                             [ set requires-CID? "Maybe" ]
+      offence = "Burglary in a dwelling(outcome only)"                                                        [ set requires-CID? true ]
+      offence = "Attempted burglary in a dwelling (outcome only)"                                             [ set requires-CID? true ]
+      offence = "Distraction burglary in a dwelling (outcome only)"                                           [ set requires-CID? true ]
+      offence = "Attempted distraction burglary in a dwelling (outcome only)"                                 [ set requires-CID? true ]
+      offence = "Burglary Residential"                                                                        [ set requires-CID? true ]
+      offence = "Attempted Burglary Residential"                                                              [ set requires-CID? true ]
+      offence = "Distraction Burglary Residential"                                                            [ set requires-CID? true ]
+      offence = "Attempted Distraction Burglary Residential"                                                  [ set requires-CID? true ]
+      offence = "Sexual grooming"                                                                             [ set requires-CID? true ]
+      offence = "Sexual assault on a female aged 13 and over"                                                 [ set requires-CID? true ]
+      offence = "Possession of firearms offences"                                                             [ set requires-CID? true ]
+      offence = "Assault with injury on a constable"                                                          [ set requires-CID? true ]
+      offence = "Exploitation of prostitution"                                                                [ set requires-CID? true ]
+      offence = "Violent disorder"                                                                            [ set requires-CID? true ]
+      offence = "Racially or religiously aggravated assault with injury"                                      [ set requires-CID? false ]
+      offence = "Child abduction"                                                                             [ set requires-CID? true ]
+      offence = "Threats to kill"                                                                             [ set requires-CID? true ]
+      offence = "Other knives offences"                                                                       [ set requires-CID? false ]
+      offence = "Profiting from or concealing knowledge of the proceeds of crime"                             [ set requires-CID? true ]
+      offence = "Wildlife"                                                                                    [ set requires-CID? false ]
+      offence = "Abuse of position of trust of a sexual nature"                                               [ set requires-CID? "Maybe" ]
+      offence = "Offender Management Act offences"                                                            [ set requires-CID? "Maybe" ]
+      offence = "Concealing an infant death close to birth"                                                   [ set requires-CID? true ]
+      offence = "Bigamy"                                                                                      [ set requires-CID? true ]
+      offence = "Possession of false documents"                                                               [ set requires-CID? "Maybe" ]
+      offence = "Absconding from lawful custody"                                                              [ set requires-CID? "Maybe" ]
+      offence = "Assault with injury"                                                                         [ set requires-CID? true ]
+      offence = "Arson not endangering life"                                                                  [ set requires-CID? "Maybe" ]
+      offence = "Causing death by driving: unlicensed or disqualified or uninsured drivers"                   [ set requires-CID? false ]
+      offence = "Other notifiable offences"                                                                   [ set requires-CID? "Maybe" ]
+      offence = "Perverting the course of justice"                                                            [ set requires-CID? true ]
+      offence = "Other forgery"                                                                               [ set requires-CID? true ]
+      offence = "Cruelty to children/young persons"                                                           [ set requires-CID? true ]
+      offence = "Obscene publications etc"                                                                    [ set requires-CID? true ]
+      offence = "Making, supplying or possessing articles for use in fraud"                                   [ set requires-CID? "Maybe" ]
+      offence = "Theft or unauthorised taking of motor vehicle"                                               [ set requires-CID? false ]
+      offence = "Burglary in a building other than a dwelling (outcome only)"                                 [ set requires-CID? true ]
+      offence = "Attempted burglary in a building other than a dwelling (outcome only)"                       [ set requires-CID? "Maybe" ]
+      offence = "Burglary Business and Community"                                                             [ set requires-CID? "Maybe" ]
+      offence = "Attempted Burglary Business and Community"                                                   [ set requires-CID? "Maybe" ]
+      offence = "Dangerous driving"                                                                           [ set requires-CID? false ]
+      offence = "Causing death by careless or inconsiderate driving"                                          [ set requires-CID? false ]
+      offence = "Theft from automatic machine or meter"                                                       [ set requires-CID? false ]
+      offence = "Perjury"                                                                                     [ set requires-CID? true ]
+      offence = "Theft of mail"                                                                               [ set requires-CID? false ]
+      offence = "Theft from the person"                                                                       [ set requires-CID? "Maybe" ]
+      offence = "Other offences against the State or public order"                                            [ set requires-CID? "Maybe" ]
+      offence = "Threat or possession with intent to commit criminal damage"                                  [ set requires-CID? false ]
+      offence = "Stalking"                                                                                    [ set requires-CID? "Maybe" ]
+      offence = "Handling stolen goods"                                                                       [ set requires-CID? "Maybe" ]
+      offence = "Aggravated vehicle taking"                                                                   [ set requires-CID? "Maybe" ]
+      offence = "Possession of article with blade or point"                                                   [ set requires-CID? false ]
+      offence = "Possession of other weapons"                                                                 [ set requires-CID? false ]
+      offence = "Unnatural sexual offences"                                                                   [ set requires-CID? true ]
+      offence = "Theft in a dwelling other than from an automatic machine or meter"                           [ set requires-CID? false ]
+      offence = "Theft by an employee"                                                                        [ set requires-CID? "Maybe" ]
+      offence = "Exposure and voyeurism"                                                                      [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated harassment"                                               [ set requires-CID? "Maybe" ]
+      offence = "Other theft"                                                                                 [ set requires-CID? "Maybe" ]
+      offence = "Harassment"                                                                                  [ set requires-CID? "Maybe" ]
+      offence = "Theft from vehicle"                                                                          [ set requires-CID? "Maybe" ]
+      offence = "Forgery or use of false drug prescription"                                                   [ set requires-CID? "Maybe" ]
+      offence = "Going equipped for stealing, etc"                                                            [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated assault without injury"                                   [ set requires-CID? false ]
+      offence = "Theft or unauthorised taking of a pedal cycle"                                               [ set requires-CID? false ]
+      offence = "Malicious Communications"                                                                    [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated criminal damage"                                          [ set requires-CID? false ]
+      offence = "Assault without injury"                                                                      [ set requires-CID? "Maybe" ]
+      offence = "Disclosure, obstruction, false or misleading statements etc"                                 [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated public fear, alarm or distress"                           [ set requires-CID? false ]
+      offence = "Shoplifting"                                                                                 [ set requires-CID? false ]
+      offence = "Interfering with a motor vehicle"                                                            [ set requires-CID? false ]
+      offence = "Other drug offences"                                                                         [ set requires-CID? true ]
+      offence = "Possession of controlled drugs (excl. Cannabis)"                                             [ set requires-CID? "Maybe" ]
+      offence = "Assault without injury on a constable"                                                       [ set requires-CID? "Maybe" ]
+      offence = "Fraud, forgery etc associated with vehicle or driver records"                                [ set requires-CID? false ]
+      offence = "Making off without payment"                                                                  [ set requires-CID? false ]
+      offence = "Public fear, alarm or distress"                                                              [ set requires-CID? false ]
+      offence = "Criminal damage to a dwelling"                                                               [ set requires-CID? false ]
+      offence = "Criminal damage to a building other than a dwelling"                                         [ set requires-CID? false ]
+      offence = "Criminal damage to a vehicle"                                                                [ set requires-CID? false ]
+      offence = "Other criminal damage"                                                                       [ set requires-CID? "Maybe" ]
+      offence = "Dishonest use of electricity"                                                                [ set requires-CID? false ]
+      offence = "Soliciting for the purposes of prostitution"                                                 [ set requires-CID? false ]
+      offence = "Bail offences"                                                                               [ set requires-CID? "Maybe" ]
+      offence = "Possession of controlled drugs (Cannabis)"                                                   [ set requires-CID? "Maybe" ]
+      offence = "Anti-social behaviour"                                                                       [ set requires-CID? false ]
+    )
+      ; if maybe requires CID toss a coin
+      if requires-CID? = "Maybe" [ ifelse random-float 1 > 0.5 [ set requires-CID? true ] [ set requires-CID? false ] ]
+
+    ]
+
+    [
+
+      ; No expert insight - arbitrarily cut at 1000 severity
+      ifelse event-severity >= 1000 [ set requires-CID? true ] [ set requires-CID? false ]
+
+
+    ]
+
+  ;print (word "Establishing CID requirements - expert insight = "  expert-insight? " offence = " offence " severity = " event-severity " --- requires CID? " requires-CID? )
+
+    report requires-CID?
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ;to calc-resource-split-by-hr
 ;
 ;
@@ -1420,7 +1652,7 @@ GRAPHICS-WINDOW
 190
 355
 482
-1046
+960
 -1
 -1
 28.42
@@ -1436,7 +1668,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-23
+20
 0
 0
 1
@@ -1679,7 +1911,7 @@ SWITCH
 898
 VERBOSE
 VERBOSE
-1
+0
 1
 -1000
 
@@ -1827,7 +2059,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-9
+43
 
 INPUTBOX
 15
@@ -1915,7 +2147,7 @@ shift-1-CID
 shift-1-CID
 0
 100
-30.0
+20.0
 5
 1
 NIL
@@ -1930,7 +2162,7 @@ shift-2-CID
 shift-2-CID
 0
 100
-30.0
+20.0
 5
 1
 NIL
@@ -1945,7 +2177,7 @@ shift-3-CID
 shift-3-CID
 0
 100
-30.0
+20.0
 5
 1
 NIL
@@ -2023,7 +2255,7 @@ mean [events-completed] of resources with [resource-type = RESPONSE]
 MONITOR
 615
 1065
-870
+885
 1110
 CID - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = CID]
@@ -2111,7 +2343,7 @@ SWITCH
 938
 show-workload
 show-workload
-1
+0
 1
 -1000
 
@@ -2124,7 +2356,7 @@ non-crime-%-CID
 non-crime-%-CID
 0
 1
-0.5
+0.0
 0.01
 1
 NIL
@@ -2139,7 +2371,7 @@ non-crime-%-RESPONSE
 non-crime-%-RESPONSE
 0
 1
-0.5
+0.0
 0.01
 1
 NIL
@@ -2152,7 +2384,7 @@ MONITOR
 585
 NIL
 viol-sex-demand
-17
+1
 1
 11
 
@@ -2163,7 +2395,7 @@ MONITOR
 585
 NIL
 burg-demand
-17
+1
 1
 11
 
@@ -2208,6 +2440,39 @@ SWITCH
 HEADLESS
 HEADLESS
 1
+1
+-1000
+
+SWITCH
+10
+1070
+285
+1103
+RESPONSE-RESOURCE-LINEAR
+RESPONSE-RESOURCE-LINEAR
+0
+1
+-1000
+
+SWITCH
+10
+1105
+285
+1138
+CID-RESOURCE-LINEAR
+CID-RESOURCE-LINEAR
+1
+1
+-1000
+
+SWITCH
+10
+1035
+285
+1068
+Expert-CID-Allocation
+Expert-CID-Allocation
+0
 1
 -1000
 
