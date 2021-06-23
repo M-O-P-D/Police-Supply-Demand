@@ -1211,19 +1211,18 @@ to start-file-out
 
   if file-exists? event-summary-file [file-delete event-summary-file]
   file-open event-summary-file
-  file-print "eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,count-resources,hours-required,count-officers,total-requirement"
+  file-print "eventID,priority,response_type,type,class,LSOA,start_dt,response_start_dt,response_end_dt,total_hours,response_start_to_end_hours,wait_prior_to_start_hours,count_resources,hours_required,count_officers,total_requirement"
 
   if file-exists? active-event-trends-file [file-delete active-event-trends-file]
   file-open active-event-trends-file
-  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
-
+  file-print "date_time,Anti_social_behaviour,Bicycle_theft,Burglary,Criminal_damage_and_arson,Drugs,Other_crime,Other_theft,Possession_of_weapons,Public_order,Robbery,Shoplifting,Theft_from_the_person,Vehicle_crime,Violence_and_sexual_offences"
   if file-exists? active-resource-trends-file [file-delete active-resource-trends-file]
   file-open active-resource-trends-file
-  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+  file-print "date_time,Anti_social_behaviour,Bicycle_theft,Burglary,Criminal_damage_and_arson,Drugs,Other_crime,Other_theft,Possession_of_weapons,Public_order,Robbery,Shoplifting,Theft_from_the_person,Vehicle_crime,Violence_and_sexual_offences"
 
   if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
   file-open resource-usage-trends-file
-  file-print "date_time,shift1,shift2,shift3,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
+  file-print "date_time,shift1,shift2,shift3,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload_shift, meanCIDworkload_all"
 
 
 end
