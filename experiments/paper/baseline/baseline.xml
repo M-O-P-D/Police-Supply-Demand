@@ -1,5 +1,5 @@
 <experiments>
-  <experiment name="lockdown-control-ex1" repetitions="1" runMetricsEveryStep="true">
+  <experiment name="baseline" repetitions="1" runMetricsEveryStep="true">
     <setup>
       setup
       py:run "set_loading(1.0, 'drugs')"
@@ -9,7 +9,7 @@
     <final>close-files</final>
     <timeLimit steps="9504"/>
     
-    <steppedValueSet variable="replication" first="1" step="1" last="10"/>
+    <steppedValueSet variable="replication" first="1" step="1" last="1"/>
 
     <enumeratedValueSet variable="SetSeed">
       <value value="true"/>
