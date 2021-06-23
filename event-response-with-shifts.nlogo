@@ -604,7 +604,7 @@ to-report convert-severity-to-resource-time [ severity suspect weight linear ]
 
   [
     ;NON-LINEAR
-    ;calibrated an exponential growth in time asscociated with offences above a certain severity - here we calibrate such that the linear method above and the exponential method meet at severity = 1000 (the threshold for priority 4 incidents)
+    ;calibrated a quadratic growth in time asscociated with offences - here we calibrate such that the linear method above and the exponential method meet at severity = 1000 (the threshold for priority 4 incidents)
     set mean-log-time 2 * ln((severity) * s / 440)
   ]
 
@@ -962,7 +962,7 @@ end
 ;plot update commands
 to update-all-plots
 
-  ;"date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
+  ;"date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload_current_shift, meanCIDworkload_all"
 
   file-open resource-usage-trends-file
   file-print (word (time:show dt "dd-MM-yyyy HH:mm") ","
@@ -977,7 +977,8 @@ to update-all-plots
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 1]) ","            ; Count Waiting Priority 1 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 2]) ","            ; Count Waiting Priority 2 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 3]) ","            ; Count Waiting Priority 3 Jobs
-    mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID] ;mean CID officer workload
+    mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID] "," ;mean CID officer workload on current shift
+    mean [(count current-event)] of resources with [resource-type = CID] ;mean CID officer workload - all CID
   )
 
   set-current-plot "Crime"
@@ -1210,7 +1211,7 @@ to start-file-out
 
   if file-exists? event-summary-file [file-delete event-summary-file]
   file-open event-summary-file
-  file-print "eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,resource-counter,count-resources,status,hours-required,count-officers,total-requirement"
+  file-print "eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,count-resources,hours-required,count-officers,total-requirement"
 
   if file-exists? active-event-trends-file [file-delete active-event-trends-file]
   file-open active-event-trends-file
@@ -1243,62 +1244,64 @@ end
 ;write out info on a completed event
 to write-completed-event-out
 
-  ;"eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,resource-counter,count-resources,status,hours-required,count-officers,total-requirement"
+  ;"eventID,priority,response-type,type,class,MSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,count-resources,hours-required,count-officers,total-requirement"
 
   file-open event-summary-file
-  file-print (word
-    eventID ","   													      ;eventID,													
-    event-priority "," 				  								;priority,	
-    "Physical,"														;response-type,
-    event-type "\",\""  											;event-type,
-    event-class "\","  												;event-class,
-    event-MSOA ","  												;event-LSOA,
+  let out-string (word
+    eventID ","   													                       	 									 			;eventID,													
+    event-priority "," 				  								                   	 									 			;priority,	
+    "Physical,\""														                       	 									 			;response-type,
+    (remove "," event-type) "\",\""  											         	 									 			;event-type,
+    (remove "," event-class) "\","  												       	 									 			;event-class,
+    event-MSOA ","  												                       	 									 			;event-MSOA,
 
-    (time:show event-start-dt "dd-MM-yyyy HH:mm") ","  				;event-start-dt,
-    (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  "," 	;event-response-start-dt,
-    (time:show end-dt "dd-MM-yyyy HH:mm") ","  						;event-response-end-dt,
+    (time:show event-start-dt "dd-MM-yyyy HH:mm") ","  				     	 									 			;event-start-dt,
+    (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  "," 	 	 									 			;event-response-start-dt,
+    (time:show end-dt "dd-MM-yyyy HH:mm") ","  						         	 									 			;event-response-end-dt,
 
-    time:difference-between (event-start-dt) (dt) "hours" 				;total-hours,
-    time:difference-between (event-response-start-dt) (dt) "hours"		;response-start-to-end-hours
-    time:difference-between (event-start-dt) (event-response-start-dt) "hours"				;wait-prior-to-start-hours
+    (time:difference-between (event-start-dt) (dt) "hours") "," 				                    ;total-hours,
+    (time:difference-between (event-response-start-dt) (dt) "hours")	"," 	                ;response-start-to-end-hours
+    (time:difference-between (event-start-dt) (event-response-start-dt) "hours")	"," 			;wait-prior-to-start-hours
 
-    event-resource-counter ","  									;event-resource-counter,
 
-    count current-resource ","			 							;count-resources,							
-    event-status ","  												;event-status,
-
-    event-resource-req-hours ","  									;hours-required,
-    event-resource-req-officers ","  								;count-officers,
-    event-resource-req-total  										;total-requirement,
+    count current-resource ","			 									 									 									 	;count-resources,							
+    event-resource-req-hours ","  										 									 									 	;hours-required,
+    event-resource-req-officers ","  									 									 									 	;count-officers,
+    event-resource-req-total  											 									 									 	  ;total-requirement
     																	
-  )  																
+  )  				
+
+
+
+  file-print out-string 												
 
 end
+
+
 
 ;write out info on an event completed without response
 to write-completed-without-response
   file-open event-summary-file
   file-print (word
-    eventID ","   													;eventID,													
-    event-priority "," 				  								;priority,	
-    "Virtual,"														;response-type,
-    event-type "\",\""  											;event-type,
-    event-class "\","  												;event-class,
-    event-MSOA ","  												;event-LSOA,
+    eventID ","   																																				  ;eventID,													
+    event-priority "," 				  																													  ;priority,	
+    "Virtual,\""																																					  ;response-type,
+    (remove "," event-type) "\",\"" 																											  ;event-type,
+    (remove "," event-class) "\","  																												;event-class,
+    event-MSOA ","  																																			  ;event-LSOA,
 
-    (time:show dt "dd-MM-yyyy HH:mm") "," 							;total-hours,
-    (time:show dt "dd-MM-yyyy HH:mm") ","							;response-start-to-end-hours
-    (time:show dt "dd-MM-yyyy HH:mm") ","							;wait-prior-to-start-hours
+    (time:show dt "dd-MM-yyyy HH:mm") "," 																								  ;total-hours,
+    (time:show dt "dd-MM-yyyy HH:mm") ","																										;response-start-to-end-hours
+    (time:show dt "dd-MM-yyyy HH:mm") ","																				            ;wait-prior-to-start-hours
 
-    		"0,"															;total-hours,
-    		"0,"															;response-start-to-end-hours
-    		"0,"															;wait-prior-to-start-hours
+    		"0,"																																								;total-hours,
+    		"0,"																																								;response-start-to-end-hours
+    		"0,"																																								;wait-prior-to-start-hours
 
-    		"0,"        											;count-resources,		
-    		"0," 															;event-status,
-    		"0," 															;hours-required,
-    		"0," 															;count-officers,
-    		"0" 															;total-requirement,
+    		"0,"        																																				;count-resources,		
+    		"0," 																																								;hours-required,
+    		"0," 																																								;count-officers,
+    		"0" 																																								;total-requirement
   )
 
 end
@@ -1953,7 +1956,7 @@ SWITCH
 343
 event-file-out
 event-file-out
-1
+0
 1
 -1000
 
@@ -2034,7 +2037,7 @@ replication
 replication
 1
 100
-3.0
+1.0
 1
 1
 NIL
@@ -2059,7 +2062,7 @@ CHOOSER
 Force
 Force
 "Avon and Somerset" "Bedfordshire" "Cambridgeshire" "Cheshire" "Cleveland" "Cumbria" "Derbyshire" "Devon and Cornwall" "Dorset" "Durham" "Dyfed-Powys" "Essex" "Gloucestershire" "Greater Manchester" "Gwent" "Hampshire" "Hertfordshire" "Humberside" "Kent" "Lancashire" "Leicestershire" "Lincolnshire" "City of London" "Merseyside" "Metropolitan Police" "Norfolk" "North Wales" "North Yorkshire" "Northamptonshire" "Northumbria" "Nottinghamshire" "South Wales" "South Yorkshire" "Staffordshire" "Suffolk" "Surrey" "Sussex" "Thames Valley" "Warwickshire" "West Mercia" "West Midlands" "West Yorkshire" "Wiltshire" "TEST"
-43
+9
 
 INPUTBOX
 15
