@@ -27,4 +27,6 @@ name=$(./get-expt-name.py $1)
 # copy expt file into output directory
 cp $1 model-output/$name/
 # tar the output directory
-tar vczf $name.tar model-output/$name/
+tar vczf model-output/$name.tgz model-output/$name/
+rm -rf model-output/$name
+
