@@ -986,8 +986,6 @@ to update-all-plots
   plot count-crime-timestep
 
   set-current-plot "% Resource Usage"
-  set-current-plot-pen "TOTAL"
-  plot (count resources with [resource-status = ON-DUTY-RESPONDING] / count resources with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100
 
   if count CID-officers with [resource-status = ON-DUTY-AVAILABLE] > 0
   [
@@ -1004,6 +1002,13 @@ to update-all-plots
   plot count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
   set-current-plot-pen "waiting-3"
   plot count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
+
+
+  set-current-plot "Events Ongoing"
+  set-current-plot-pen "CID-Ongoing"
+  plot count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = CID]
+  set-current-plot-pen "RESPONSE-Ongoing"
+  plot count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = RESPONSE]
 
 
   ;------------------------------------------------------------------------------------------------------------------------------
@@ -1166,39 +1171,6 @@ to update-all-plots
   set out-string (word out-string x)
 
   file-print out-string
-
-  ;--------------------------------------------------------------------------------------------------------------------------------------------
-
-;  set-current-plot "scatter"
-;  ;clear-plot
-;  set-current-plot-pen "Anti-social behaviour"
-;  plotxy (count events with [event-class = "anti-social behaviour" and event-status = ONGOING]) (count resources with [current-event-class = "anti-social behaviour"])
-;  set-current-plot-pen "Bicycle theft"
-;  plotxy (count events with [event-class = "bicycle theft" and event-status = ONGOING]) (count resources with [current-event-class = "bicycle theft"])
-;  set-current-plot-pen "Burglary"
-;  plotxy (count events with [event-class = "burglary" and event-status = ONGOING]) (count resources with [current-event-class = "burglary"])
-;  set-current-plot-pen "Criminal damage and arson"
-;  plotxy (count events with [event-class = "criminal damage and arson" and event-status = ONGOING]) (count resources with [current-event-class = "criminal damage and arson"])
-;  set-current-plot-pen "Drugs"
-;  plotxy (count events with [event-class = "drugs" and event-status = ONGOING]) (count resources with [current-event-class = "drugs"])
-;  set-current-plot-pen "Other crime"
-;  plotxy (count events with [event-class = "other crime" and event-status = ONGOING]) (count resources with [current-event-class = "other crime"])
-;  set-current-plot-pen "Other theft"
-;  plotxy (count events with [event-class = "other theft" and event-status = ONGOING]) (count resources with [current-event-class = "other theft"])
-;  set-current-plot-pen "Possession of weapons"
-;  plotxy (count events with [event-class = "possession of weapons" and event-status = ONGOING]) (count resources with [current-event-class = "possession of weapons"])
-;  set-current-plot-pen "Public order"
-;  plotxy (count events with [event-class = "public order" and event-status = ONGOING]) (count resources with [current-event-class = "public order"])
-;  set-current-plot-pen "Robbery"
-;  plotxy (count events with [event-class = "robbery" and event-status = ONGOING]) (count resources with [current-event-class = "robbery"])
-;  set-current-plot-pen "Shoplifting"
-;  plotxy (count events with [event-class = "shoplifting" and event-status = ONGOING]) (count resources with [current-event-class = "shoplifting"])
-;  set-current-plot-pen "Theft from the person"
-;  plotxy (count events with [event-class = "theft from the person" and event-status = ONGOING]) (count resources with [current-event-class = "theft from the person"])
-;  set-current-plot-pen "Vehicle crime"
-;  plotxy (count events with [event-class = "vehicle crime" and event-status = ONGOING]) (count resources with [current-event-class = "vehicle crime"])
-;  set-current-plot-pen "Violence and sexual offences"
-;  plotxy (count events with [event-class = "violence and sexual offences" and event-status = ONGOING]) (count resources with [current-event-class = "violence and sexual offences"])
 
 end
 
@@ -1652,12 +1624,12 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 190
-355
-482
-960
+465
+463
+1030
 -1
 -1
-28.42
+26.5
 1
 10
 1
@@ -1712,10 +1684,10 @@ NIL
 1
 
 MONITOR
-615
-800
-795
-845
+610
+835
+790
+880
 Response Officers Available
 count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = RESPONSE]
 17
@@ -1723,10 +1695,10 @@ count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = RE
 11
 
 MONITOR
-615
-910
-755
-955
+1105
+830
+1245
+875
 Events - Awaiting
 count events with [event-status = AWAITING-SUPPLY]
 17
@@ -1734,10 +1706,10 @@ count events with [event-status = AWAITING-SUPPLY]
 11
 
 MONITOR
-760
-910
-900
-955
+1250
+830
+1390
+875
 Events - Ongoing
 count events with [event-status = ONGOING]
 17
@@ -1745,10 +1717,10 @@ count events with [event-status = ONGOING]
 11
 
 MONITOR
-905
-910
-1040
-955
+1395
+830
+1530
+875
 Events - Completed
 count-completed-events
 17
@@ -1756,10 +1728,10 @@ count-completed-events
 11
 
 PLOT
-520
-145
-1165
-265
+490
+160
+1135
+280
 % Resource Usage
 time
 %
@@ -1771,15 +1743,14 @@ true
 true
 "" ""
 PENS
-"TOTAL" 1.0 0 -16777216 true "" ""
 "CID" 1.0 0 -2674135 true "" ""
 "RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
-520
-272
-1265
-531
+490
+290
+1665
+549
 active-events
 time
 count of events
@@ -1824,10 +1795,10 @@ NIL
 1
 
 TEXTBOX
-199
-68
-324
-145
+210
+75
+335
+152
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1845,41 +1816,10 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1270
-272
-1704
-532
-scatter
-count events
-count resource
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"Anti-social behaviour" 1.0 2 -16777216 true "" ""
-"Bicycle theft" 1.0 2 -7500403 true "" ""
-"Burglary" 1.0 2 -2674135 true "" ""
-"Criminal damage and arson" 1.0 2 -955883 true "" ""
-"Drugs" 1.0 2 -6459832 true "" ""
-"Other crime" 1.0 2 -1184463 true "" ""
-"Other theft" 1.0 2 -10899396 true "" ""
-"Possession of weapons" 1.0 2 -13840069 true "" ""
-"Public order" 1.0 2 -14835848 true "" ""
-"Robbery" 1.0 2 -11221820 true "" ""
-"Shoplifting" 1.0 2 -13791810 true "" ""
-"Theft from the person" 1.0 2 -13345367 true "" ""
-"Vehicle crime" 1.0 2 -8630108 true "" ""
-"Violence and sexual offences" 1.0 2 -5825686 true "" ""
-
-PLOT
-522
-536
-1267
-793
+490
+560
+1665
+817
 resources
 time
 resources
@@ -1913,15 +1853,15 @@ SWITCH
 898
 VERBOSE
 VERBOSE
-0
+1
 1
 -1000
 
 MONITOR
-805
 800
-1005
-845
+835
+1000
+880
 Response Officers Responding
 count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = RESPONSE]
 17
@@ -1929,10 +1869,10 @@ count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = R
 11
 
 PLOT
-1055
-805
-1705
-925
+1060
+970
+1665
+1090
 Events Waiting
 NIL
 NIL
@@ -1960,10 +1900,10 @@ event-file-out
 -1000
 
 MONITOR
-615
-960
-755
-1005
+1105
+880
+1245
+925
 priority 1 waiting
 count events with [event-status = AWAITING-SUPPLY and event-priority = 1]
 17
@@ -1971,10 +1911,10 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 1]
 11
 
 MONITOR
-760
-960
-900
-1005
+1250
+880
+1390
+925
 priority 2 waiting
 count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
 17
@@ -1982,10 +1922,10 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
 11
 
 MONITOR
-905
-960
-1040
-1005
+1395
+880
+1530
+925
 priority 3 waiting
 count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 17
@@ -1993,10 +1933,10 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 11
 
 PLOT
-520
-15
+490
+25
 1135
-140
+150
 Crime
 NIL
 NIL
@@ -2036,7 +1976,7 @@ replication
 replication
 1
 100
-1.0
+6.0
 1
 1
 NIL
@@ -2045,7 +1985,7 @@ HORIZONTAL
 MONITOR
 338
 15
-483
+458
 60
 Shift1-Shift2-Shift3
 (word Shift-1 \"-\" Shift-2 \"-\" Shift-3)
@@ -2096,10 +2036,10 @@ SetSeed
 -1000
 
 SLIDER
-193
-148
-333
-181
+204
+155
+344
+188
 shift-1-response
 shift-1-response
 0
@@ -2111,10 +2051,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-193
-183
-333
-216
+204
+190
+344
+223
 shift-2-response
 shift-2-response
 0
@@ -2126,10 +2066,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-193
-218
-333
-251
+204
+225
+344
+258
 shift-3-response
 shift-3-response
 0
@@ -2141,55 +2081,55 @@ NIL
 HORIZONTAL
 
 SLIDER
-338
-148
-443
-181
+349
+155
+454
+188
 shift-1-CID
 shift-1-CID
 0
 100
-20.0
+30.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-338
-183
-443
-216
+349
+190
+454
+223
 shift-2-CID
 shift-2-CID
 0
 100
-20.0
+30.0
 5
 1
 NIL
 HORIZONTAL
 
 SLIDER
-338
-218
-443
-251
+349
+225
+454
+258
 shift-3-CID
 shift-3-CID
 0
 100
-20.0
+30.0
 5
 1
 NIL
 HORIZONTAL
 
 MONITOR
-339
-98
-444
-143
+350
+105
+455
+150
 Total Resources
 shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-CID + shift-3-CID
 17
@@ -2197,10 +2137,10 @@ shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-C
 11
 
 BUTTON
-339
-63
-444
-96
+350
+70
+455
+103
 visualise-shifts
 ask resources with [working-shift = 1] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 1]\n]\nask resources with [working-shift = 2] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 2]\n]\n\nask resources with [working-shift = 3]\n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 3]\n]
 NIL
@@ -2214,40 +2154,40 @@ NIL
 1
 
 TEXTBOX
-527
-807
-602
-825
+522
+842
+597
+860
 Resources
 13
 0.0
 1
 
 TEXTBOX
-550
-921
-605
-939
+1040
+841
+1095
+859
 Events
 13
 0.0
 1
 
 TEXTBOX
-543
-966
-603
-984
+1033
+886
+1093
+904
 Backlog
 13
 0.0
 1
 
 MONITOR
-615
+610
+970
+880
 1015
-870
-1060
 Response - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = RESPONSE]
 3
@@ -2255,10 +2195,10 @@ mean [events-completed] of resources with [resource-type = RESPONSE]
 11
 
 MONITOR
-615
+610
+1020
+880
 1065
-885
-1110
 CID - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = CID]
 3
@@ -2266,10 +2206,10 @@ mean [events-completed] of resources with [resource-type = CID]
 11
 
 MONITOR
-615
-850
-795
-895
+610
+885
+790
+930
 CID Officers Available
 count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = CID]
 17
@@ -2277,10 +2217,10 @@ count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = CI
 11
 
 MONITOR
-805
-850
-1005
-895
+800
+885
+1000
+930
 CID Officers Responding
 count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = CID]
 17
@@ -2288,21 +2228,21 @@ count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = C
 11
 
 MONITOR
-900
+895
+970
+1035
 1015
-1040
-1060
 Average CID Workload
-mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID]
+mean [(count current-event)] of resources with [resource-type = CID]
 3
 1
 11
 
 MONITOR
-900
+895
+1020
+1035
 1065
-1040
-1110
 Max CID Workload 
 max [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID]
 17
@@ -2310,10 +2250,10 @@ max [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILA
 11
 
 MONITOR
-901
-1119
-1041
-1164
+895
+1070
+1035
+1115
 Min CID Workload
 min [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID]
 17
@@ -2321,10 +2261,10 @@ min [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILA
 11
 
 PLOT
-1055
-930
-1704
-1080
+1145
+160
+1665
+280
 CID Mean Workload
 NIL
 NIL
@@ -2333,10 +2273,10 @@ NIL
 0.0
 5.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot mean [(count current-event)] of resources with [resource-type = CID]"
+"Workload" 1.0 0 -16777216 true "" "plot mean [(count current-event)] of resources with [resource-type = CID]"
 
 SWITCH
 10
@@ -2345,7 +2285,7 @@ SWITCH
 938
 show-workload
 show-workload
-0
+1
 1
 -1000
 
@@ -2358,7 +2298,7 @@ non-crime-%-CID
 non-crime-%-CID
 0
 1
-0.0
+0.5
 0.01
 1
 NIL
@@ -2373,50 +2313,17 @@ non-crime-%-RESPONSE
 non-crime-%-RESPONSE
 0
 1
-0.0
+0.5
 0.01
 1
 NIL
 HORIZONTAL
 
-MONITOR
-1275
-540
-1392
-585
-NIL
-viol-sex-demand
-1
-1
-11
-
-MONITOR
-1395
-540
-1510
-585
-NIL
-burg-demand
-1
-1
-11
-
-MONITOR
-1275
-590
-1390
-635
-NIL
-asb-demand
-17
-1
-11
-
 SWITCH
-195
-260
-440
-293
+206
+267
+451
+300
 response-safe-crewing-DAY
 response-safe-crewing-DAY
 1
@@ -2424,10 +2331,10 @@ response-safe-crewing-DAY
 -1000
 
 SWITCH
-195
-300
-442
-333
+206
+307
+453
+340
 response-safe-crewing-NIGHT
 response-safe-crewing-NIGHT
 0
@@ -2441,15 +2348,15 @@ SWITCH
 978
 HEADLESS
 HEADLESS
-1
+0
 1
 -1000
 
 SWITCH
-10
-1070
-285
-1103
+206
+392
+451
+425
 RESPONSE-RESOURCE-LINEAR
 RESPONSE-RESOURCE-LINEAR
 0
@@ -2457,10 +2364,10 @@ RESPONSE-RESOURCE-LINEAR
 -1000
 
 SWITCH
-10
-1105
-285
-1138
+206
+427
+451
+460
 CID-RESOURCE-LINEAR
 CID-RESOURCE-LINEAR
 1
@@ -2468,15 +2375,44 @@ CID-RESOURCE-LINEAR
 -1000
 
 SWITCH
-10
-1035
-285
-1068
+206
+357
+451
+390
 Expert-CID-Allocation
 Expert-CID-Allocation
 0
 1
 -1000
+
+PLOT
+1145
+25
+1665
+150
+Events Ongoing
+Ongoing Events
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"CID-Ongoing" 1.0 0 -2674135 true "" ""
+"RESPONSE-Ongoing" 1.0 0 -13345367 true "" ""
+
+TEXTBOX
+520
+975
+590
+993
+Workload
+13
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
