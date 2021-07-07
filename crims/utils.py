@@ -160,7 +160,9 @@ def get_category_subtypes():
   cached_data = get_data_path("detailed-offence-counts.csv")
 
   if not cached_data.is_file():
-    raw = pd.read_excel("https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods", sheet_name="2019-20")
+    url = "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods"
+    sheets = ["2018-19", "2019-20"]
+    raw = pd.concat([pd.read_excel(url, sheet_name=s) for s in sheets])
     raw.to_csv(cached_data, index=False)
   else:
     raw = pd.read_csv(cached_data)
