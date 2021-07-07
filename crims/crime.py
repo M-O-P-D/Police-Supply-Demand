@@ -47,14 +47,15 @@ class Crime:
 
   # TODO this breaks if not a whole number of years
   """ Class to hold raw crime data and process it as necessary. The dataset is large so loading it is expensive """
-  def __init__(self, force_name, start_year, start_month, end_year, end_month):
+  def __init__(self, force_name, years_of_data, end_year, end_month):
 
+    self.years_of_data = years_of_data
     # self.year = year
     # self.month = month
     self.original_force_name = force_name
     self.force_name = standardise_force_name(force_name)
     #self.api = PoliceAPI()
-    self.data = Crime.__get_raw_data(self.force_name, start_year, start_month, end_year, end_month)
+    self.data = Crime.__get_raw_data(self.force_name, self.years_of_data, end_year, end_month)
     self.data["SuspectDemand"] = self.data["Last outcome category"].apply(lambda c: Crime.__outcomes_mapping[c])
     # assume annual cycle and aggregate years
     self.data["MonthOnly"] = self.data.Month.apply(lambda ym: ym.split("-")[1])
@@ -79,7 +80,14 @@ class Crime:
 
   # for now just use bulk downloads
   @staticmethod
-  def __get_raw_data(force_name, start_year, start_month, end_year, end_month):
+  def __get_raw_data(force_name, years_of_data, end_year, end_month):
+
+    start_year = end_year - years_of_data
+    start_month = end_month + 1
+
+    if start_month == 13:
+      start_month = 1
+      start_year += 1
 
     file = "%d-%02d.zip" % (end_year, end_month)
 
@@ -125,8 +133,7 @@ class Crime:
     # ensure all data accounted for
     assert counts.sum().sum() == len(self.data)
 
-    # counts["count"] = counts["count"].astype(float) * 12 / 3
-    counts = counts.astype(float) * 12 / 3
+    counts = counts.astype(float) * 12 / self.years_of_data
 
     before = counts.T.sum()
 
