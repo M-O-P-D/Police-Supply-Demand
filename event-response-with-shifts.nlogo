@@ -962,7 +962,7 @@ end
 ;plot update commands
 to update-all-plots
 
-  ;"date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload_current_shift, meanCIDworkload_all"
+  ;"date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,RESPONSE_ongoing,CID _ongoing,meanCIDworkload_current_shift, meanCIDworkload_all"
 
   file-open resource-usage-trends-file
   file-print (word (time:show dt "dd-MM-yyyy HH:mm") ","
@@ -977,6 +977,8 @@ to update-all-plots
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 1]) ","            ; Count Waiting Priority 1 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 2]) ","            ; Count Waiting Priority 2 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 3]) ","            ; Count Waiting Priority 3 Jobs
+    (count events with [event-status = ONGOING and event-resource-type = RESPONSE]) ","        ; Count ongoing RESPONSE jobs
+    (count events with [event-status = ONGOING and event-resource-type = CID]) ","             ; Count ongoing CID jobs
     mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID] "," ;mean CID officer workload on current shift
     mean [(count current-event)] of resources with [resource-type = CID] ;mean CID officer workload - all CID
   )
@@ -1194,7 +1196,7 @@ to start-file-out
 
   if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
   file-open resource-usage-trends-file
-  file-print "date_time,shift1,shift2,shift3,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload_shift, meanCIDworkload_all"
+  file-print "date_time,shift1,shift2,shift3,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,response_ongoing,CID_ongoing,meanCIDworkload_shift, meanCIDworkload_all"
 
 
 end
@@ -1624,9 +1626,9 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 190
-465
+350
 463
-1030
+915
 -1
 -1
 26.5
@@ -2353,10 +2355,10 @@ HEADLESS
 -1000
 
 SWITCH
-206
-392
-451
-425
+210
+970
+455
+1003
 RESPONSE-RESOURCE-LINEAR
 RESPONSE-RESOURCE-LINEAR
 0
@@ -2364,10 +2366,10 @@ RESPONSE-RESOURCE-LINEAR
 -1000
 
 SWITCH
-206
-427
-451
-460
+210
+1005
+455
+1038
 CID-RESOURCE-LINEAR
 CID-RESOURCE-LINEAR
 1
@@ -2375,10 +2377,10 @@ CID-RESOURCE-LINEAR
 -1000
 
 SWITCH
-206
-357
-451
-390
+210
+935
+455
+968
 Expert-CID-Allocation
 Expert-CID-Allocation
 0
