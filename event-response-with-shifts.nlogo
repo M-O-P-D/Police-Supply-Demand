@@ -977,8 +977,8 @@ to update-all-plots
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 1]) ","            ; Count Waiting Priority 1 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 2]) ","            ; Count Waiting Priority 2 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 3]) ","            ; Count Waiting Priority 3 Jobs
-    (count events with [event-status = ONGOING and event-resource-type = RESPONSE]) ","        ; Count ongoing RESPONSE jobs
-    (count events with [event-status = ONGOING and event-resource-type = CID]) ","             ; Count ongoing CID jobs
+    (count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = RESPONSE]) ","        ; Count ongoing RESPONSE jobs
+    (count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = CID]) ","             ; Count ongoing CID jobs
     mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID] "," ;mean CID officer workload on current shift
     mean [(count current-event)] of resources with [resource-type = CID] ;mean CID officer workload - all CID
   )
