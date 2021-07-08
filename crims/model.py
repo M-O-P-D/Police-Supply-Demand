@@ -31,8 +31,11 @@ class CrimeMicrosim(no.Model):
     self.__crime_types = crime.get_category_breakdown()
 
     # loading factor for crime sampling
-    # TODO make function of crime type
-    self.__loading = dict.fromkeys(self.__crime_categories, 1.0)
+    self.__loading = self.__crime_types[["description"]].copy()
+    self.__loading["loading"] = 1.0
+    self.__loading.description = self.__loading.description.apply(lambda s: s.lower())
+    self.__loading.set_index("description", append=True, inplace=True) # POLICE_UK_CAT_MAP_category
+    self.__loading.index.names=["category", "type"]
 
     # upstream model
     #self.datastream = DataStream("http://localhost:5000")
@@ -61,15 +64,27 @@ class CrimeMicrosim(no.Model):
       self.halt()
     return True
 
-  def set_loading(self, f, category=None):
-    if category is None:
+  def set_loading(self, f, name=None):
+    if name is None:
       # change all values
-      self.__loading = dict.fromkeys(self.__loading, f)
+      self.__loading.loading = f
+    elif name in self.__loading.index.levels[0]:
+      # change loading for all crime types in a category
+      self.__loading.loc[self.__loading.index.get_level_values("category") == name.lower(), "loading"] = f
+    elif name in self.__loading.index.levels[1]:
+      # change loading for a specific crime type
+      self.__loading.loc[self.__loading.index.get_level_values("type") == name.lower(), "loading"] = f
     else:
-      # change specific value
-      self.__loading[category] = f
+      raise ValueError(f"{name} is not a crime category or type, cannot set loading factor")
 
-  def get_loading(self):
+  # can only select on crime type (category might have multiple loadings)
+  def get_loading(self, crime_type):
+    if crime_type.lower() not in self.__loading.index.levels[1]:
+      raise ValueError(f"{crime_type} is not an entry in ")
+    return self.__loading[self.__loading.index.get_level_values("type") == crime_type.lower()]["loading"].values[0]
+
+  @property
+  def loading_factors(self):
     return self.__loading
 
   def force_area(self):
@@ -105,7 +120,7 @@ class CrimeMicrosim(no.Model):
             p_suspect = self.__crime_outcomes.loc[(g,cat), "pSuspect"]
 
             # impose daily/weekly periodicity of the subtype to the scaled intensity for the type, and adjust by loading factor
-            lambdas = intensity * time_weights * self.__loading[cat]
+            lambdas = intensity * time_weights * self.get_loading(crime_type.description)
             lambdas = np.append(lambdas, 0.0)
             times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
             if len(times) > 0:

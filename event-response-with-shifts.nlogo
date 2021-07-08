@@ -32,9 +32,6 @@ globals
   resource-usage-trends-file
 
 
-  ; crims parameters
-  loading-factor ; dynamic crime loading factor
-
   ; ENUMERATIONS
   ; event-status: status of demand event - coded 1 = awaiting supply, 2 = ongoing, 3 = paused
   AWAITING-SUPPLY
@@ -226,10 +223,12 @@ to setup
   set dt time:create (word StartYear "/" StartMonth "/01 00:00")
   set end-dt (time:plus dt timestep-length-minutes "minutes")
 
-  set loading-factor table:from-list py:runresult "get_loading()"
-
-  ; test - increase drug offences *from the second month* (i.e. after the burn-in)
-  ; py:run "set_loading(1.34, 'drugs')"
+  ; test type - only stalking offences *from the second month* (i.e. after the burn-in)
+  ; py:run "set_loading(0.0)"
+  ; py:run "set_loading(100.0, 'stalking')"
+  ; test category - only burglary category offences *from the second month* (i.e. after the burn-in)
+  ; py:run "set_loading(0.0)"
+  ; py:run "set_loading(20.0, 'burglary')"
 
   ;create folder path to store results based on settings
   let model-config (word Force "-" behaviorspace-experiment-name "-" replication "-")

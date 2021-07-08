@@ -29,7 +29,7 @@ class CannedCrimeData(no.Model):
 
   # loading factors do nothing on canned data
   def get_loading(self, _=None):
-    return { }
+    return 1.0
 
   def set_loading(self, _f, _=None):
     pass
@@ -45,8 +45,8 @@ def set_loading(f, category=None):
   no.log("Setting %s loading to %f" % (category, f))
   return model.set_loading(f, category)
 
-def get_loading():
-  return model.get_loading()
+def get_loading(category_or_type):
+  return model.get_loading(category_or_type)
 
 
 # TODO might be worth passing the ABM timestep size here
@@ -117,9 +117,6 @@ if __name__ == "__main__":
     crimes = pd.read_csv(StringIO(get_crimes(datetime.strftime(ts, TIME_FORMAT), datetime.strftime(te, TIME_FORMAT))), index_col="id")
     no.log("%s->%s: %d crimes" % (ts, te, len(crimes)))
     ts = te
-
-  print(model.get_loading())
-
 
   # print(get_time())
   # crimes = pd.read_csv(StringIO(get_crimes(1.0)), index_col="id")
