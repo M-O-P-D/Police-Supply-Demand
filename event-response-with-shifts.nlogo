@@ -124,6 +124,10 @@ events-own
   event-resource-req-total
 
   event-priority ; variable that allows events to be triaged in terms of importance of response
+
+
+  event-requires-CID? ; bool for if event requires CID - flag to initial event as CID requirement can either be specified through expert elicited list or as a function of severity > x.
+
 ]
 
 
@@ -232,7 +236,7 @@ to setup
 
   ;create folder path to store results based on settings
   let model-config (word Force "-" behaviorspace-experiment-name "-" replication "-")
-  let path (word "model-output/")
+  let path (word "model-output/" behaviorspace-experiment-name "/")
   pathdir:create path
 
   ;setup output files
@@ -298,7 +302,7 @@ to setup
   if event-file-out [start-file-out]
 
   ;midnight so roster shift 3 on
-  set Shift-3 TRUE
+  set shift-3 TRUE
   roster-on 3
 
 
@@ -483,12 +487,20 @@ to read-events-from-crims
 
       ;get event priority based on severity
       convert-severity-to-event-priority
+
+
+      ;lookup if you need jut RESPONSE or RESPONSE & CID based on expert insight
+      set event-requires-CID? get-CID-requirements Expert-CID-Allocation event-type
+
       ;get requirements in terms of RESPONSE & CID hours/officers
       generate-event-requirements
+
+
 
     ]
     ;once the event agent has been created delete it from the data file
     set event-data remove-item 0 event-data
+
   ]
 
 end
@@ -498,6 +510,7 @@ end
 
 ; New method to identify requirements for Response and CID resources to events based on prioriy, severity, the presence of a suspect and the current shift (to accomodate safe crewing)
 to generate-event-requirements
+
 
 
   ; TODO can 1/2/3 be dealt with in a single if block (+ if 1, call CID)
@@ -514,8 +527,8 @@ to generate-event-requirements
     set event-resource-counter event-resource-req-total
     if not HEADLESS [ output-print (word EventID " INITIAL-RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers ) ]
 
-    ;then call CID and create a follow up event
-    call-CID
+    ;if the event requires a CID response - then call CID and create a follow up event
+    if event-requires-CID? [ call-CID ]
   ]
 
   ;PRIORITY 2 & 3 Events - RESPONSE officers only
@@ -523,7 +536,7 @@ to generate-event-requirements
   if (event-priority = 2 or event-priority = 3)
   [
     ;calculate hours required based on severity and presence/absence of suspect (final parameter an optional weight to over/under concentrate on case - increase/decrease hours = hardcoded to 1 no effect)
-    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1
+    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1 RESPONSE-RESOURCE-LINEAR
     ifelse Shift-3 ;Night (shift 3) or Day (shifts 1,2) - check double crewing options
     [ifelse response-safe-crewing-NIGHT [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
     [ifelse response-safe-crewing-DAY [set event-resource-req-officers 2] [set event-resource-req-officers 1]]
@@ -531,9 +544,13 @@ to generate-event-requirements
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
     if not HEADLESS [ output-print (word EventID " RESPONSE-ALLOCATION "  ",resource_type=" event-resource-type " , offence=" event-type ", Priority="  event-priority ", Severity="event-severity ", suspect=" event-suspect ", Response Hours=" event-resource-req-hours ", Response Officers=" event-resource-req-officers ) ]
+
+    ;if the event requires a CID response - then call CID and create a follow up event
+    if event-requires-CID? [ call-CID ]
+
   ]
 
-  ;PRIORITY 4 Events - NO PHYSICAL RESPONSE officers only
+  ;PRIORITY 4 Events - NO PHYSICAL RESPONSE
   ;For priority 4 events - virtual or no physical response
   if (event-priority = 4)
   [
@@ -557,7 +574,7 @@ to call-CID
     ;one CID officer - no double crewing for CID
     set event-resource-req-officers 1
     ;calculate hours required based on severity and presence/absence of suspect (final parameter an optional weight to over/under concentrate on case - increase/decrease hours = hardcoded to 1 no effect)
-    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1
+    set event-resource-req-hours convert-severity-to-resource-time event-severity event-suspect 1 CID-RESOURCE-LINEAR
     set event-resource-req-total  (event-resource-req-hours * event-resource-req-officers)
     set event-resource-counter event-resource-req-total
 
@@ -566,16 +583,32 @@ to call-CID
 end
 
 
-; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect (NOT USED), and a weight which allows manipulation of how much resource is allocated to particular offences (NOT USED)
-to-report convert-severity-to-resource-time [ severity suspect weight ]
+
+
+
+; Function that calculates number of hours a case will need based on severity of offence, presence or absence of a suspect, a weight which allows manipulation of
+; how much resource is allocated to particular offences (NOT USED), and a GUI Flag (linear) which specifies which formula should be used for calculating the severity > hours relationship
+to-report convert-severity-to-resource-time [ severity suspect weight linear ]
   ;double severity if there's a suspect and divide by 100
   let s 1
   if suspect [set s 2]
-  ; sample lognormal
-  let mean-log-time ln(severity * s / 100)
+  let mean-log-time 0
+
+  ifelse linear
+  [
+    ;LINEAR
+    ; sample lognormal
+    set mean-log-time ln(severity * s / 200)
+  ]
+
+  [
+    ;NON-LINEAR
+    ;calibrated a quadratic growth in time asscociated with offences - here we calibrate such that the linear method above and the exponential method meet at severity = 1000 (the threshold for priority 4 incidents)
+    set mean-log-time 2 * ln((severity) * s / 440)
+  ]
 
   ; A fixed s.d. in log space translates to a proporational one in actual (time) space, e.g. for mean=10, 1 s.d.=(8.33-12) and for mean=100, 1 s.d.=(83.3-120)
-  let stdev-log-time 0.2
+  let stdev-log-time 0.2 ;* sqrt(ln(severity))
 
   ; sample time and round up to nearest whole hour
   let time ceiling exp(random-normal mean-log-time stdev-log-time)
@@ -583,6 +616,17 @@ to-report convert-severity-to-resource-time [ severity suspect weight ]
   ; show (word severity " ONS CSS - mean=" exp(mean-time) " -- time=" time)
   report time
 end
+
+
+
+
+
+
+
+
+
+
+
 
 
 ; return priority 1,2,3,4 based on severity (and presenece of suspect) - should implement THRIVE here
@@ -917,7 +961,7 @@ end
 ;plot update commands
 to update-all-plots
 
-  ;"date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
+  ;"date_time,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,RESPONSE_ongoing,CID _ongoing,meanCIDworkload_current_shift, meanCIDworkload_all"
 
   file-open resource-usage-trends-file
   file-print (word (time:show dt "dd-MM-yyyy HH:mm") ","
@@ -932,7 +976,10 @@ to update-all-plots
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 1]) ","            ; Count Waiting Priority 1 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 2]) ","            ; Count Waiting Priority 2 Jobs
     (count events with [event-status = AWAITING-SUPPLY and event-priority = 3]) ","            ; Count Waiting Priority 3 Jobs
-    mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID] ;mean CID officer workload
+    (count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = RESPONSE]) ","        ; Count ongoing RESPONSE jobs
+    (count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = CID]) ","             ; Count ongoing CID jobs
+    mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID] "," ;mean CID officer workload on current shift
+    mean [(count current-event)] of resources with [resource-type = CID] ;mean CID officer workload - all CID
   )
 
   set-current-plot "Crime"
@@ -940,8 +987,6 @@ to update-all-plots
   plot count-crime-timestep
 
   set-current-plot "% Resource Usage"
-  set-current-plot-pen "TOTAL"
-  plot (count resources with [resource-status = ON-DUTY-RESPONDING] / count resources with [resource-status = ON-DUTY-RESPONDING or resource-status = ON-DUTY-AVAILABLE] ) * 100
 
   if count CID-officers with [resource-status = ON-DUTY-AVAILABLE] > 0
   [
@@ -958,6 +1003,13 @@ to update-all-plots
   plot count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
   set-current-plot-pen "waiting-3"
   plot count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
+
+
+  set-current-plot "Events Ongoing"
+  set-current-plot-pen "CID-Ongoing"
+  plot count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = CID]
+  set-current-plot-pen "RESPONSE-Ongoing"
+  plot count events with [(event-status = ONGOING or event-status = PAUSED) and event-resource-type = RESPONSE]
 
 
   ;------------------------------------------------------------------------------------------------------------------------------
@@ -1121,39 +1173,6 @@ to update-all-plots
 
   file-print out-string
 
-  ;--------------------------------------------------------------------------------------------------------------------------------------------
-
-;  set-current-plot "scatter"
-;  ;clear-plot
-;  set-current-plot-pen "Anti-social behaviour"
-;  plotxy (count events with [event-class = "anti-social behaviour" and event-status = ONGOING]) (count resources with [current-event-class = "anti-social behaviour"])
-;  set-current-plot-pen "Bicycle theft"
-;  plotxy (count events with [event-class = "bicycle theft" and event-status = ONGOING]) (count resources with [current-event-class = "bicycle theft"])
-;  set-current-plot-pen "Burglary"
-;  plotxy (count events with [event-class = "burglary" and event-status = ONGOING]) (count resources with [current-event-class = "burglary"])
-;  set-current-plot-pen "Criminal damage and arson"
-;  plotxy (count events with [event-class = "criminal damage and arson" and event-status = ONGOING]) (count resources with [current-event-class = "criminal damage and arson"])
-;  set-current-plot-pen "Drugs"
-;  plotxy (count events with [event-class = "drugs" and event-status = ONGOING]) (count resources with [current-event-class = "drugs"])
-;  set-current-plot-pen "Other crime"
-;  plotxy (count events with [event-class = "other crime" and event-status = ONGOING]) (count resources with [current-event-class = "other crime"])
-;  set-current-plot-pen "Other theft"
-;  plotxy (count events with [event-class = "other theft" and event-status = ONGOING]) (count resources with [current-event-class = "other theft"])
-;  set-current-plot-pen "Possession of weapons"
-;  plotxy (count events with [event-class = "possession of weapons" and event-status = ONGOING]) (count resources with [current-event-class = "possession of weapons"])
-;  set-current-plot-pen "Public order"
-;  plotxy (count events with [event-class = "public order" and event-status = ONGOING]) (count resources with [current-event-class = "public order"])
-;  set-current-plot-pen "Robbery"
-;  plotxy (count events with [event-class = "robbery" and event-status = ONGOING]) (count resources with [current-event-class = "robbery"])
-;  set-current-plot-pen "Shoplifting"
-;  plotxy (count events with [event-class = "shoplifting" and event-status = ONGOING]) (count resources with [current-event-class = "shoplifting"])
-;  set-current-plot-pen "Theft from the person"
-;  plotxy (count events with [event-class = "theft from the person" and event-status = ONGOING]) (count resources with [current-event-class = "theft from the person"])
-;  set-current-plot-pen "Vehicle crime"
-;  plotxy (count events with [event-class = "vehicle crime" and event-status = ONGOING]) (count resources with [current-event-class = "vehicle crime"])
-;  set-current-plot-pen "Violence and sexual offences"
-;  plotxy (count events with [event-class = "violence and sexual offences" and event-status = ONGOING]) (count resources with [current-event-class = "violence and sexual offences"])
-
 end
 
 
@@ -1165,19 +1184,18 @@ to start-file-out
 
   if file-exists? event-summary-file [file-delete event-summary-file]
   file-open event-summary-file
-  file-print "eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,resource-counter,count-resources,status,hours-required,count-officers,total-requirement"
+  file-print "eventID,priority,response_type,type,class,LSOA,start_dt,response_start_dt,response_end_dt,total_hours,response_start_to_end_hours,wait_prior_to_start_hours,count_resources,hours_required,count_officers,total_requirement"
 
   if file-exists? active-event-trends-file [file-delete active-event-trends-file]
   file-open active-event-trends-file
-  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
-
+  file-print "date_time,Anti_social_behaviour,Bicycle_theft,Burglary,Criminal_damage_and_arson,Drugs,Other_crime,Other_theft,Possession_of_weapons,Public_order,Robbery,Shoplifting,Theft_from_the_person,Vehicle_crime,Violence_and_sexual_offences"
   if file-exists? active-resource-trends-file [file-delete active-resource-trends-file]
   file-open active-resource-trends-file
-  file-print "date-time,Anti-social behaviour,Bicycle theft,Burglary,Criminal damage and arson,Drugs,Other crime,Other theft,Possession of weapons,Public order,Robbery,Shoplifting,Theft from the person,Vehicle crime,Violence and sexual offences"
+  file-print "date_time,Anti_social_behaviour,Bicycle_theft,Burglary,Criminal_damage_and_arson,Drugs,Other_crime,Other_theft,Possession_of_weapons,Public_order,Robbery,Shoplifting,Theft_from_the_person,Vehicle_crime,Violence_and_sexual_offences"
 
   if file-exists? resource-usage-trends-file [file-delete resource-usage-trends-file]
   file-open resource-usage-trends-file
-  file-print "date_time,shift1,shift2,shift3,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,meanCIDworkload"
+  file-print "date_time,shift1,shift2,shift3,CIDusagePCT,RESPONSEusagePCT,priority1_ongoing,priority2_ongoing,priority3_ongoing,piority1_waiting,piority2_waiting,piority3_waiting,response_ongoing,CID_ongoing,meanCIDworkload_shift, meanCIDworkload_all"
 
 
 end
@@ -1198,65 +1216,255 @@ end
 ;write out info on a completed event
 to write-completed-event-out
 
-  ;"eventID,priority,response-type,type,class,LSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,resource-counter,count-resources,status,hours-required,count-officers,total-requirement"
+  ;"eventID,priority,response-type,type,class,MSOA,start-dt,response-start-dt,response-end-dt,total-hours,response-start-to-end-hours,wait-prior-to-start-hours,count-resources,hours-required,count-officers,total-requirement"
 
   file-open event-summary-file
-  file-print (word
-    eventID ","   													      ;eventID,													
-    event-priority "," 				  								;priority,	
-    "Physical,"														;response-type,
-    event-type "\",\""  											;event-type,
-    event-class "\","  												;event-class,
-    event-MSOA ","  												;event-LSOA,
+  let out-string (word
+    eventID ","   													                       	 									 			;eventID,													
+    event-priority "," 				  								                   	 									 			;priority,	
+    "Physical,\""														                       	 									 			;response-type,
+    (remove "," event-type) "\",\""  											         	 									 			;event-type,
+    (remove "," event-class) "\","  												       	 									 			;event-class,
+    event-MSOA ","  												                       	 									 			;event-MSOA,
 
-    (time:show event-start-dt "dd-MM-yyyy HH:mm") ","  				;event-start-dt,
-    (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  "," 	;event-response-start-dt,
-    (time:show end-dt "dd-MM-yyyy HH:mm") ","  						;event-response-end-dt,
+    (time:show event-start-dt "dd-MM-yyyy HH:mm") ","  				     	 									 			;event-start-dt,
+    (time:show event-response-start-dt "dd-MM-yyyy HH:mm")  "," 	 	 									 			;event-response-start-dt,
+    (time:show end-dt "dd-MM-yyyy HH:mm") ","  						         	 									 			;event-response-end-dt,
 
-    time:difference-between (event-start-dt) (dt) "hours" 				;total-hours,
-    time:difference-between (event-response-start-dt) (dt) "hours"		;response-start-to-end-hours
-    time:difference-between (event-start-dt) (event-response-start-dt) "hours"				;wait-prior-to-start-hours
+    (time:difference-between (event-start-dt) (dt) "hours") "," 				                    ;total-hours,
+    (time:difference-between (event-response-start-dt) (dt) "hours")	"," 	                ;response-start-to-end-hours
+    (time:difference-between (event-start-dt) (event-response-start-dt) "hours")	"," 			;wait-prior-to-start-hours
 
-    event-resource-counter ","  									;event-resource-counter,
 
-    count current-resource ","			 							;count-resources,							
-    event-status ","  												;event-status,
-
-    event-resource-req-hours ","  									;hours-required,
-    event-resource-req-officers ","  								;count-officers,
-    event-resource-req-total  										;total-requirement,
+    count current-resource ","			 									 									 									 	;count-resources,							
+    event-resource-req-hours ","  										 									 									 	;hours-required,
+    event-resource-req-officers ","  									 									 									 	;count-officers,
+    event-resource-req-total  											 									 									 	  ;total-requirement
     																	
-  )  																
+  )  				
+
+
+
+  file-print out-string 												
 
 end
+
+
 
 ;write out info on an event completed without response
 to write-completed-without-response
   file-open event-summary-file
   file-print (word
-    eventID ","   													;eventID,													
-    event-priority "," 				  								;priority,	
-    "Virtual,"														;response-type,
-    event-type "\",\""  											;event-type,
-    event-class "\","  												;event-class,
-    event-MSOA ","  												;event-LSOA,
+    eventID ","   																																				  ;eventID,													
+    event-priority "," 				  																													  ;priority,	
+    "Virtual,\""																																					  ;response-type,
+    (remove "," event-type) "\",\"" 																											  ;event-type,
+    (remove "," event-class) "\","  																												;event-class,
+    event-MSOA ","  																																			  ;event-LSOA,
 
-    (time:show dt "dd-MM-yyyy HH:mm") "," 							;total-hours,
-    (time:show dt "dd-MM-yyyy HH:mm") ","							;response-start-to-end-hours
-    (time:show dt "dd-MM-yyyy HH:mm") ","							;wait-prior-to-start-hours
+    (time:show dt "dd-MM-yyyy HH:mm") "," 																								  ;total-hours,
+    (time:show dt "dd-MM-yyyy HH:mm") ","																										;response-start-to-end-hours
+    (time:show dt "dd-MM-yyyy HH:mm") ","																				            ;wait-prior-to-start-hours
 
-    		"0,"															;total-hours,
-    		"0,"															;response-start-to-end-hours
-    		"0,"															;wait-prior-to-start-hours
+    		"0,"																																								;total-hours,
+    		"0,"																																								;response-start-to-end-hours
+    		"0,"																																								;wait-prior-to-start-hours
 
-    		"0,"        											;count-resources,		
-    		"0," 															;event-status,
-    		"0," 															;hours-required,
-    		"0," 															;count-officers,
-    		"0" 															;total-requirement,
+    		"0,"        																																				;count-resources,		
+    		"0," 																																								;hours-required,
+    		"0," 																																								;count-officers,
+    		"0" 																																								;total-requirement
   )
 
 end
+
+
+
+
+
+
+; function to return bool if offence needs a CID response
+; two ways of doing this (specified via expert-insight? parameter)
+; if expert-insight? is true we use a lookup table specified by talking to experts
+; if not we defer to all offences with a severity of 1000 or more
+
+to-report get-CID-requirements [ expert-insight? offence ]
+
+  let requires-CID? 0
+
+  ifelse expert-insight?
+  [
+
+    ;note the list below sets three safeguarding dealt with offences (<13 sexual offences) to RESPONSE ONLY as we do not model safeguarding.
+
+    (ifelse
+      offence = "Murder"                                                                                      [ set requires-CID? true ]
+      offence = "Corporate manslaughter"                                                                      [ set requires-CID? true ]
+      offence = "Manslaughter"                                                                                [ set requires-CID? true ]
+      offence = "Infanticide"                                                                                 [ set requires-CID? true ]
+      offence = "Attempted murder"                                                                            [ set requires-CID? true ]
+      offence = "Rape of a male child under 16"                                                               [ set requires-CID? true ]
+      offence = "Rape of a female child under 16"                                                             [ set requires-CID? true ]
+      offence = "Intentional destruction of a viable unborn child"                                            [ set requires-CID? true ]
+      offence = "Rape of a Female - Multiple Undefined Offenders"                                             [ set requires-CID? true ]
+      offence = "Rape of a female child under 13"                                                             [ set requires-CID? false ] ; Safeguarding response
+      offence = "Rape of a male aged 16 and over"                                                             [ set requires-CID? true ]
+      offence = "Rape of a Male - Multiple Undefined Offenders"                                               [ set requires-CID? true ]
+      offence = "Rape of a female aged 16 and over"                                                           [ set requires-CID? true ]
+      offence = "Rape of a male child under 13"                                                               [ set requires-CID? false ]
+      offence = "Aggravated burglary in a dwelling (outcome only)"                                            [ set requires-CID? true ]
+      offence = "Aggravated Burglary Residential"                                                             [ set requires-CID? true ]
+      offence = "Assault with intent to cause serious harm"                                                   [ set requires-CID? true ]
+      offence = "Conspiracy to murder"                                                                        [ set requires-CID? true ]
+      offence = "Aggravated burglary in a building other than a dwelling(outcome only)"                       [ set requires-CID? true ]
+      offence = "Aggravated Burglary Business and Community"                                                  [ set requires-CID? true ]
+      offence = "Trafficking for sexual exploitation"                                                         [ set requires-CID? true ]
+      offence = "Causing death by careless driving under influence of drink or drugs"                         [ set requires-CID? false ]
+      offence = "Endangering life"                                                                            [ set requires-CID? true ]
+      offence = "Sexual activity etc with a person with a mental disorder"                                    [ set requires-CID? true ]
+      offence = "Other firearms offences"                                                                     [ set requires-CID? true ]
+      offence = "Kidnapping"                                                                                  [ set requires-CID? true ]
+      offence = "Sexual assault on a female child under 13"                                                   [ set requires-CID? false ]
+      offence = "Incest or familial sexual offences"                                                          [ set requires-CID? true ]
+      offence = "Modern slavery"                                                                              [ set requires-CID? true ]
+      offence = "Procuring illegal abortion"                                                                  [ set requires-CID? true ]
+      offence = "Causing sexual activity without consent"                                                     [ set requires-CID? true ]
+      offence = "Other miscellaneous sexual offences"                                                         [ set requires-CID? true ]
+      offence = "Causing death or serious injury by dangerous driving"                                        [ set requires-CID? false ]
+      offence = "Causing or allowing death of child or vulnerable person"                                     [ set requires-CID? true ]
+      offence = "Abuse of children through sexual exploitation"                                               [ set requires-CID? "Maybe" ]
+      offence = "Sexual assault on a male child under 13"                                                     [ set requires-CID? false ]
+      offence = "Arson endangering life"                                                                      [ set requires-CID? true ]
+      offence = "Sexual activity involving a child under 13"                                                  [ set requires-CID? "Maybe" ]
+      offence = "Aiding suicide"                                                                              [ set requires-CID? true ]
+      offence = "Robbery of business property"                                                                [ set requires-CID? true ]
+      offence = "Robbery of personal property"                                                                [ set requires-CID? true ]
+      offence = "Blackmail"                                                                                   [ set requires-CID? true ]
+      offence = "Sexual assault on a male aged 13 and over"                                                   [ set requires-CID? true ]
+      offence = "Sexual activity involving child under 16"                                                    [ set requires-CID? true ]
+      offence = "Possession of firearms with intent"                                                          [ set requires-CID? true ]
+      offence = "Causing death by aggravated vehicle taking"                                                  [ set requires-CID? true ]
+      offence = "Trafficking in controlled drugs"                                                             [ set requires-CID? "Maybe" ]
+      offence = "Burglary in a dwelling(outcome only)"                                                        [ set requires-CID? true ]
+      offence = "Attempted burglary in a dwelling (outcome only)"                                             [ set requires-CID? true ]
+      offence = "Distraction burglary in a dwelling (outcome only)"                                           [ set requires-CID? true ]
+      offence = "Attempted distraction burglary in a dwelling (outcome only)"                                 [ set requires-CID? true ]
+      offence = "Burglary Residential"                                                                        [ set requires-CID? true ]
+      offence = "Attempted Burglary Residential"                                                              [ set requires-CID? true ]
+      offence = "Distraction Burglary Residential"                                                            [ set requires-CID? true ]
+      offence = "Attempted Distraction Burglary Residential"                                                  [ set requires-CID? true ]
+      offence = "Sexual grooming"                                                                             [ set requires-CID? true ]
+      offence = "Sexual assault on a female aged 13 and over"                                                 [ set requires-CID? true ]
+      offence = "Possession of firearms offences"                                                             [ set requires-CID? true ]
+      offence = "Assault with injury on a constable"                                                          [ set requires-CID? true ]
+      offence = "Exploitation of prostitution"                                                                [ set requires-CID? true ]
+      offence = "Violent disorder"                                                                            [ set requires-CID? true ]
+      offence = "Racially or religiously aggravated assault with injury"                                      [ set requires-CID? false ]
+      offence = "Child abduction"                                                                             [ set requires-CID? true ]
+      offence = "Threats to kill"                                                                             [ set requires-CID? true ]
+      offence = "Other knives offences"                                                                       [ set requires-CID? false ]
+      offence = "Profiting from or concealing knowledge of the proceeds of crime"                             [ set requires-CID? true ]
+      offence = "Wildlife"                                                                                    [ set requires-CID? false ]
+      offence = "Abuse of position of trust of a sexual nature"                                               [ set requires-CID? "Maybe" ]
+      offence = "Offender Management Act offences"                                                            [ set requires-CID? "Maybe" ]
+      offence = "Concealing an infant death close to birth"                                                   [ set requires-CID? true ]
+      offence = "Bigamy"                                                                                      [ set requires-CID? true ]
+      offence = "Possession of false documents"                                                               [ set requires-CID? "Maybe" ]
+      offence = "Absconding from lawful custody"                                                              [ set requires-CID? "Maybe" ]
+      offence = "Assault with injury"                                                                         [ set requires-CID? true ]
+      offence = "Arson not endangering life"                                                                  [ set requires-CID? "Maybe" ]
+      offence = "Causing death by driving: unlicensed or disqualified or uninsured drivers"                   [ set requires-CID? false ]
+      offence = "Other notifiable offences"                                                                   [ set requires-CID? "Maybe" ]
+      offence = "Perverting the course of justice"                                                            [ set requires-CID? true ]
+      offence = "Other forgery"                                                                               [ set requires-CID? true ]
+      offence = "Cruelty to children/young persons"                                                           [ set requires-CID? true ]
+      offence = "Obscene publications etc"                                                                    [ set requires-CID? true ]
+      offence = "Making, supplying or possessing articles for use in fraud"                                   [ set requires-CID? "Maybe" ]
+      offence = "Theft or unauthorised taking of motor vehicle"                                               [ set requires-CID? false ]
+      offence = "Burglary in a building other than a dwelling (outcome only)"                                 [ set requires-CID? true ]
+      offence = "Attempted burglary in a building other than a dwelling (outcome only)"                       [ set requires-CID? "Maybe" ]
+      offence = "Burglary Business and Community"                                                             [ set requires-CID? "Maybe" ]
+      offence = "Attempted Burglary Business and Community"                                                   [ set requires-CID? "Maybe" ]
+      offence = "Dangerous driving"                                                                           [ set requires-CID? false ]
+      offence = "Causing death by careless or inconsiderate driving"                                          [ set requires-CID? false ]
+      offence = "Theft from automatic machine or meter"                                                       [ set requires-CID? false ]
+      offence = "Perjury"                                                                                     [ set requires-CID? true ]
+      offence = "Theft of mail"                                                                               [ set requires-CID? false ]
+      offence = "Theft from the person"                                                                       [ set requires-CID? "Maybe" ]
+      offence = "Other offences against the State or public order"                                            [ set requires-CID? "Maybe" ]
+      offence = "Threat or possession with intent to commit criminal damage"                                  [ set requires-CID? false ]
+      offence = "Stalking"                                                                                    [ set requires-CID? "Maybe" ]
+      offence = "Handling stolen goods"                                                                       [ set requires-CID? "Maybe" ]
+      offence = "Aggravated vehicle taking"                                                                   [ set requires-CID? "Maybe" ]
+      offence = "Possession of article with blade or point"                                                   [ set requires-CID? false ]
+      offence = "Possession of other weapons"                                                                 [ set requires-CID? false ]
+      offence = "Unnatural sexual offences"                                                                   [ set requires-CID? true ]
+      offence = "Theft in a dwelling other than from an automatic machine or meter"                           [ set requires-CID? false ]
+      offence = "Theft by an employee"                                                                        [ set requires-CID? "Maybe" ]
+      offence = "Exposure and voyeurism"                                                                      [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated harassment"                                               [ set requires-CID? "Maybe" ]
+      offence = "Other theft"                                                                                 [ set requires-CID? "Maybe" ]
+      offence = "Harassment"                                                                                  [ set requires-CID? "Maybe" ]
+      offence = "Theft from vehicle"                                                                          [ set requires-CID? "Maybe" ]
+      offence = "Forgery or use of false drug prescription"                                                   [ set requires-CID? "Maybe" ]
+      offence = "Going equipped for stealing, etc"                                                            [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated assault without injury"                                   [ set requires-CID? false ]
+      offence = "Theft or unauthorised taking of a pedal cycle"                                               [ set requires-CID? false ]
+      offence = "Malicious Communications"                                                                    [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated criminal damage"                                          [ set requires-CID? false ]
+      offence = "Assault without injury"                                                                      [ set requires-CID? "Maybe" ]
+      offence = "Disclosure, obstruction, false or misleading statements etc"                                 [ set requires-CID? "Maybe" ]
+      offence = "Racially or religiously aggravated public fear, alarm or distress"                           [ set requires-CID? false ]
+      offence = "Shoplifting"                                                                                 [ set requires-CID? false ]
+      offence = "Interfering with a motor vehicle"                                                            [ set requires-CID? false ]
+      offence = "Other drug offences"                                                                         [ set requires-CID? true ]
+      offence = "Possession of controlled drugs (excl. Cannabis)"                                             [ set requires-CID? "Maybe" ]
+      offence = "Assault without injury on a constable"                                                       [ set requires-CID? "Maybe" ]
+      offence = "Fraud, forgery etc associated with vehicle or driver records"                                [ set requires-CID? false ]
+      offence = "Making off without payment"                                                                  [ set requires-CID? false ]
+      offence = "Public fear, alarm or distress"                                                              [ set requires-CID? false ]
+      offence = "Criminal damage to a dwelling"                                                               [ set requires-CID? false ]
+      offence = "Criminal damage to a building other than a dwelling"                                         [ set requires-CID? false ]
+      offence = "Criminal damage to a vehicle"                                                                [ set requires-CID? false ]
+      offence = "Other criminal damage"                                                                       [ set requires-CID? "Maybe" ]
+      offence = "Dishonest use of electricity"                                                                [ set requires-CID? false ]
+      offence = "Soliciting for the purposes of prostitution"                                                 [ set requires-CID? false ]
+      offence = "Bail offences"                                                                               [ set requires-CID? "Maybe" ]
+      offence = "Possession of controlled drugs (Cannabis)"                                                   [ set requires-CID? "Maybe" ]
+      offence = "Anti-social behaviour"                                                                       [ set requires-CID? false ]
+    )
+      ; if maybe requires CID toss a coin
+      if requires-CID? = "Maybe" [ ifelse random-float 1 > 0.5 [ set requires-CID? true ] [ set requires-CID? false ] ]
+
+    ]
+
+    [
+
+      ; No expert insight - arbitrarily cut at 1000 severity
+      ifelse event-severity >= 1000 [ set requires-CID? true ] [ set requires-CID? false ]
+
+
+    ]
+
+  ;print (word "Establishing CID requirements - expert insight = "  expert-insight? " offence = " offence " severity = " event-severity " --- requires CID? " requires-CID? )
+
+    report requires-CID?
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1417,12 +1625,12 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 190
-355
-482
-1046
+350
+463
+915
 -1
 -1
-28.42
+26.5
 1
 10
 1
@@ -1435,7 +1643,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-23
+20
 0
 0
 1
@@ -1477,10 +1685,10 @@ NIL
 1
 
 MONITOR
-615
-800
-795
-845
+610
+835
+790
+880
 Response Officers Available
 count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = RESPONSE]
 17
@@ -1488,10 +1696,10 @@ count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = RE
 11
 
 MONITOR
-615
-910
-755
-955
+1105
+830
+1245
+875
 Events - Awaiting
 count events with [event-status = AWAITING-SUPPLY]
 17
@@ -1499,10 +1707,10 @@ count events with [event-status = AWAITING-SUPPLY]
 11
 
 MONITOR
-760
-910
-900
-955
+1250
+830
+1390
+875
 Events - Ongoing
 count events with [event-status = ONGOING]
 17
@@ -1510,10 +1718,10 @@ count events with [event-status = ONGOING]
 11
 
 MONITOR
-905
-910
-1040
-955
+1395
+830
+1530
+875
 Events - Completed
 count-completed-events
 17
@@ -1521,10 +1729,10 @@ count-completed-events
 11
 
 PLOT
-520
-145
-1165
-265
+490
+160
+1135
+280
 % Resource Usage
 time
 %
@@ -1536,15 +1744,14 @@ true
 true
 "" ""
 PENS
-"TOTAL" 1.0 0 -16777216 true "" ""
 "CID" 1.0 0 -2674135 true "" ""
 "RESPONSE" 1.0 0 -13345367 true "" ""
 
 PLOT
-520
-272
-1265
-531
+490
+290
+1665
+549
 active-events
 time
 count of events
@@ -1589,10 +1796,10 @@ NIL
 1
 
 TEXTBOX
-199
-68
-324
-145
+210
+75
+335
+152
 Shifts:\n1. 0700 - 1700\n2. 1400 - 2400\n3. 2200 - 0700
 15
 0.0
@@ -1610,41 +1817,10 @@ time:show dt \"dd-MM-yyyy HH:mm\"
 11
 
 PLOT
-1270
-272
-1704
-532
-scatter
-count events
-count resource
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"Anti-social behaviour" 1.0 2 -16777216 true "" ""
-"Bicycle theft" 1.0 2 -7500403 true "" ""
-"Burglary" 1.0 2 -2674135 true "" ""
-"Criminal damage and arson" 1.0 2 -955883 true "" ""
-"Drugs" 1.0 2 -6459832 true "" ""
-"Other crime" 1.0 2 -1184463 true "" ""
-"Other theft" 1.0 2 -10899396 true "" ""
-"Possession of weapons" 1.0 2 -13840069 true "" ""
-"Public order" 1.0 2 -14835848 true "" ""
-"Robbery" 1.0 2 -11221820 true "" ""
-"Shoplifting" 1.0 2 -13791810 true "" ""
-"Theft from the person" 1.0 2 -13345367 true "" ""
-"Vehicle crime" 1.0 2 -8630108 true "" ""
-"Violence and sexual offences" 1.0 2 -5825686 true "" ""
-
-PLOT
-522
-536
-1267
-793
+490
+560
+1665
+817
 resources
 time
 resources
@@ -1683,10 +1859,10 @@ VERBOSE
 -1000
 
 MONITOR
-805
 800
-1005
-845
+835
+1000
+880
 Response Officers Responding
 count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = RESPONSE]
 17
@@ -1694,10 +1870,10 @@ count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = R
 11
 
 PLOT
-1055
-805
-1705
-925
+1060
+970
+1665
+1090
 Events Waiting
 NIL
 NIL
@@ -1720,15 +1896,15 @@ SWITCH
 343
 event-file-out
 event-file-out
-1
+0
 1
 -1000
 
 MONITOR
-615
-960
-755
-1005
+1105
+880
+1245
+925
 priority 1 waiting
 count events with [event-status = AWAITING-SUPPLY and event-priority = 1]
 17
@@ -1736,10 +1912,10 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 1]
 11
 
 MONITOR
-760
-960
-900
-1005
+1250
+880
+1390
+925
 priority 2 waiting
 count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
 17
@@ -1747,10 +1923,10 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 2]
 11
 
 MONITOR
-905
-960
-1040
-1005
+1395
+880
+1530
+925
 priority 3 waiting
 count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 17
@@ -1758,10 +1934,10 @@ count events with [event-status = AWAITING-SUPPLY and event-priority = 3]
 11
 
 PLOT
-520
-15
+490
+25
 1135
-140
+150
 Crime
 NIL
 NIL
@@ -1801,7 +1977,7 @@ replication
 replication
 1
 100
-3.0
+6.0
 1
 1
 NIL
@@ -1810,7 +1986,7 @@ HORIZONTAL
 MONITOR
 338
 15
-483
+458
 60
 Shift1-Shift2-Shift3
 (word Shift-1 \"-\" Shift-2 \"-\" Shift-3)
@@ -1861,10 +2037,10 @@ SetSeed
 -1000
 
 SLIDER
-193
-148
-333
-181
+204
+155
+344
+188
 shift-1-response
 shift-1-response
 0
@@ -1876,10 +2052,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-193
-183
-333
-216
+204
+190
+344
+223
 shift-2-response
 shift-2-response
 0
@@ -1891,10 +2067,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-193
-218
-333
-251
+204
+225
+344
+258
 shift-3-response
 shift-3-response
 0
@@ -1906,10 +2082,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-338
-148
-443
-181
+349
+155
+454
+188
 shift-1-CID
 shift-1-CID
 0
@@ -1921,10 +2097,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-338
-183
-443
-216
+349
+190
+454
+223
 shift-2-CID
 shift-2-CID
 0
@@ -1936,10 +2112,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-338
-218
-443
-251
+349
+225
+454
+258
 shift-3-CID
 shift-3-CID
 0
@@ -1951,10 +2127,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-339
-98
-444
-143
+350
+105
+455
+150
 Total Resources
 shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-CID + shift-3-CID
 17
@@ -1962,10 +2138,10 @@ shift-1-response + shift-2-response + shift-3-response + shift-1-CID + shift-2-C
 11
 
 BUTTON
-339
-63
-444
-96
+350
+70
+455
+103
 visualise-shifts
 ask resources with [working-shift = 1] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 1]\n]\nask resources with [working-shift = 2] \n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 2]\n]\n\nask resources with [working-shift = 3]\n[\nifelse (size = 0.7) \n[set size 1 set plabel \"\" ] \n[set size 0.7 set plabel 3]\n]
 NIL
@@ -1979,40 +2155,40 @@ NIL
 1
 
 TEXTBOX
-527
-807
-602
-825
+522
+842
+597
+860
 Resources
 13
 0.0
 1
 
 TEXTBOX
-550
-921
-605
-939
+1040
+841
+1095
+859
 Events
 13
 0.0
 1
 
 TEXTBOX
-543
-966
-603
-984
+1033
+886
+1093
+904
 Backlog
 13
 0.0
 1
 
 MONITOR
-615
+610
+970
+880
 1015
-870
-1060
 Response - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = RESPONSE]
 3
@@ -2020,10 +2196,10 @@ mean [events-completed] of resources with [resource-type = RESPONSE]
 11
 
 MONITOR
-615
+610
+1020
+880
 1065
-870
-1110
 CID - mean #jobs completed p/officer
 mean [events-completed] of resources with [resource-type = CID]
 3
@@ -2031,10 +2207,10 @@ mean [events-completed] of resources with [resource-type = CID]
 11
 
 MONITOR
-615
-850
-795
-895
+610
+885
+790
+930
 CID Officers Available
 count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = CID]
 17
@@ -2042,10 +2218,10 @@ count resources with [resource-status = ON-DUTY-AVAILABLE and resource-type = CI
 11
 
 MONITOR
-805
-850
-1005
-895
+800
+885
+1000
+930
 CID Officers Responding
 count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = CID]
 17
@@ -2053,21 +2229,21 @@ count resources with [resource-status = ON-DUTY-RESPONDING and resource-type = C
 11
 
 MONITOR
-900
+895
+970
+1035
 1015
-1040
-1060
 Average CID Workload
-mean [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID]
+mean [(count current-event)] of resources with [resource-type = CID]
 3
 1
 11
 
 MONITOR
-900
+895
+1020
+1035
 1065
-1040
-1110
 Max CID Workload 
 max [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID]
 17
@@ -2075,10 +2251,10 @@ max [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILA
 11
 
 MONITOR
-901
-1119
-1041
-1164
+895
+1070
+1035
+1115
 Min CID Workload
 min [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILABLE or resource-status = ON-DUTY-RESPONDING) and resource-type = CID]
 17
@@ -2086,10 +2262,10 @@ min [(count current-event)] of resources with [(resource-status = ON-DUTY-AVAILA
 11
 
 PLOT
-1055
-930
-1704
-1080
+1145
+160
+1665
+280
 CID Mean Workload
 NIL
 NIL
@@ -2098,10 +2274,10 @@ NIL
 0.0
 5.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot mean [(count current-event)] of resources with [resource-type = CID]"
+"Workload" 1.0 0 -16777216 true "" "plot mean [(count current-event)] of resources with [resource-type = CID]"
 
 SWITCH
 10
@@ -2144,44 +2320,11 @@ non-crime-%-RESPONSE
 NIL
 HORIZONTAL
 
-MONITOR
-1275
-540
-1392
-585
-NIL
-viol-sex-demand
-17
-1
-11
-
-MONITOR
-1395
-540
-1510
-585
-NIL
-burg-demand
-17
-1
-11
-
-MONITOR
-1275
-590
-1390
-635
-NIL
-asb-demand
-17
-1
-11
-
 SWITCH
-195
-260
-440
-293
+206
+267
+451
+300
 response-safe-crewing-DAY
 response-safe-crewing-DAY
 1
@@ -2189,10 +2332,10 @@ response-safe-crewing-DAY
 -1000
 
 SWITCH
-195
-300
-442
-333
+206
+307
+453
+340
 response-safe-crewing-NIGHT
 response-safe-crewing-NIGHT
 0
@@ -2206,9 +2349,71 @@ SWITCH
 978
 HEADLESS
 HEADLESS
+0
+1
+-1000
+
+SWITCH
+210
+970
+455
+1003
+RESPONSE-RESOURCE-LINEAR
+RESPONSE-RESOURCE-LINEAR
+0
+1
+-1000
+
+SWITCH
+210
+1005
+455
+1038
+CID-RESOURCE-LINEAR
+CID-RESOURCE-LINEAR
 1
 1
 -1000
+
+SWITCH
+210
+935
+455
+968
+Expert-CID-Allocation
+Expert-CID-Allocation
+0
+1
+-1000
+
+PLOT
+1145
+25
+1665
+150
+Events Ongoing
+Ongoing Events
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"CID-Ongoing" 1.0 0 -2674135 true "" ""
+"RESPONSE-Ongoing" 1.0 0 -13345367 true "" ""
+
+TEXTBOX
+520
+975
+590
+993
+Workload
+13
+0.0
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

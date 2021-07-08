@@ -22,4 +22,11 @@
 module load java/13.0.1
 
 ~/NetLogo\ 6.2.0/netlogo-headless.sh --model event-response-with-shifts.nlogo --setup-file $1
+# get expt name
+name=$(./get-expt-name.py $1)
+# copy expt file into output directory
+cp $1 model-output/$name/
+# tar the output directory
+tar vczf model-output/$name-$(date +"%Y-%m-%d_%X").tgz model-output/$name/
+rm -rf model-output/$name
 
