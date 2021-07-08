@@ -45,8 +45,8 @@ def set_loading(f, category=None):
   no.log("Setting %s loading to %f" % (category, f))
   return model.set_loading(f, category)
 
-def get_loading(category_or_type):
-  return model.get_loading(category_or_type)
+def get_loading(crime_type):
+  return model.get_loading(crime_type)
 
 
 # TODO might be worth passing the ABM timestep size here
