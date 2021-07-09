@@ -1,8 +1,3 @@
-; FIX REQUIRED - WHAT SHOULD WE DO IF A DOUBLE CREWED EVENT IS TRANSFERRED INTO THE DAY SHIFT - KEEP DOUBLE CREWING?
-; IF 20 CID EVENTS IN SHIFT 1 should they all be distributed amongst the currently active CID officers - or should some from another shift be allocated jobs to start when their shift starts?
-
-
-
 extensions [csv table time pathdir py]
 
 globals
@@ -1461,137 +1456,6 @@ end
 
 
 
-
-
-
-
-
-
-
-;to calc-resource-split-by-hr
-;
-;
-;
-;  let othertheft sum ask resources [time-spent-on-offence "Other-theft"]
-;
-;
-;end
-;
-;
-;
-;
-;
-;; agent method to return how much time spent on specified offence in the last hour
-;to-report time-spent-on-offence [ offence ]
-;
-;  let tmp ""
-;  let num-jobs count current-event ; how many jobs is this officer working on - this dictates how much can be devoted to each per hour
-;
-;  (ifelse
-;    num-jobs = 0 [ report 0 ] ; no jobs SHOULDN@T NEED THIS - COULD JUST ASK RESPONDING OFFICERS TO CALL THIS
-;
-;    num-jobs = 1
-;    [
-;      print "just one job"
-;      ;current event should a single agent agentset
-;      ask current-event
-;      [
-;        set tmp event-type
-;        print tmp
-;        print offence
-;      ]
-;      ifelse tmp = offence
-;      [ report 1 ]
-;      [ report 0 ]
-;    ]
-;
-;    num-jobs > 1
-;    [
-;      print "more than one job"
-;      let count_offence 0 ; to count the number of jobs with type 'offence' - i.e. an officer might be working on 3 crimes all of the same type or some mix
-;
-;      let workload 1 / num-jobs ; how much per hour per job - 4 concurrent jobs = 1/4hr per job
-;
-;      ;this should be a multi agent agentset
-;      ask current-event
-;      [
-;        set tmp event-type
-;        print tmp
-;        print offence
-;        if tmp = offence
-;        [ set count_offence count_offence + 1 ]
-;      ]
-;      report count_offence * workload ; times the number of instances of that crime by the workload per hour per job  - so 3 jobs - workload = 1/3 hour, 2 that match offence - thus report 2/3
-;    ]
-;  )
-;
-;end
-
-
-
-;to-report equal-ignore-case? [ str1 str2 ]
-;
-;  if (length str1 != length str2) [ report false ]
-;
-;  foreach (range length str1) [ i ->
-;    let c1 (item i str1)
-;    let c2 (item i str2)
-;    ; if c1 = c2, no need to do the `to-upper-char` stuff
-;    if (c1 != c2 and to-upper-char c1 != to-upper-char c2) [
-;      report false
-;    ]
-;  ]
-;  report true
-;end
-;
-;; this only works with a string length 1
-;to-report to-upper-char [ c ]
-;  let lower "abcdefghijklmnopqrstuvwxyz"
-;  let upper "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-;
-;  let pos (position c lower)
-;  report ifelse-value (is-number? pos) [ item pos upper ] [ c ]
-;end
-
-
-
-;Anti-social behaviour
-;plot count events with [event-type = "Anti-social behaviour"]
-;Bicycle theft
-;plot count events with [event-type = "Bicycle theft"]
-;Burglary
-;plot count events with [event-type = "Burglary"]
-;Criminal damage and arson
-;plot count events with [event-type = "Criminal damage and arson"]
-;Drugs
-;plot count events with [event-type = "Drugs"]
-;Other crime
-;plot count events with [event-type = "Other crime"]
-;Other theft
-;plot count events with [event-type = "Other theft"]
-;Possession of weapons
-;plot count events with [event-type = "Possession of weapons"]
-;Public order
-;plot count events with [event-type = "Public order"]
-;Robbery
-;plot count events with [event-type = "Robbery"]
-;Shoplifting
-;plot count events with [event-type = "Shoplifting"]
-;Theft from the person
-;plot count events with [event-type = "Theft from the person"]
-;Vehicle crime
-;plot count events with [event-type = "Vehicle crime"]
-;Violence and sexual offences
-;plot count events with [event-type = "Violence and sexual offences"]
-
-
-
-
-
-
-
-
-
 ;if event-type = "Anti-social behaviour"
 ;if event-type = "Bicycle theft"
 ;if event-type = "Burglary"
@@ -1627,7 +1491,7 @@ GRAPHICS-WINDOW
 190
 350
 463
-915
+995
 -1
 -1
 26.5
@@ -1643,7 +1507,7 @@ GRAPHICS-WINDOW
 0
 9
 0
-20
+23
 0
 0
 1
