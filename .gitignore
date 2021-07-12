@@ -15,6 +15,7 @@ data/
 !data/weekly-weights.csv.enc
 !data/policeuk-ons-code-join.csv
 !data/detailed-offence-counts.csv
+!data/default-loading-factors.csv
 doc/annual*.png
 doc/monthly*.png
 doc/weekly*.png

@@ -1,0 +1,135 @@
+category,type,loading
+anti-social behaviour,anti-social behaviour,1.0
+bicycle theft,theft or unauthorised taking of a pedal cycle,1.0
+burglary,aggravated burglary business and community,1.0
+burglary,aggravated burglary residential,1.0
+burglary,aggravated burglary in a building other than a dwelling(outcome only),1.0
+burglary,aggravated burglary in a dwelling (outcome only),1.0
+burglary,attempted burglary business and community,1.0
+burglary,attempted burglary residential,1.0
+burglary,attempted distraction burglary residential,1.0
+burglary,attempted burglary in a building other than a dwelling (outcome only),1.0
+burglary,attempted burglary in a dwelling (outcome only),1.0
+burglary,attempted distraction burglary in a dwelling (outcome only),1.0
+burglary,burglary business and community,1.0
+burglary,burglary residential,1.0
+burglary,burglary in a building other than a dwelling (outcome only),1.0
+burglary,burglary in a dwelling(outcome only),1.0
+burglary,distraction burglary residential,1.0
+burglary,distraction burglary in a dwelling (outcome only),1.0
+criminal damage and arson,arson endangering life,1.0
+criminal damage and arson,arson not endangering life,1.0
+criminal damage and arson,criminal damage to a building other than a dwelling,1.0
+criminal damage and arson,criminal damage to a dwelling,1.0
+criminal damage and arson,criminal damage to a vehicle,1.0
+criminal damage and arson,other criminal damage,1.0
+criminal damage and arson,racially or religiously aggravated criminal damage,1.0
+drugs,other drug offences,1.0
+drugs,possession of controlled drugs (cannabis),1.0
+drugs,possession of controlled drugs (excl. cannabis),1.0
+drugs,trafficking in controlled drugs,1.0
+other crime,absconding from lawful custody,1.0
+other crime,aiding suicide,1.0
+other crime,bail offences,1.0
+other crime,bigamy,1.0
+other crime,concealing an infant death close to birth,1.0
+other crime,dangerous driving,1.0
+other crime,"disclosure, obstruction, false or misleading statements etc",1.0
+other crime,exploitation of prostitution,1.0
+other crime,forgery or use of false drug prescription,1.0
+other crime,"fraud, forgery etc associated with vehicle or driver records",1.0
+other crime,"going equipped for stealing, etc",1.0
+other crime,handling stolen goods,1.0
+other crime,"making, supplying or possessing articles for use in fraud",1.0
+other crime,obscene publications etc,1.0
+other crime,offender management act offences,1.0
+other crime,other forgery,1.0
+other crime,other notifiable offences,1.0
+other crime,perjury,1.0
+other crime,perverting the course of justice,1.0
+other crime,possession of false documents,1.0
+other crime,profiting from or concealing knowledge of the proceeds of crime,1.0
+other crime,soliciting for the purposes of prostitution,1.0
+other crime,threat or possession with intent to commit criminal damage,1.0
+other crime,wildlife,1.0
+other theft,blackmail,1.0
+other theft,dishonest use of electricity,1.0
+other theft,making off without payment,1.0
+other theft,other theft,1.0
+other theft,theft by an employee,1.0
+other theft,theft from automatic machine or meter,1.0
+other theft,theft in a dwelling other than from an automatic machine or meter,1.0
+other theft,theft of mail,1.0
+possession of weapons,other firearms offences,1.0
+possession of weapons,other knives offences,1.0
+possession of weapons,possession of article with blade or point,1.0
+possession of weapons,possession of firearms offences,1.0
+possession of weapons,possession of firearms with intent,1.0
+possession of weapons,possession of other weapons,1.0
+public order,other offences against the state or public order,1.0
+public order,"public fear, alarm or distress",1.0
+public order,"racially or religiously aggravated public fear, alarm or distress",1.0
+public order,violent disorder,1.0
+robbery,robbery of business property,1.0
+robbery,robbery of personal property,1.0
+shoplifting,shoplifting,1.0
+theft from the person,theft from the person,1.0
+vehicle crime,aggravated vehicle taking,1.0
+vehicle crime,interfering with a motor vehicle,1.0
+vehicle crime,theft from vehicle,1.0
+vehicle crime,theft or unauthorised taking of motor vehicle,1.0
+violence and sexual offences,abuse of children through sexual exploitation,1.0
+violence and sexual offences,abuse of position of trust of a sexual nature,1.0
+violence and sexual offences,causing sexual activity without consent,1.0
+violence and sexual offences,exposure and voyeurism,1.0
+violence and sexual offences,incest or familial sexual offences,1.0
+violence and sexual offences,other miscellaneous sexual offences,1.0
+violence and sexual offences,rape of a female - multiple undefined offenders,1.0
+violence and sexual offences,rape of a male - multiple undefined offenders,1.0
+violence and sexual offences,rape of a female aged 16 and over,1.0
+violence and sexual offences,rape of a female child under 13,1.0
+violence and sexual offences,rape of a female child under 16,1.0
+violence and sexual offences,rape of a male aged 16 and over,1.0
+violence and sexual offences,rape of a male child under 13,1.0
+violence and sexual offences,rape of a male child under 16,1.0
+violence and sexual offences,sexual activity etc with a person with a mental disorder,1.0
+violence and sexual offences,sexual activity involving a child under 13,1.0
+violence and sexual offences,sexual activity involving child under 16,1.0
+violence and sexual offences,sexual assault on a female aged 13 and over,1.0
+violence and sexual offences,sexual assault on a female child under 13,1.0
+violence and sexual offences,sexual assault on a male aged 13 and over,1.0
+violence and sexual offences,sexual assault on a male child under 13,1.0
+violence and sexual offences,sexual grooming,1.0
+violence and sexual offences,trafficking for sexual exploitation,1.0
+violence and sexual offences,unnatural sexual offences,1.0
+violence and sexual offences,assault with injury,1.0
+violence and sexual offences,assault with injury on a constable,1.0
+violence and sexual offences,assault with intent to cause serious harm,1.0
+violence and sexual offences,assault without injury,1.0
+violence and sexual offences,assault without injury on a constable,1.0
+violence and sexual offences,attempted murder,1.0
+violence and sexual offences,causing death by aggravated vehicle taking,1.0
+violence and sexual offences,causing death by careless driving under influence of drink or drugs,1.0
+violence and sexual offences,causing death by careless or inconsiderate driving,1.0
+violence and sexual offences,causing death by driving: unlicensed or disqualified or uninsured drivers,1.0
+violence and sexual offences,causing death or serious injury by dangerous driving,1.0
+violence and sexual offences,causing or allowing death of child or vulnerable person,1.0
+violence and sexual offences,child abduction,1.0
+violence and sexual offences,conspiracy to murder,1.0
+violence and sexual offences,corporate manslaughter,1.0
+violence and sexual offences,cruelty to children/young persons,1.0
+violence and sexual offences,endangering life,1.0
+violence and sexual offences,harassment,1.0
+violence and sexual offences,infanticide,1.0
+violence and sexual offences,intentional destruction of a viable unborn child,1.0
+violence and sexual offences,kidnapping,1.0
+violence and sexual offences,malicious communications,1.0
+violence and sexual offences,manslaughter,1.0
+violence and sexual offences,modern slavery,1.0
+violence and sexual offences,murder,1.0
+violence and sexual offences,procuring illegal abortion,1.0
+violence and sexual offences,racially or religiously aggravated assault with injury,1.0
+violence and sexual offences,racially or religiously aggravated assault without injury,1.0
+violence and sexual offences,racially or religiously aggravated harassment,1.0
+violence and sexual offences,stalking,1.0
+violence and sexual offences,threats to kill,1.0

@@ -68,10 +68,10 @@ class CrimeMicrosim(no.Model):
     if name is None:
       # change all values
       self.__loading.loading = f
-    elif name in self.__loading.index.levels[0]:
+    elif name.lower() in self.__loading.index.levels[0]:
       # change loading for all crime types in a category
       self.__loading.loc[self.__loading.index.get_level_values("category") == name.lower(), "loading"] = f
-    elif name in self.__loading.index.levels[1]:
+    elif name.lower() in self.__loading.index.levels[1]:
       # change loading for a specific crime type
       self.__loading.loc[self.__loading.index.get_level_values("type") == name.lower(), "loading"] = f
     else:

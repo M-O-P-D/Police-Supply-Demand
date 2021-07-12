@@ -13,6 +13,7 @@ force = "City of London"
 # model will run for 12 months initially
 model = model.CrimeMicrosim(0, force, start, burn_in=1)
 
+#model.loading_factors.to_csv("data/default_loading_factors.csv")
 
 model.set_loading(0.5)
 
@@ -26,4 +27,7 @@ print(model.get_loading("ANti-SOCial behaviouR"))
 #print(model.get_loading("bicycle theft"))
 print(model.get_loading("theft or unauthorised taking of a pedal cycle"))
 
-print(model.loading_factors)
+print(model.set_loading(1.23456, "Burglary residential"))
+print(model.get_loading("Burglary residential"))
+
+print(model.loading_factors.loc[("burglary",)])
