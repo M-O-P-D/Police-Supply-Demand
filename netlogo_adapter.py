@@ -69,8 +69,8 @@ def init_model(run_no, force_area, year, month, initial_loading, burn_in):
 
   # monthly open-ended timeline (run_no is used to seed the mc)
   model = CrimeMicrosim(run_no, force_area, (year, month), burn_in=burn_in)
-  no.log("Initialised crime model in %s at %s" % (force_area, model.timeline().time()))
-  no.log("MC seed=%d" % model.mc().seed())
+  no.log("Initialised crime model in %s at %s" % (force_area, model.timeline.time()))
+  no.log("MC seed=%d" % model.mc.seed())
   # simulate the first month
   model.set_loading(initial_loading)
   no.run(model)
@@ -83,8 +83,8 @@ def get_crimes(start, end):
   te = datetime.strptime(end, TIME_FORMAT)
 
   # NB model time is the start of the *next* (as yet unsampled) timestep
-  if ts >= model.timeline().time():
-    no.log("Sampling crimes in %s for month beginning %s..." % (model.force_area(), model.timeline().time()))
+  if ts >= model.timeline.time():
+    no.log("Sampling crimes in %s for month beginning %s..." % (model.force_area(), model.timeline.time()))
     no.run(model)
     no.log("Sampling complete")
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
   model.set_loading(0.1)
   model.set_loading(10.0, "drugs")
 
-  t = model.timeline().start()
+  t = model.timeline.start()
 
   ts = t
 

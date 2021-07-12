@@ -56,7 +56,7 @@ p = subcats.proportion.values
 
 m = no.Model(no.NoTimeline(), no.MonteCarlo.deterministic_identical_stream)
 print("%g" % (subcats.proportion.sum()-1.0))
-s = m.mc().sample(100, subcats.proportion.values/subcats.proportion.sum())
+s = m.mc.sample(100, subcats.proportion.values/subcats.proportion.sum())
 print(subcats.iloc[s].index)
 
 print(counts.index.levels[1].unique())

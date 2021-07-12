@@ -49,8 +49,8 @@ class CrimeMicrosim(no.Model):
   def step(self):
 
     crimes = self.__sample_crimes().sort_values(by="time")
-    no.log("Sampled %d crimes in month beginning %s" % (len(crimes), self.timeline().time()))
-    if self.__burn_in > self.timeline().index():
+    no.log("Sampled %d crimes in month beginning %s" % (len(crimes), self.timeline.time()))
+    if self.__burn_in > self.timeline.index():
       # append crimes during burn-in period
       self.crimes = self.crimes.append(crimes)
     else:
@@ -58,8 +58,8 @@ class CrimeMicrosim(no.Model):
       self.crimes = crimes
 
   def check(self):
-    #no.log(self.timeline().index())
-    if self.__burn_in <= self.timeline().index():
+    #no.log(self.timeline.index())
+    if self.__burn_in <= self.timeline.index():
       # yield to calling process
       self.halt()
     return True
@@ -93,13 +93,13 @@ class CrimeMicrosim(no.Model):
   def __sample_crimes(self):
     # simulate crimes from a non-homogeneous Poisson process using a lambda derived
     # from geographical and historical/seasonal incidence for each crime type, with weekly and daily periodicities superimposed
-    t = self.timeline().time()
+    t = self.timeline.time()
     # NB Mo=0, Su=6
     start_weekday, days_in_month = monthrange(t.year, t.month)
     periods_in_day = 3 # night (0:00-8:00) day (8:00-4:00), evening (4:00-0:00)
     periods = days_in_month * periods_in_day
     # this is the time resolution of the lambdas in the nonhomogeneous Poisson process
-    dt = self.timeline().dt() / periods
+    dt = self.timeline.dt() / periods
     secs_per_year = 365.2475 * 86400 # consistent with dt() implementation
 
     # force column ordering
@@ -122,10 +122,10 @@ class CrimeMicrosim(no.Model):
             # impose daily/weekly periodicity of the subtype to the scaled intensity for the type, and adjust by loading factor
             lambdas = intensity * time_weights * self.get_loading(crime_type.description)
             lambdas = np.append(lambdas, 0.0)
-            times = self.mc().arrivals(lambdas, dt, 1, 0.0)[0]
+            times = self.mc.arrivals(lambdas, dt, 1, 0.0)[0]
             if len(times) > 0:
               d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
-              s = self.mc().hazard(p_suspect, len(times)).astype(bool)
+              s = self.mc.hazard(p_suspect, len(times)).astype(bool)
               df = pd.DataFrame(index=no.df.unique_index(len(d)), data={"MSOA": g,
                                                           "crime_category": cat,
                                                           "code": crime_type.code_original,
@@ -142,7 +142,7 @@ class CrimeMicrosim(no.Model):
 
 
   def finalise(self):
-    no.log("Sampling ended at %s (step %d, timeline end=%s)" % (self.timeline().time(), self.timeline().index(), self.timeline().end()))
+    no.log("Sampling ended at %s (step %d, timeline end=%s)" % (self.timeline.time(), self.timeline.index(), self.timeline.end()))
 
 
 
