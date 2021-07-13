@@ -1,5 +1,5 @@
 <experiments>
-  <experiment name="minus30" repetitions="1" runMetricsEveryStep="true">
+  <experiment name="less_BDW-minus30" repetitions="1" runMetricsEveryStep="true">
     <setup>
       setup
       py:run "set_loading(0.7, 'Burglary Residential')"
