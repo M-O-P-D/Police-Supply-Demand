@@ -9,12 +9,14 @@ from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 load_dotenv()
 
+
 # get key from environment (use .env file)
 def _get_key():
   key = os.getenv("CRIMS_ENCRYPTION_KEY")
   if key is None:
     raise EnvironmentError("CRIMS_ENCRYPTION_KEY not set")
   return key
+
 
 def encrypt_csv(dataframe, filename, **kwargs):
   """ Encrypts a csv format dataframe and saves to filesystem
@@ -29,6 +31,7 @@ def encrypt_csv(dataframe, filename, **kwargs):
   # Write the encrypted file
   with open(filename, 'wb') as fd:
     fd.write(encrypted)
+
 
 def decrypt_csv(data_file, **kwargs):
   """ Loads a dataframe from an encrypted csv file

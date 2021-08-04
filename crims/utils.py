@@ -6,10 +6,12 @@ from pathlib import Path
 from .encryption import decrypt_csv
 
 # this needs to be overridden if run from a directory other than the project root
-DEFAULT_DATA_PATH="./data"
+DEFAULT_DATA_PATH = "./data"
+
 
 def get_data_path(filename=""):
   return Path(os.getenv("CRIMS_DATA_PATH", DEFAULT_DATA_PATH)) / filename
+
 
 # inclusive range of months
 def month_range(start_year, start_month, end_year, end_month):
@@ -29,6 +31,7 @@ def month_range(start_year, start_month, end_year, end_month):
       break
   return d
 
+
 # decorator for creating static function variables
 def static_vars(**kwargs):
   def decorate(func):
@@ -37,17 +40,18 @@ def static_vars(**kwargs):
     return func
   return decorate
 
+
 @static_vars(weekly_weights=decrypt_csv(get_data_path("weekly-weights.csv.enc")))
 def get_periodicity(dow_adj, days_in_month, category):
 
-  cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code==category][["period", "count_mean"]]
+  cycle = get_periodicity.weekly_weights[get_periodicity.weekly_weights.xcor_code == category][["period", "count_mean"]]
 
   # if no data assume no daily/weekly periodicity
   if cycle.empty:
     return np.ones(3 * days_in_month)
 
   # align and repeat week to the current month. NB Mo=0, Su=6
-  weights = np.tile(np.roll(cycle.count_mean, -3*dow_adj), 5)[:3*days_in_month]
+  weights = np.tile(np.roll(cycle.count_mean, -3 * dow_adj), 5)[:3 * days_in_month]
 
   # renormalise to mean weight of 1 - this is a scaling factor applied to the monthly intensity
   weights *= len(weights) / weights.sum()
@@ -56,15 +60,17 @@ def get_periodicity(dow_adj, days_in_month, category):
 
 
 def lad_lookup(lads, subgeog_name):
-  lookup = pd.read_csv(get_data_path("gb_geog_lookup.csv.gz"), dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
-     "LAD_NOMIS": int, "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
+  lookup = pd.read_csv(get_data_path("gb_geog_lookup.csv.gz"),
+                       dtype={"OA": str, "LSOA": str, "MSOA": str, "LAD": str, "LAD_NAME": str, "LAD_NOMIS": int,
+                              "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
   lad_lookup = lookup[lookup.LAD.isin(lads)][[subgeog_name, "LAD"]].drop_duplicates().set_index(subgeog_name, drop=True)
   return lad_lookup
 
 
 def msoa_from_lsoa(lsoas):
-  lookup = pd.read_csv(get_data_path("gb_geog_lookup.csv.gz"), dtype={"OA":str, "LSOA":str, "MSOA":str, "LAD":str, "LAD_NAME":str,
-     "LAD_NOMIS": int, "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
+  lookup = pd.read_csv(get_data_path("gb_geog_lookup.csv.gz"),
+                       dtype={"OA": str, "LSOA": str, "MSOA": str, "LAD": str, "LAD_NAME": str, "LAD_NOMIS": int,
+                              "LAD_CM_NOMIS": int, "LAD_CM": str, "LAD_URBAN": str})
   msoa_lookup = lookup[lookup.LSOA.isin(lsoas)][["LSOA", "MSOA"]].drop_duplicates().set_index("LSOA", drop=True)
   return msoa_lookup
 
@@ -121,10 +127,11 @@ def standardise_force_name(name):
   }
 
   # just return the input if is a value in the map (i.e. already standardised)
-  if name in mapping.values(): return name
+  if name in mapping.values():
+    return name
 
   return mapping[name]
-  #return mapping.get(name)
+
 
 def standardise_category_name(typestr):
   return typestr.lower()
@@ -154,6 +161,7 @@ def map_code(original_code):
 
   return mapping.get(original_code, original_code)
 
+
 # Using the lastest ONS data, when it works
 def get_category_subtypes():
 
@@ -174,7 +182,9 @@ def get_category_subtypes():
   # remove extraneous and rename for consistency
   non_geographic = ['Action Fraud', 'British Transport Police', 'CIFAS', 'UK Finance']
   raw = raw[~raw["Force Name"].isin(non_geographic)].drop(["Financial Year", "Financial Quarter", "Offence Subgroup"], axis=1) \
-    .rename({"Force Name": "force", "Offence Group": "category", "Offence Description": "description", "Offence Code": "code_original", "Number of Offences": "count"}, axis=1)
+                                                    .rename({"Force Name": "force", "Offence Group": "category",
+                                                             "Offence Description": "description", "Offence Code": "code_original",
+                                                             "Number of Offences": "count"}, axis=1)
 
   # duplicate code column and modify values that don't match the codes in the severity scores
   raw["code_severity"] = raw.code_original.apply(map_code)
@@ -189,7 +199,8 @@ def get_category_subtypes():
   cats = raw.groupby(["force", "category", "description", "code_original"]).sum().reset_index()
 
   # NOTE: left join means that crime types in cat_mapping that are not in cats are dropped e.g. 4.10
-  cats = pd.merge(cats, cat_mapping, how="left", left_on="code_original", right_on="ONS_COUNTS_code").set_index(["force", "POLICE_UK_CAT_MAP_category"]).drop(["category"], axis=1)
+  cats = pd.merge(cats, cat_mapping, how="left", left_on="code_original", right_on="ONS_COUNTS_code") \
+    .set_index(["force", "POLICE_UK_CAT_MAP_category"]).drop(["category"], axis=1)
 
   # now append antisocial behaviour
   asb = pd.DataFrame({"force": raw.force.unique(),
@@ -197,16 +208,15 @@ def get_category_subtypes():
                       "description": "Anti-social behaviour",
                       "code_original": "(asb)",
                       "ONS_SEVERITY_weight": 1.0,
-                      "count": 1}) \
-    .set_index(["force", "POLICE_UK_CAT_MAP_category"])
+                      "count": 1}).set_index(["force", "POLICE_UK_CAT_MAP_category"])
   cats = cats.append(asb)
 
   # WORKAROUND for -ve values in data: floor the aggregated count at zero
   # See https://github.com/M-O-P-D/Police-Supply-Demand/issues/14 for more info
   cats["count"] = cats["count"].clip(0, None)
-  
+
   # turn counts into per-category proportions
-  cat_totals = cats[["count"]].groupby(level=[0,1]).sum()
+  cat_totals = cats[["count"]].groupby(level=[0, 1]).sum()
   cats = pd.merge(cats, cat_totals, left_index=True, right_index=True, suffixes=["", "_total"])
   cats["proportion"] = cats["count"] / cats.count_total
 

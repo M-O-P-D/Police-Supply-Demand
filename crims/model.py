@@ -5,8 +5,8 @@ from datetime import date
 from calendar import monthrange
 from dateutil.relativedelta import relativedelta
 from .crime import Crime
-#from .streamer import DataStream
 from .utils import get_periodicity
+
 
 class CrimeMicrosim(no.Model):
   def __init__(self, run_no, force_area, start, end=None, burn_in=None):
@@ -35,10 +35,7 @@ class CrimeMicrosim(no.Model):
     self.__loading["loading"] = 1.0
     self.__loading.description = self.__loading.description.apply(lambda s: s.lower())
     self.__loading.set_index("description", append=True, inplace=True) # POLICE_UK_CAT_MAP_category
-    self.__loading.index.names=["category", "type"]
-
-    # upstream model
-    #self.datastream = DataStream("http://localhost:5000")
+    self.__loading.index.names = ["category", "type"]
 
     self.crimes = pd.DataFrame()
 
@@ -58,7 +55,7 @@ class CrimeMicrosim(no.Model):
       self.crimes = crimes
 
   def check(self):
-    #no.log(self.timeline.index())
+    # no.log(self.timeline.index())
     if self.__burn_in <= self.timeline.index():
       # yield to calling process
       self.halt()
@@ -117,22 +114,23 @@ class CrimeMicrosim(no.Model):
           if self.__crime_rates.index.isin([(g, cat)]).any():
             intensity = self.__crime_rates.loc[(g, cat), ("count", "%02d" % t.month)]
             # only have suspect likelihood for broad category
-            p_suspect = self.__crime_outcomes.loc[(g,cat), "pSuspect"]
+            p_suspect = self.__crime_outcomes.loc[(g, cat), "pSuspect"]
 
             # impose daily/weekly periodicity of the subtype to the scaled intensity for the type, and adjust by loading factor
             lambdas = intensity * time_weights * self.get_loading(crime_type.description)
             lambdas = np.append(lambdas, 0.0)
             times = self.mc.arrivals(lambdas, dt, 1, 0.0)[0]
             if len(times) > 0:
-              d = [t + relativedelta(seconds=time*secs_per_year) for time in times]
+              d = [t + relativedelta(seconds=time * secs_per_year) for time in times]
               s = self.mc.hazard(p_suspect, len(times)).astype(bool)
-              df = pd.DataFrame(index=no.df.unique_index(len(d)), data={"MSOA": g,
-                                                          "crime_category": cat,
-                                                          "code": crime_type.code_original,
-                                                          "description": crime_type.description,
-                                                          "time": d,
-                                                          "suspect": s,
-                                                          "severity": crime_type.ONS_SEVERITY_weight })
+              df = pd.DataFrame(index=no.df.unique_index(len(d)),
+                                data={"MSOA": g,
+                                      "crime_category": cat,
+                                      "code": crime_type.code_original,
+                                      "description": crime_type.description,
+                                      "time": d,
+                                      "suspect": s,
+                                      "severity": crime_type.ONS_SEVERITY_weight})
               crimes = crimes.append(df)
 
     # round to nearest minute
@@ -140,10 +138,5 @@ class CrimeMicrosim(no.Model):
     crimes["time"] = crimes["time"].round("min")
     return crimes
 
-
   def finalise(self):
     no.log("Sampling ended at %s (step %d, timeline end=%s)" % (self.timeline.time(), self.timeline.index(), self.timeline.end()))
-
-
-
-

@@ -1,10 +1,15 @@
 # Police-Supply-Demand
 
+[![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://opensource.org/licenses/MIT)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/f29d723afc084116a1e98c8e634259aa)](https://www.codacy.com/gh/M-O-P-D/Police-Supply-Demand/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=M-O-P-D/Police-Supply-Demand&amp;utm_campaign=Badge_Grade)
+
 ![workflow](./doc/workflow.svg)
 
 Policing and Crime supply-demand modelling using an agent based model of police resourcing driven by a microsimulation of crime incidence.
 
 The agent-based model and the microsimulation components are now integrated into a single repo, simplifying execution. You just need to have netlogo and python 3 installed.
+
+**NOTE: In order to run the model, you will need to be able to access encrypted data. See below for further instructions.**
 
 ## Agent-based model
 
@@ -90,8 +95,6 @@ Uses the **police-api-client** <sup>[[3]](#references)</sup> and the **police op
 - [Crime severity scores](https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics)
 
 NB Although none of the data here contains any personally identifiable information, some is encrypted as a precaution and the encryption key is **NOT** provided in the repo, but may be provided on request.
-
-In order to run the model, you will need to be able to access encrypted data. See below for further instructions
 
 ### Mapping crime types to counts and severity weights
 

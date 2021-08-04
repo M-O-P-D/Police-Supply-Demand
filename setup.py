@@ -1,8 +1,10 @@
 from setuptools import setup
 
+
 def requirements():
   with open("requirements.txt") as f:
     return f.read().splitlines()
+
 
 setup(
   name="Police-Supply-Demand",

@@ -1,14 +1,13 @@
-#crime.py
-
 from zipfile import ZipFile
 import requests
 import numpy as np
 import pandas as pd
 from scipy import stats
 # appears that this is no longer working
-#from police_api import PoliceAPI
+# from police_api import PoliceAPI
 
 from .utils import month_range, msoa_from_lsoa, standardise_force_name, standardise_category_name, get_category_subtypes, get_data_path
+
 
 class Crime:
 
@@ -44,7 +43,6 @@ class Crime:
     'n/a': False
   }
 
-
   # TODO this breaks if not a whole number of years
   """ Class to hold raw crime data and process it as necessary. The dataset is large so loading it is expensive """
   def __init__(self, force_name, years_of_data, end_year, end_month):
@@ -54,7 +52,7 @@ class Crime:
     # self.month = month
     self.original_force_name = force_name
     self.force_name = standardise_force_name(force_name)
-    #self.api = PoliceAPI()
+    # self.api = PoliceAPI()
     self.data = Crime.__get_raw_data(self.force_name, self.years_of_data, end_year, end_month)
     self.data["SuspectDemand"] = self.data["Last outcome category"].apply(lambda c: Crime.__outcomes_mapping[c])
     # assume annual cycle and aggregate years
@@ -99,7 +97,7 @@ class Crime:
     if not local_file.is_file():
       print("Data not found locally, downloading...")
       r = requests.get("https://data.police.uk/data/archive/%s" % file)
-      open(local_file , 'wb').write(r.content)
+      open(local_file, 'wb').write(r.content)
       print("...saved to %s" % local_file)
 
     z = ZipFile(local_file)
@@ -114,11 +112,10 @@ class Crime:
 
     return pd.merge(data, msoas, left_on="LSOA code", right_index=True)
 
-
   def get_crime_counts(self):
     """ New version that uses a Bayesian inference with an unweighted (flat) prior """
 
-    alpha = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
+    alpha = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
     # TODO sample annual variability? 3 counts will give *some* indication?
 
@@ -126,9 +123,9 @@ class Crime:
     counts = self.data[["MSOA", "crime_type", "MonthOnly", "Crime ID"]]
 
     counts = counts.rename({"Crime ID": "count"}, axis=1) \
-      .groupby(["MSOA", "MonthOnly", "crime_type"]) \
-      .count() \
-      .unstack(level=1, fill_value=0)
+                   .groupby(["MSOA", "MonthOnly", "crime_type"]) \
+                   .count() \
+                   .unstack(level=1, fill_value=0)
 
     # ensure all data accounted for
     assert counts.sum().sum() == len(self.data)
@@ -153,7 +150,7 @@ class Crime:
       .rename({"Crime ID": "count"}, axis=1) \
       .groupby(["MSOA", "crime_type", "SuspectDemand"]) \
       .count() \
-      .unstack(level=2, fill_value=0) #.reset_index()
+      .unstack(level=2, fill_value=0)  # .reset_index()
 
     # # ensure all data accounted for
     assert outcomes.sum().sum() == len(self.data)

@@ -1,9 +1,9 @@
 import pandas as pd
 import ukpopulation.snppdata as SNPPData
-#import ukpopulation.myedata as MYEData
 import ukcensusapi.Nomisweb as CensusApi
 
 from .utils import lad_lookup
+
 
 def map_ages(df_syoa):
   # age mapping for DC2101EW
@@ -59,6 +59,7 @@ def map_ages(df_syoa):
 #   assert np.sum(array) == table[values].sum()
 #   return array
 
+
 def get_census_data(geogs):
   api = CensusApi.Nomisweb("~/.ukcensusapi")
 
@@ -105,6 +106,7 @@ def get_population_data(geogs):
 
   # got from single year of age to groups
   return map_ages(snpp_syoa)
+
 
 def get_scaled_population(geogs):
 
