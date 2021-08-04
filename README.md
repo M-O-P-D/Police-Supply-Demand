@@ -25,7 +25,6 @@ CriMS is the crime microsimulation component. *CriMS* is an evolution of **crime
 
 It uses the **neworder** <sup>[[5]](#references)</sup> microsimulation framework to run the model. It uses historical data to determine counts of crimes as a function of location (MSOA), time (month), and (broad) type, so can capture seasonal fluctuations in crime frequency. It then imposes further weekly and daily (8 hour) periodicity to the crime rate, enabling to sampling of crime incidences from a non-homogeneous Poisson process. Each crime occurrence is assigned a severity and whether a suspect has been identified. This synthetic crime data is fed into the agent-based model of Police operations which can alter its policies, potentially feeding back changes to crime rates that may result.
 
-
 ### Dependencies
 
 Clone the repo, optionally create a python environment (virtualenv or conda) and install the package:
@@ -40,7 +39,7 @@ To run the integrated model in headless mode on a compute cluster, see [batch](.
 
 To regression test both the ABM and crims models, first set `NETLOGO_HOME` in `.env` (or manually on command line) to your NetLogo installation path, then run:
 
-```
+```sh
 pytest
 ```
 
@@ -65,7 +64,6 @@ docker run --rm -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY --env-file 
 
 Above assumes you're using a `.env` file. If not, manually set the variable and replace `--env-file .env` with `-e CRIMS_ENCRYPTION_KEY=$CRIMS_ENCRYPTION_KEY`.
 
-
 ## Data Sources
 
 ### Agent-based model
@@ -75,7 +73,6 @@ TODO...
 ### Microsimulation
 
 #### Population Data
-
 
 Uses the **ukcensusapi** <sup>[[1]](#references)</sup> and **ukpopulation** <sup>[[2]](#references)</sup> packages to generate MSOA-level population data derived from the 2011 census and scaled to 2020 subnational population projections.
 
@@ -112,9 +109,9 @@ The mapping dataset is in [data/policeuk-ons-code-join.csv](./data/policeuk-ons-
 
 | File              | File Description                                                                                   | Download Location                                                                                                                         | Links to                    | Via Col(s)                                                                   | Linking Method | Column Prefix in Matched File |
 |-------------------|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------|------------------------------------------------------------------------------|----------------|-------------------------------|
-| ONS_COUNTS        | Detailed crime counts by ONS classification by police force area by calendar year                  | https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods | ONS_SEVERITY_               | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_COUNTS_                   |
-| ONS_SEVERITY      | ONS Crime Severity Scores by offence type                                                          | https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics                     | ONS_COUNTS_                 | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_SEVERITY_                 |
-| POLICE_UK_CAT_MAP | Mapping between Home Office Offence Codes and descriptions and the data.police.uk broad categories | https://www.police.uk/SysSiteAssets/police-uk/media/downloads/crime-categories/police-uk-category-mappings.csv                            | ONS_COUNTS_ & ONS_SEVERITY_ | POLICE_UK_CAT_MAP_Offence ~=~ ONS_SEVERITY_offence or ONS_COUNTS_description | Manual         | POLICE_UK_CAT_MAP_            |
+| ONS_COUNTS        | Detailed crime counts by ONS classification by police force area by calendar year                  | <https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/928924/prc-pfa-mar2013-onwards-tables.ods> | ONS_SEVERITY               | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_COUNTS_                   |
+| ONS_SEVERITY      | ONS Crime Severity Scores by offence type                                                          | <https://www.ons.gov.uk/peoplepopulationandcommunity/crimeandjustice/datasets/crimeseverityscoreexperimentalstatistics>                     | ONS_COUNTS                 | ONS_COUNTS_code == ONS_SEVERITY_code                                         | Programatic    | ONS_SEVERITY_                 |
+| POLICE_UK_CAT_MAP | Mapping between Home Office Offence Codes and descriptions and the data.police.uk broad categories | <https://www.police.uk/SysSiteAssets/police-uk/media/downloads/crime-categories/police-uk-category-mappings.csv>                            | ONS_COUNTS & ONS_SEVERITY | POLICE_UK_CAT_MAP_Offence ~=~ ONS_SEVERITY_offence or ONS_COUNTS_description | Manual         | POLICE_UK_CAT_MAP_            |
 
 ## Usage
 
@@ -133,7 +130,6 @@ conda env create -f conda-env.yml
 ```
 
 you may need to override `$PIP_REQUIRE_VIRTUALENV` if it's set to true
-
 
 (NB the above file is created using `conda env export > conda-env.yml`)
 
@@ -166,7 +162,6 @@ The model produces simulated crime data in four variables:
   - the type of the crime
   - whether a suspect has been identified
   - a severity score for the crime type
-
 
 ## Microsimulation app service
 

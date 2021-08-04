@@ -172,7 +172,7 @@ encrypt_csv(crime_weights, "data/weekly-weights.csv.enc")
 
 # check monthly aggregations have some consistency
 
-crime = Crime("Durham", 2017, 12, 2020, 11)
+crime = Crime("Durham", 3, 2020, 11)
 crime_categories = crime.get_category_breakdown()
 
 # check cats match up

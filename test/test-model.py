@@ -4,31 +4,31 @@ import neworder as no
 from crims import model
 
 import warnings
-warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj' )
+warnings.filterwarnings(action='ignore', category=FutureWarning, module=r'.*pyproj')
 
-#no.verbose()
+# no.verbose()
 
 start = (2021, 1)
-#end = (2022, 1)
-#force = "West Yorkshire"
-#force = "Durham"
+# end = (2022, 1)
+# force = "West Yorkshire"
+# force = "Durham"
 force = "City of London"
 
 # model will run for 12 months initially
 model = model.CrimeMicrosim(0, force, start, burn_in=12)
 
-#no.log(model.crime_rates.loc[("E02001109", "Anti-social behaviour")])
+# no.log(model.crime_rates.loc[("E02001109", "Anti-social behaviour")])
 
 # %%
 
-#print(df.loc[("E02001103", "Anti-social behaviour")])
+# print(df.loc[("E02001103", "Anti-social behaviour")])
 
 # bt = model.get_input().xs("bicycle theft", level="crime_type")[[("count","05")]]
 # print(bt)
 # #print(bt[[("count","05")]])
 # stop
 
-#model.set_loading(0.1)
+# model.set_loading(0.1)
 
 no.run(model)
 # 1 year of data (no burn-in)

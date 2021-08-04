@@ -7,13 +7,13 @@ from crims.encryption import encrypt_csv, decrypt_csv
 
 
 if __name__ == "__main__":
-  data_file="test/crime-sample.csv"
+  data_file = "test/crime-sample.csv"
 
   assert Path(data_file).is_file(), "Plaintext data file not found"
 
   df = pd.read_csv(data_file, index_col="id")
   print(df.head())
-  encrypt_csv(df, data_file+".enc")
+  encrypt_csv(df, data_file + ".enc")
 
   data_file += ".enc"
   assert Path(data_file).is_file(), "Encrypted data file not found"
@@ -33,5 +33,3 @@ if __name__ == "__main__":
 
   # remove the encrypted file
   os.remove(data_file)
-
-
